@@ -71,3 +71,27 @@ function addVehicleSection(event) {
     `;
     vehicleContainer.appendChild(newVehicle);
 }
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const roleRadios = document.querySelectorAll('input[name="userRole"]');
+        const additionalInfoSection = document.getElementById('additionalInfo');
+
+        // Fonction pour afficher/masquer les informations supplémentaires
+        function toggleAdditionalInfo() {
+            const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
+            if (selectedRole === 'Chauffeur' || selectedRole === 'Les 2') {
+                additionalInfoSection.style.display = 'block';
+            } else {
+                additionalInfoSection.style.display = 'none';
+            }
+        }
+
+        // Ajout d'un écouteur d'événement sur les boutons radio
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', toggleAdditionalInfo);
+        });
+
+        // Initialisation de l'affichage
+        toggleAdditionalInfo();
+    });
