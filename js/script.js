@@ -79,7 +79,7 @@ function showAndHideElementsForRoles(){
                 }
                 break;
                 case 'client': 
-                if(!userConnected || role != "client"){
+                if(!userConnected || role != "ROLE_USER"){
                     element.classList.add("d-none");
                 }
                 break;

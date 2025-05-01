@@ -72,6 +72,33 @@ function addVehicleSection(event) {
     vehicleContainer.appendChild(newVehicle);
 }
 
+async function getVehicle()
+{
+    try {
+        let myHeaders = new Headers();
+        myHeaders.append("X-AUTH-TOKEN", getToken());
+
+        let requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+            redirect: 'follow'
+        };
+
+        let response = await fetch(apiUrl+"vehicle/list", requestOptions);
+
+        if (response.ok) {
+            let result = await response.json();
+            return result;
+        } else {
+            console.log("Impossible de récupérer les véhicules utilisateur");
+        }
+    } catch (error) {
+        console.error("erreur lors de la récupération des véhicules de l'utilisateur", error);
+    }
+}
+
+console.log(getVehicle());
+
 
     document.addEventListener('DOMContentLoaded', function () {
         const roleRadios = document.querySelectorAll('input[name="userRole"]');
