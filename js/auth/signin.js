@@ -58,7 +58,6 @@ function checkCredentials(){
         body: raw,
         redirect: 'follow'
     };
-    console.log(requestOptions);
     fetch(apiUrl+"login", requestOptions)
     .then(response => {
         console.log(response);
