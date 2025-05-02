@@ -6,10 +6,10 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="personal-info-tab" data-bs-toggle="tab" data-bs-target="#personal-info" type="button" role="tab" aria-controls="personal-info" aria-selected="true">Mes informations personnelles</button>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item" role="presentation" data-show="client">
             <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab" aria-controls="preferences" aria-selected="false">Mes préférences</button>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item" role="presentation" data-show="client">
             <button class="nav-link" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab" aria-controls="vehicles" aria-selected="false">Mes véhicules</button>
         </li>
     </ul>
@@ -22,25 +22,48 @@
                 <!-- Section: Rôle utilisateur -->
                 <section class="mb-4">
                     <h2 class="fs-4">Informations personnelles</h2>
-                    <div class="mb-3">
-                        <label for="userRole" class="form-label">Votre rôle</label>
+                    <div class="mb-3" data-show="client">
+                        <label for="userRole" class="form-label">Vous êtes : </label>
                         <div>
-                            <input type="radio" class="form-check-input" id="rolePassenger" name="userRole" value="Passager" checked>
+                            <input type="radio" class="form-check-input" id="rolePassenger" name="userRole" value="Passager">
                             <label for="rolePassenger" class="form-check-label">Passager</label>
                             <input type="radio" class="form-check-input" id="roleDriver" name="userRole" value="Chauffeur">
                             <label for="roleDriver" class="form-check-label">Chauffeur</label>
                             <input type="radio" class="form-check-input" id="roleBoth" name="userRole" value="Les 2">
                             <label for="roleBoth" class="form-check-label">Les 2</label>
+                            <div class="invalid-feedback" id="roleNone" style="display: none;">
+                                Il faut choisir !
+                            </div>
                         </div>
                     </div>
                 </section>
         
-                <!-- Section: Pseudo et lien pour changer le mot de passe -->
-                <section class="mb-4">
+                <!-- Section: Pseudo-->
+                <section class="mb-4" data-show="client">
+                    <div class="mb-3">
+                        <label for="PhotoInput" class="form-label">Photo de profil</label>
+                        <br>
+                        <img src="/images/default-avatar.png" class="img-fluid rounded-circle mb-3" alt="Avatar" id="photo">
+                        <br>
+                        <input type="file" class="form-control" id="PhotoInput" value="" alt="" name="Photo">
+                    </div>
                     <div class="mb-3">
                         <label for="PseudoInput" class="form-label">Pseudo</label>
-                        <input type="text" class="form-control" id="PseudoInput" placeholder="Votre pseudo" value="John" name="Pseudo">
+                        <input type="text" class="form-control" id="PseudoInput" placeholder="Votre pseudo" name="Pseudo">
+                        <div class="invalid-feedback">Le pseudo est requis</div>
                     </div>
+                    <div class="mb-3">
+                        <label for="credits" class="form-label">Vos crédits disponibles</label><br>
+                        <span id="credits" name="credits"></span> <img src="/images/logo_credit_light.png" alt="Crédit" class="img-fluid" style="width: 20px; height: 20px;">
+                    </div>
+                    <!-- bouton pour envoyer le formulaire -->
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary" id="btnSubmitFormInfoUser">Enregistrer</button>
+                    </div>
+                </section>
+
+                <!-- section avec le lien pour changer le mot de passe-->
+                <section class="mb-4">
                     <div class="mb-3">
                         <a href="/editPassword" class="btn btn-link">Modifier mon mot de passe</a>
                     </div>

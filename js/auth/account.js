@@ -1,23 +1,120 @@
-// Fonction pour mettre à jour la photo de profil
-function updateProfilePhoto(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const profilePhoto = document.getElementById('profilePhoto');
-        const profileIcon = document.getElementById('profileIcon');
-        profilePhoto.src = URL.createObjectURL(file);
-        profilePhoto.classList.remove('d-none');
-        profileIcon.classList.add('d-none');
+const pseudoInput = document.getElementById("PseudoInput");
+const photo = document.getElementById("photo"); // Affichage de la photo
+const photoInput = document.getElementById("PhotoInput"); //form pour changer la photo
+const credits = document.getElementById("credits");
+const userRoleInput = document.getElementsByTagName("userRole");
+const passwordInput = document.getElementById("PasswordInput");
+const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
+
+// Fonction pour récupérer les infos de l'utilisateur, si il est passager, chauffeur ou les deux, son pseudo et la photo s'il y en a une
+async function getUserInfo() {
+    try {
+        let myHeaders = new Headers();
+        myHeaders.append("X-AUTH-TOKEN", getToken());
+        let requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+            redirect: 'follow'
+        };
+        let response = await fetch(apiUrl + "account/me", requestOptions);
+        if (response.ok) {
+            let result = await response.json();
+console.log(result);
+            // Vérification de la présence d'une photo
+            if (result.photo) {
+                result.photo = url + "uploads/photos/" + result.photo;
+            } else {
+                result.photo = "/images/default-avatar.png";
+            }
+            //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
+            if (result.roles[0] != "ROLE_USER" && result.isDriver == false && result.isPassenger == false) {
+                submitFormInfoUser.disabled = false;
+            }
+            //Si ni chauffeur ni passager, on bloque le bouton Enregistrer
+            if (result.isDriver == true && result.isPassenger == false) {
+                document.getElementById("userRoleDriver").checked = true;
+            } else if (result.isDriver == false && result.isPassenger == true) {
+                document.getElementById("userRolePassenger").checked = true;
+            } else if (result.isDriver == true && result.isPassenger == true) {
+                document.getElementById("roleBoth").checked = true;
+            } else {
+console.log(getCookie('role'));
+                //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
+                if (getCookie('role') == "ROLE_USER") {
+                    document.getElementById("roleNone").style.display = "block";
+                    submitFormInfoUser.disabled = true;
+                }
+                else {
+                    submitFormInfoUser.disabled = false;
+                }
+            }
+            pseudoInput.value = result.pseudo;
+            photoInput.src = result.photo;
+            credits.innerHTML = result.credits;
+
+            return result;
+        } else {
+            console.log("Impossible de récupérer les informations de l'utilisateur");
+        }
+    } catch (error) {
+        console.error("Erreur lors de la récupération des informations de l'utilisateur", error);
     }
 }
 
-// Fonction pour supprimer la photo de profil
-function removeProfilePhoto() {
-    const profilePhoto = document.getElementById('profilePhoto');
-    const profileIcon = document.getElementById('profileIcon');
-    profilePhoto.src = '';
-    profilePhoto.classList.add('d-none');
-    profileIcon.classList.remove('d-none');
+
+pseudoInput.addEventListener("blur", validateFormAccount); 
+photoInput.addEventListener("blur", validateFormAccount);
+submitFormInfoUser.addEventListener("click", setUserInfo);
+const roleRadios = document.querySelectorAll('input[name="userRole"]');
+
+// Fonction pour vérifier si un bouton radio est sélectionné
+function checkRoleSelection() {
+    const isChecked = Array.from(roleRadios).some(radio => radio.checked);
+    submitFormInfoUser.disabled = !isChecked; // Active ou désactive le bouton
+    document.getElementById("roleNone").style.display = "none";
 }
+
+// Ajouter un listener sur chaque bouton radio
+roleRadios.forEach(radio => {
+    radio.addEventListener('change', checkRoleSelection);
+});
+
+// Initialiser l'état du bouton au chargement de la page
+checkRoleSelection();
+
+
+//Function permettant de valider tout le formulaire
+function validateFormAccount(){
+    const pseudoOk = validateRequiredAccount(pseudoInput);
+    const userRoleOk = validateRequiredAccount(userRole);
+
+    if (pseudoOk && userRoleOk) {
+        submitFormInfoUser.disabled = false;
+    }
+    else {
+        submitFormInfoUser.disabled = true;
+    }
+}
+
+function validateRequiredAccount(input){
+    if(input.value != ''){
+        input.classList.add("is-valid");
+        input.classList.remove("is-invalid");
+        return true;
+    }
+    else{
+        input.classList.remove("is-valid");
+        input.classList.add("is-invalid");
+        return false;
+    }
+}
+
+function setUserInfo() {
+    const formData = new FormData();
+
+}
+
+
 
 
 // Fonction pour ajouter une section de véhicule
@@ -97,28 +194,27 @@ async function getVehicle()
     }
 }
 
-console.log(getVehicle());
+getUserInfo();
 
+document.addEventListener('DOMContentLoaded', function () {
+    const roleRadios = document.querySelectorAll('input[name="userRole"]');
+    const additionalInfoSection = document.getElementById('additionalInfo');
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const roleRadios = document.querySelectorAll('input[name="userRole"]');
-        const additionalInfoSection = document.getElementById('additionalInfo');
-
-        // Fonction pour afficher/masquer les informations supplémentaires
-        function toggleAdditionalInfo() {
-            const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
-            if (selectedRole === 'Chauffeur' || selectedRole === 'Les 2') {
-                additionalInfoSection.style.display = 'block';
-            } else {
-                additionalInfoSection.style.display = 'none';
-            }
+    // Fonction pour afficher/masquer les informations supplémentaires
+    function toggleAdditionalInfo() {
+        const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
+        if (selectedRole === 'Chauffeur' || selectedRole === 'Les 2') {
+            additionalInfoSection.style.display = 'block';
+        } else {
+            additionalInfoSection.style.display = 'none';
         }
+    }
 
-        // Ajout d'un écouteur d'événement sur les boutons radio
-        roleRadios.forEach(radio => {
-            radio.addEventListener('change', toggleAdditionalInfo);
-        });
-
-        // Initialisation de l'affichage
-        toggleAdditionalInfo();
+    // Ajout d'un écouteur d'événement sur les boutons radio
+    roleRadios.forEach(radio => {
+        radio.addEventListener('change', toggleAdditionalInfo);
     });
+
+    // Initialisation de l'affichage
+    toggleAdditionalInfo();
+});
