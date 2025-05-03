@@ -379,9 +379,8 @@ function deletePreference(id) {
     }
 }
 
-
 // Fonction pour sauvegarder une préférence
-export async function savePreference(id, libelle, description, confirmationMessageId) {
+async function savePreference(id, libelle, description, confirmationMessageId) {
     try {
         let myHeaders = new Headers();
         myHeaders.append("X-AUTH-TOKEN", getToken());
