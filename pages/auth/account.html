@@ -2,14 +2,14 @@
 
 <div class="container">
     <!-- Onglets -->
-    <ul class="nav nav-tabs" id="accountTabs" role="tablist">
+    <ul class="nav nav-tabs" id="accountTabs" role="tablist" id="account">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="personal-info-tab" data-bs-toggle="tab" data-bs-target="#personal-info" type="button" role="tab" aria-controls="personal-info" aria-selected="true">Mes informations personnelles</button>
         </li>
-        <li class="nav-item" role="presentation" data-show="client">
+        <li class="nav-item" role="presentation" data-show="client" id="preferences">
             <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab" aria-controls="preferences" aria-selected="false">Mes préférences</button>
         </li>
-        <li class="nav-item" role="presentation" data-show="client">
+        <li class="nav-item" role="presentation" data-show="client" id="vehicle">
             <button class="nav-link" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab" aria-controls="vehicles" aria-selected="false">Mes véhicules</button>
         </li>
     </ul>
@@ -18,18 +18,18 @@
     <div class="tab-content mt-4" id="accountTabsContent">
         <!-- Onglet : Informations personnelles -->
         <div class="tab-pane fade show active" id="personal-info" role="tabpanel" aria-labelledby="personal-info-tab">
-            <form>
+            <form id="accountForm">
                 <!-- Section: Rôle utilisateur -->
                 <section class="mb-4">
                     <h2 class="fs-4">Informations personnelles</h2>
                     <div class="mb-3" data-show="client">
                         <label for="userRole" class="form-label">Vous êtes : </label>
                         <div>
-                            <input type="radio" class="form-check-input" id="rolePassenger" name="userRole" value="Passager">
+                            <input type="radio" class="form-check-input" id="isPassenger" name="userRole" value="Passager">
                             <label for="rolePassenger" class="form-check-label">Passager</label>
-                            <input type="radio" class="form-check-input" id="roleDriver" name="userRole" value="Chauffeur">
+                            <input type="radio" class="form-check-input" id="isDriver" name="userRole" value="Chauffeur">
                             <label for="roleDriver" class="form-check-label">Chauffeur</label>
-                            <input type="radio" class="form-check-input" id="roleBoth" name="userRole" value="Les 2">
+                            <input type="radio" class="form-check-input" id="isBoth" name="userRole" value="Les 2">
                             <label for="roleBoth" class="form-check-label">Les 2</label>
                             <div class="invalid-feedback" id="roleNone" style="display: none;">
                                 Il faut choisir !
@@ -46,6 +46,11 @@
                         <img src="/images/default-avatar.png" class="img-fluid rounded-circle mb-3" alt="Avatar" id="photo">
                         <br>
                         <input type="file" class="form-control" id="PhotoInput" value="" alt="" name="Photo">
+                        <!-- checkbox pour supprimer laphoto -->
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="deletePhotoCheck">
+                            <label class="form-check-label" for="deletePhotoCheck">Supprimer la photo de profil</label>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="PseudoInput" class="form-label">Pseudo</label>
@@ -56,9 +61,15 @@
                         <label for="credits" class="form-label">Vos crédits disponibles</label><br>
                         <span id="credits" name="credits"></span> <img src="/images/logo_credit_light.png" alt="Crédit" class="img-fluid" style="width: 20px; height: 20px;">
                     </div>
+                    <div class="mb-3">
+                        <label for="grade" class="form-label">Votre note globale</label><br>
+                        <span id="grade" name="grade">
+                        </span>
+                    </div>
                     <!-- bouton pour envoyer le formulaire -->
                     <div class="mb-3">
-                        <button type="submit" class="btn btn-primary" id="btnSubmitFormInfoUser">Enregistrer</button>
+                        <button type="button" class="btn btn-primary" id="btnSubmitFormInfoUser">Enregistrer</button>
+                        <button type="button" class="btn btn-danger" id="btnDelete">Supprimer mon compte</button>
                     </div>
                 </section>
 
@@ -66,33 +77,6 @@
                 <section class="mb-4">
                     <div class="mb-3">
                         <a href="/editPassword" class="btn btn-link">Modifier mon mot de passe</a>
-                    </div>
-                </section>
-        
-                <!-- Section: Informations supplémentaires (visible uniquement pour Chauffeur ou Les 2) -->
-                <section class="mb-4" id="additionalInfo" style="display: none;">
-                    <div class="mb-3">
-                        <label for="NomInput" class="form-label">Nom</label>
-                        <input type="text" class="form-control" id="NomInput" placeholder="Votre nom" name="nom">
-                        <div class="invalid-feedback">Le nom est requis</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="PrenomInput" class="form-label">Prénom</label>
-                        <input type="text" class="form-control" id="PrenomInput" placeholder="Votre prénom" name="prenom">
-                        <div class="invalid-feedback">Le prénom est requis</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="BirthDateInput" class="form-label">Date de naissance</label>
-                        <input type="date" class="form-control" id="BirthDateInput" name="birthdate">
-                        <div class="invalid-feedback">La date de naissance est requise</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="PhoneInput" class="form-label">Numéro de téléphone</label>
-                        <input type="tel" class="form-control" id="PhoneInput" placeholder="Votre numéro de téléphone" name="phone">
-                    </div>
-                    <div class="mb-3">
-                        <label for="AddressInput" class="form-label">Adresse</label>
-                        <input type="text" class="form-control" id="AddressInput" placeholder="Votre adresse" name="address">
                     </div>
                 </section>
             </form>

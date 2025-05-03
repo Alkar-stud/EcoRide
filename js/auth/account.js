@@ -1,10 +1,13 @@
 const pseudoInput = document.getElementById("PseudoInput");
 const photo = document.getElementById("photo"); // Affichage de la photo
 const photoInput = document.getElementById("PhotoInput"); //form pour changer la photo
+const deletePhotoCheck = document.getElementById("deletePhotoCheck"); //checkbox pour supprimer la photo
 const credits = document.getElementById("credits");
+const grade = document.getElementById("grade");
 const userRoleInput = document.getElementsByTagName("userRole");
 const passwordInput = document.getElementById("PasswordInput");
 const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
+
 
 // Fonction pour récupérer les infos de l'utilisateur, si il est passager, chauffeur ou les deux, son pseudo et la photo s'il y en a une
 async function getUserInfo() {
@@ -31,26 +34,48 @@ console.log(result);
                 submitFormInfoUser.disabled = false;
             }
             //Si ni chauffeur ni passager, on bloque le bouton Enregistrer
-            if (result.isDriver == true && result.isPassenger == false) {
-                document.getElementById("userRoleDriver").checked = true;
-            } else if (result.isDriver == false && result.isPassenger == true) {
-                document.getElementById("userRolePassenger").checked = true;
+            if (result.isDriver == true && result.isPassenger == null) {
+                document.getElementById("isDriver").checked = true;
+                document.getElementById("vehicle").style.display = "block";
+                document.getElementById("preferences").style.display = "block";
+            } else if (result.isDriver == null && result.isPassenger == true) {
+                document.getElementById("isPassenger").checked = true;
+                document.getElementById("vehicle").style.display = "none";
+                document.getElementById("preferences").style.display = "none";
             } else if (result.isDriver == true && result.isPassenger == true) {
-                document.getElementById("roleBoth").checked = true;
+                document.getElementById("isBoth").checked = true;
+                document.getElementById("vehicle").style.display = "block";
+                document.getElementById("preferences").style.display = "block";
             } else {
-console.log(getCookie('role'));
+                document.getElementById("vehicle").style.display = "none";
+                document.getElementById("preferences").style.display = "none";
                 //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
                 if (getCookie('role') == "ROLE_USER") {
                     document.getElementById("roleNone").style.display = "block";
                     submitFormInfoUser.disabled = true;
                 }
                 else {
+                    submitFormInfoUser.setAttribute('title', "Vous devez choisir d'être chauffeur, passager ou les deux.");
                     submitFormInfoUser.disabled = false;
                 }
             }
-            pseudoInput.value = result.pseudo;
-            photoInput.src = result.photo;
+
+            //pour la note bg-success si supérieur ou égal à 4, en orange entre 1.5 et 3.9, danger en dessous
+            if (result.grade >= 4) {
+                grade.classList.add("bg-success");
+            } else if (result.grade >= 1.5 && result.grade < 4) {
+                grade.classList.add("bg-warning");
+            } else {
+                grade.classList.add("bg-danger");
+            }
+            //on affiche la note
+            grade.innerHTML = result.grade;
+            //Les crédits disponibles
             credits.innerHTML = result.credits;
+            //le pseudo
+            pseudoInput.value = result.pseudo;
+            //et la photo s'il y en a une
+            photo.src = result.photo;
 
             return result;
         } else {
@@ -62,13 +87,17 @@ console.log(getCookie('role'));
 }
 
 
+
+getUserInfo();
+
+
 pseudoInput.addEventListener("blur", validateFormAccount); 
 photoInput.addEventListener("blur", validateFormAccount);
 submitFormInfoUser.addEventListener("click", setUserInfo);
 const roleRadios = document.querySelectorAll('input[name="userRole"]');
 
 // Fonction pour vérifier si un bouton radio est sélectionné
-function checkRoleSelection() {
+async function checkRoleSelection() {
     const isChecked = Array.from(roleRadios).some(radio => radio.checked);
     submitFormInfoUser.disabled = !isChecked; // Active ou désactive le bouton
     document.getElementById("roleNone").style.display = "none";
@@ -79,6 +108,13 @@ roleRadios.forEach(radio => {
     radio.addEventListener('change', checkRoleSelection);
 });
 
+//listener lorsque l'utilisateur coche la case pour supprimer la photo, à condition que la photo existe et que l'un des botons radio soit coché
+deletePhotoCheck.addEventListener("change", function() {
+    submitFormInfoUser.disabled = false;
+
+});
+
+
 // Initialiser l'état du bouton au chargement de la page
 checkRoleSelection();
 
@@ -86,7 +122,7 @@ checkRoleSelection();
 //Function permettant de valider tout le formulaire
 function validateFormAccount(){
     const pseudoOk = validateRequiredAccount(pseudoInput);
-    const userRoleOk = validateRequiredAccount(userRole);
+    const userRoleOk = document.querySelector('input[name="userRole"]:checked') != null;
 
     if (pseudoOk && userRoleOk) {
         submitFormInfoUser.disabled = false;
@@ -109,12 +145,82 @@ function validateRequiredAccount(input){
     }
 }
 
+
 function setUserInfo() {
-    const formData = new FormData();
+    let isDriver = null;
+    let isPassenger = null;
 
+    let myHeaders = new Headers();
+    myHeaders.append("X-AUTH-TOKEN", getToken());
+
+    if (document.getElementById("isDriver").checked || document.getElementById("isBoth").checked) {
+        isDriver = true;
+    }
+    if (document.getElementById("isPassenger").checked || document.getElementById("isBoth").checked) {
+        isPassenger = true;
+    }
+
+    // Envoi de la photo si le champ est rempli
+    if (photoInput.files.length > 0) {
+        let formData = new FormData();
+        formData.append("photo", photoInput.files[0]); // Ajoute le fichier au form-data
+    
+        let myHeaders = new Headers();
+        myHeaders.append("X-AUTH-TOKEN", getToken()); // Ajoute uniquement le token
+    
+        let requestOptions = {
+            method: 'POST',
+            headers: myHeaders, // Ne définissez pas Content-Type ici
+            body: formData, // Utilise form-data comme corps de la requête
+            redirect: 'follow'
+        };
+
+        fetch(apiUrl + "account/upload", requestOptions)
+        .then(async response => {
+            if (!response.ok) {
+                const errorDetails = await response.text();
+                console.error("Erreur :", response.status, errorDetails);
+            }
+            return response.json();
+        })
+        .then(result => {
+            console.log("Résultat de l'upload :", result);
+        })
+        .catch(error => console.error("Erreur :", error));
+    }
+
+    //Envoi des données de l'utilisateur
+    let deletePhoto = null;
+    if (deletePhotoCheck.checked) {
+        deletePhoto = true;
+    }
+
+    let rawData = JSON.stringify({
+        "pseudo": pseudoInput.value,
+        "isDriver": isDriver,
+        "isPassenger": isPassenger,
+        "deletePhoto": deletePhoto
+    });
+    let requestOptions = {
+        method: 'PUT',
+        headers: myHeaders,
+        body: rawData,
+        redirect: 'follow'
+    };
+    fetch(apiUrl + "account/edit", requestOptions)
+        .then(response => {
+            if (response.ok) {
+                return response;
+            } else {
+                console.error('Erreur de réponse');
+            }
+        })
+        .then(result => {
+            // On recharge la page pour afficher les nouvelles infos
+            window.location.reload();
+        })
+        .catch(error => console.log('error', error));
 }
-
-
 
 
 // Fonction pour ajouter une section de véhicule
@@ -194,7 +300,6 @@ async function getVehicle()
     }
 }
 
-getUserInfo();
 
 document.addEventListener('DOMContentLoaded', function () {
     const roleRadios = document.querySelectorAll('input[name="userRole"]');
