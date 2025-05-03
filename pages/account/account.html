@@ -2,16 +2,10 @@
 
 <div class="container">
     <!-- Onglets -->
-    <ul class="nav nav-tabs" id="accountTabs" role="tablist" id="account">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="personal-info-tab" data-bs-toggle="tab" data-bs-target="#personal-info" type="button" role="tab" aria-controls="personal-info" aria-selected="true">Mes informations personnelles</button>
-        </li>
-        <li class="nav-item" role="presentation" data-show="client" id="preferences">
-            <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab" aria-controls="preferences" aria-selected="false">Mes préférences</button>
-        </li>
-        <li class="nav-item" role="presentation" data-show="client" id="vehicle">
-            <button class="nav-link" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab" aria-controls="vehicles" aria-selected="false">Mes véhicules</button>
-        </li>
+    <ul class="nav nav-tabs" id="accountTabs" id="account">
+        <button class="nav-link active" id="personal-info-tab" data-bs-toggle="tab" data-bs-target="#personal-info" type="button" role="tab" aria-controls="personal-info" aria-selected="true">Mes informations personnelles</button>
+        <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab" aria-controls="preferences" aria-selected="false" data-show="ROLE_USER">Mes préférences</button>
+        <button class="nav-link" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab" aria-controls="vehicles" aria-selected="false" data-show="client">Mes véhicules</button>
     </ul>
 
     <!-- Contenu des onglets -->
@@ -46,7 +40,7 @@
                         <img src="/images/default-avatar.png" class="img-fluid rounded-circle mb-3" alt="Avatar" id="photo">
                         <br>
                         <input type="file" class="form-control" id="PhotoInput" value="" alt="" name="Photo">
-                        <!-- checkbox pour supprimer laphoto -->
+                        <!-- checkbox pour supprimer la photo -->
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input" id="deletePhotoCheck">
                             <label class="form-check-label" for="deletePhotoCheck">Supprimer la photo de profil</label>
@@ -87,29 +81,38 @@
             <section class="mb-4">
                 <h2 class="fs-4">Mes préférences</h2>
                 <fieldset class="border rounded-3 p-3">
-                    <legend>Préférences</legend>
-                    <div class="mb-3">
-                        <label for="NoSmoke">Fumeur ?</label>
-                        <div>
-                            <input type="radio" class="form-check-input" id="NoSmoke" name="SmokeAsk" value="NoSmoke">
-                            <label for="NoSmoke" class="form-check-label"><img src="/images/fumeur-non.png" alt="Non-fumeur"> Non-fumeur</label>
-                            <input type="radio" class="form-check-input" id="OkSmoke" name="SmokeAsk" value="OkSmoke">
-                            <label for="OkSmoke" class="form-check-label"><img src="/images/fumeur-ok.png" alt="Fumeur autorisé"> Fumeur autorisé</label>
+                    <form id="preferencesForm">
+                        <div class="mb-3">
+                            <label for="NoSmoke">Fumeur ?</label>
+                            <div id="smokeConfirmationMessage" class="text-success" style="display: none;">Préférence sauvegardée avec succès !</div>
+                            <div>
+                                <input type="radio" class="form-check-input" id="NoSmoke" name="SmokeAsk" value="no" data-id="smokingAllowedId">
+                                <label for="NoSmoke" class="form-check-label"><img src="/images/fumeur-non.png" alt="Non-fumeur"> Non-fumeur</label>
+                                <input type="radio" class="form-check-input" id="OkSmoke" name="SmokeAsk" value="yes" data-id="smokingAllowedId">
+                                <label for="OkSmoke" class="form-check-label"><img src="/images/fumeur-ok.png" alt="Fumeur autorisé"> Fumeur autorisé</label>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="NoPet">Acceptez-vous les animaux ?</label>
-                        <div>
-                            <input type="radio" class="form-check-input" id="NoPet" name="PetAsk" value="NoPet">
-                            <label for="NoPet" class="form-check-label"><img src="/images/animaux-non.png" alt="Pas d'animaux"> Pas d'animaux</label>
-                            <input type="radio" class="form-check-input" id="OkPet" name="PetAsk" value="OkPet">
-                            <label for="OkPet" class="form-check-label"><img src="/images/animaux-ok.png" alt="Animaux autorisé"> Animaux acceptés</label>
+                        <div class="mb-3">
+                            <label for="NoPet">Acceptez-vous les animaux ?</label>
+                            <div id="petConfirmationMessage" class="text-success" style="display: none;">Préférence sauvegardée avec succès !</div>
+                            <div>
+                                <input type="radio" class="form-check-input" id="NoPet" name="PetAsk" value="no" data-id="petsAllowedId">
+                                <label for="NoPet" class="form-check-label"><img src="/images/animaux-non.png" alt="Pas d'animaux"> Pas d'animaux</label>
+                                <input type="radio" class="form-check-input" id="OkPet" name="PetAsk" value="yes" data-id="petsAllowedId">
+                                <label for="OkPet" class="form-check-label"><img src="/images/animaux-ok.png" alt="Animaux autorisé"> Animaux acceptés</label>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="prefs">D'autres préférences ?</label>
-                        <input type="text" class="form-control" id="prefs" name="prefs">
-                    </div>
+                        <div class="mb-3">
+                            D'autres préférences ?
+                            <br>
+                            <label for="prefsLibelle" class="form-label">Libellé</label>
+                            <input type="text" class="form-control" id="prefsLibelle" name="prefsLibelle">
+                            <label for="prefsDescription" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="prefsDescription" name="prefsDescription">
+                            <!-- bouton ajouter préférence-->
+                            <button type="button" class="btn btn-outline-secondary mt-3" id="addPreferenceBtn">Ajouter une préférence</button>
+                        </div>
+                    </form>
                 </fieldset>
             </section>
         </div>
