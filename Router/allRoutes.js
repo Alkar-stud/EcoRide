@@ -8,9 +8,9 @@ export const allRoutes = [
     new Route("/searchcovoiturages", "Liste des covoiturages", "/pages/covoiturages/searchcovoiturages.html", [], "/js/covoiturages/searchcovoiturages.js"),
     new Route("/signin", "Connexion", "/pages/auth/signin.html", ["disconnected"], "/js/auth/signin.js"),
     new Route("/signup", "Inscription", "/pages/auth/signup.html", ["disconnected"], "/js/auth/signup.js"),
-    new Route("/account", "Mon compte", "/pages/auth/account.html", ["client", "employee", "admin", "ROLE_USER"], "/js/auth/account.js"),
-    new Route("/editPassword", "Changement de mot de passe", "/pages/auth/editPassword.html", ["client", "employee", "admin"]),
-    new Route("/mescovoiturages", "Mes covoiturages", "/pages/covoiturages/mescovoiturages.html", ["client", "ROLE_USER"]),
+    new Route("/account", "Mon compte", "/pages/auth/account.html", ["employee", "admin", "ROLE_USER"], "/js/auth/account.js"),
+    new Route("/editPassword", "Changement de mot de passe", "/pages/auth/editPassword.html", ["ROLE_USER", "employee", "admin"], "/js/auth/editPassword.js"),
+    new Route("/mescovoiturages", "Mes covoiturages", "/pages/covoiturages/mescovoiturages.html", ["ROLE_USER"]),
     
 ];
 
