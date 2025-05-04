@@ -20,8 +20,10 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ftp-ecoridefront.alwaysdata.net
+          port: 21
           username: ecoridefront
           password: ${{ secrets.ftp_password_alwaysdata }}
+          protocol: ftps
           exclude: |
             **/.git*
             **/.git*/**
