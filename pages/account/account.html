@@ -201,7 +201,11 @@
                             </div>
                         </div>
                     </div>
-                <fieldset class="border rounded-3 p-3">
+                <div class="mb-3">
+                    <button type="button" class="btn btn-primary" id="showVehicleFormBtn">Ajouter un véhicule</button>
+                </div>
+                <fieldset class="border rounded-3 p-3" style="display: none;" id="vehiclesFormContainer">
+                    <legend class="float-none w-auto px-2">Ajouter un véhicule</legend>
                     <form id="vehiclesForm">
                         <div class="mb-3">
                             <label for="vehicleBrand" class="form-label">Marque</label>

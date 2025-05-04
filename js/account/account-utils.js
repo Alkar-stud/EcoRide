@@ -14,5 +14,4 @@ export async function refreshTab(tabId) {
     } else {
         console.error("Onglet non trouvé :", tabId);
     }
-
 }
