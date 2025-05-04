@@ -1,0 +1,67 @@
+<h1 id="title-h1" class="text-center text-secondary">titreh1</h1>
+
+<div class="container bg-secondary-subtle text-center pb-3 pt-3">
+    <form action="/searchcovoit" method="POST" class="row g-3 align-items-center justify-content-center">
+        <div class="col-md-3 col-12">
+            <input type="text" class="form-control" name="depart" id="depart" placeholder="D'où partez-vous ?" required>
+        </div>
+        <div class="col-md-3 col-12">
+            <input type="text" class="form-control" name="destination" id="destination" placeholder="Où allez-vous ?" required>
+        </div>
+        <div class="col-md-3 col-12">
+            <input type="date" class="form-control" name="date" id="date" placeholder="Quand partez-vous ?" required>
+            <div class="invalid-feedback">
+                Format de date invalide
+            </div>
+        </div>
+        <div class="col-md-auto col-12">
+            <button class="btn btn-primary">Chercher de nouveau</button>
+        </div>
+    </form>
+    <div class="col col-md-10 col-12 mt-3 text-secondary">
+        <button type="button" id="toggle-search" class="btn btn-link p-0 text-secondary" onclick="toggleSearchFilter()">Affiner la recherche</button>
+    </div>
+    <div class="col-md-10 col-12 text-center position-relative py-2 px-3 mx-auto">
+        <div id="search-filter" class="bg-light rounded-3 p-3" style="display: none;">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4">
+                <div class="col text-secondary">
+                    <input type="checkbox" class="form-check-input" id="eco-travel" name="eco-travel"> éco-voyage uniquement
+                </div>
+                <div class="col">
+                    <input type="number" class="form-control me-1 mb-1" style="width: auto; display: inline-block; font-size: 0.8rem;" id="max-price" placeholder="Prix max">
+                </div>
+                <div class="col">
+                    <input type="number" class="form-control me-1 mb-1" style="width: auto; display: inline-block; font-size: 0.8rem;" id="max-time" placeholder="Temps max">
+                </div>
+                <div class="col">
+                <select class="form-select form-select-sm" aria-label="Small select example">
+                    <option>-- Note minimale --</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    </select>
+                </div>
+        </div>
+    </div>
+
+
+    <div class="container text-center mt-3">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-12">
+                <div class="results-container border rounded-3 p-3 border-secondary">
+                    <p class="text-secondary">Les résultats de votre recherche apparaîtront ici.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function filterResults(criteria) {
+            console.log("Filtrer par :", criteria);
+            // Ajoutez ici la logique pour filtrer les résultats
+        }
+    </script>
+</div>
+<div class="container text-center allcovoiturages">
+
+</div>

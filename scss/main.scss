@@ -1,6 +1,6 @@
 @import url("/node_modules/bootstrap-icons/font/bootstrap-icons.css");
 @import 'custom';
-
+@import '_footer';
 
 html {
   position: relative;
@@ -43,12 +43,6 @@ a.header {
   font-size: 30px;
 }
 
-footer.footer {
-  padding: 15px;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-}
 
 p {
   font-family: $font-family-serif;
@@ -102,15 +96,24 @@ p {
 
 // Add styles for the container
 .container.bg-secondary-subtle {
-  //display: flex; // Remove this line
-  //flex-wrap: wrap; // Remove this line
-  //align-items: center; // Remove this line
-  //justify-content: center; // Remove this line
   padding: 15px; // Add padding to the container
 }
 
 // Add styles for the paragraph
 .container.bg-secondary-subtle p {
-  //flex: 1 1 auto; // Remove this line
   text-align: justify; // Justify the text
+}
+
+
+.allcovoiturages{
+  a{
+      display: block;
+      color: $black;
+      padding:10px;
+  }
+}
+
+.vehicle:hover {
+  background-color: #f8f9fa; /* Couleur de fond légèrement grisée */
+  cursor: pointer; /* Changer le curseur pour indiquer que c'est cliquable */
 }
