@@ -10,32 +10,46 @@ const passwordInput = document.getElementById("PasswordInput");
 
 const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
 
+const btnDeleteAccount = document.getElementById("btnDelete");
+
 pseudoInput.addEventListener("blur", validateFormAccount); 
 photoInput.addEventListener("blur", validateFormAccount);
 submitFormInfoUser.addEventListener("click", setUserInfo);
+btnDeleteAccount.addEventListener("click", deleteAccount);
+
+// Fonction pour supprimer le compte utilisateur
+async function deleteAccount() {
+    // Afficher une boîte de dialogue de confirmation
+    const userConfirmed = confirm("Êtes-vous sûr de vouloir supprimer votre compte ?");
+
+    if (userConfirmed) {
+        let myHeaders = new Headers();
+        myHeaders.append("X-AUTH-TOKEN", getToken());
+        let requestOptions = {
+            method: 'DELETE',
+            headers: myHeaders,
+            redirect: 'follow'
+        };
+        fetch(apiUrl + "account", requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    //Suppression des cookies
+                    eraseCookie("X-AUTH-TOKEN");
+                    eraseCookie("role");
+                    // Rediriger vers la page d'accueil ou afficher un message de succès
+                    window.location.href = "/";
+                } else {
+                    console.log("Impossible de supprimer le compte");
+                }
+            })
+            .catch(error => console.error("Erreur lors de la suppression du compte", error));
+    } else {
+        console.log("Suppression annulée par l'utilisateur.");
+    }
+}
+
+
 const roleRadios = document.querySelectorAll('input[name="userRole"]');
-
-
-
-
-
-
-
-
-
-//Pour les préférences
-const prefsLibelleInput = document.getElementById("prefsLibelle");
-const prefsDescriptionInput = document.getElementById("prefsDescription");
-
-const addPreferenceBtn = document.getElementById("addPreferenceBtn");
-
-addPreferenceBtn.addEventListener("click", function (event) {
-    // Empêcher le comportement par défaut du bouton
-    event.preventDefault();
-
-    // Appeler la fonction pour ajouter une préférence
-    addPreferences();
-});
 
 
 // Fonction pour récupérer les infos de l'utilisateur, si il est passager, chauffeur ou les deux, son pseudo et la photo s'il y en a une
@@ -110,7 +124,7 @@ console.log(result);
             //On affiche les préférences de l'utilisateur
             if (result.preferences) {
                 const preferences = result.preferences;
-            console.log(preferences);
+
                 //Boucle pour afficher les préférences
                 for (let i = 0; i < preferences.length; i++) {
                     const preference = preferences[i];
@@ -146,7 +160,6 @@ console.log(result);
                     document.getElementById("preferences").appendChild(preferenceDiv);
                 }
             }
-
 
             return result;
         } else {
@@ -322,6 +335,19 @@ document.addEventListener('DOMContentLoaded', function () {
 /*
 * fonctions pour les préférences
 */
+
+const prefsLibelleInput = document.getElementById("prefsLibelle");
+const prefsDescriptionInput = document.getElementById("prefsDescription");
+
+const addPreferenceBtn = document.getElementById("addPreferenceBtn");
+
+addPreferenceBtn.addEventListener("click", function (event) {
+    // Empêcher le comportement par défaut du bouton
+    event.preventDefault();
+
+    // Appeler la fonction pour ajouter une préférence
+    addPreferences();
+});
 
 function addPreferences() {
     let libelle = prefsLibelleInput.value;
