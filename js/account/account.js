@@ -1,3 +1,6 @@
+import { setPreferences, displayPreferences, addPreferences, savePreference, deletePreference } from './account-preferences.js';
+
+
 //Pour les infos perso du user
 const pseudoInput = document.getElementById("PseudoInput");
 const photo = document.getElementById("photo"); // Affichage de la photo
@@ -16,6 +19,7 @@ pseudoInput.addEventListener("blur", validateFormAccount);
 photoInput.addEventListener("blur", validateFormAccount);
 submitFormInfoUser.addEventListener("click", setUserInfo);
 btnDeleteAccount.addEventListener("click", deleteAccount);
+
 
 // Fonction pour supprimer le compte utilisateur
 async function deleteAccount() {
@@ -123,42 +127,10 @@ console.log(result);
 
             //On affiche les préférences de l'utilisateur
             if (result.preferences) {
+                setPreferences(result.preferences);
                 const preferences = result.preferences;
 
-                //Boucle pour afficher les préférences
-                for (let i = 0; i < preferences.length; i++) {
-                    const preference = preferences[i];
-                    const preferenceDiv = document.createElement("div");
-                    preferenceDiv.className = "preference";
-                    // Associer l'ID à l'attribut data-id des boutons radio
-                    if (preference.libelle == 'smokingAllowed') {
-                        document.getElementById("NoSmoke").dataset.id = preference.id;
-                        document.getElementById("OkSmoke").dataset.id = preference.id;
-                        //si preference.description == 'no', on coche la case NoSmoke, sinon on coche la case OkSmoke
-                        if (preference.description == 'no') {
-                            document.getElementById("NoSmoke").checked = true;
-                        } else {
-                            document.getElementById("OkSmoke").checked = true;
-                        }
-                    } else if (preference.libelle == 'petsAllowed') {
-                        document.getElementById("NoPet").dataset.id = preference.id;
-                        document.getElementById("OkPet").dataset.id = preference.id;
-                        //si preference.description == 'no', on coche la case NoPet, sinon on coche la case OkPet
-                        if (preference.description == 'no') {
-                            document.getElementById("NoPet").checked = true;
-                        } else {
-                            document.getElementById("OkPet").checked = true;
-                        }
-                    } else {
-                        // Autres préférences
-                        preferenceDiv.innerHTML = `
-                            <strong>${preference.libelle}</strong>: ${preference.description}
-                            <button type="button" class="btn btn-danger btn-sm me-2 mt-2" onclick="deletePreference(${preference.id})">Supprimer</button>
-
-                        `;
-                    }
-                    document.getElementById("preferences").appendChild(preferenceDiv);
-                }
+                displayPreferences(preferences);
             }
             //On affiche les véhicules de l'utilisateur
             if (result.vehicles) {
@@ -360,14 +332,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-
-
 /*
 * fonctions pour les préférences
 */
-
-const prefsLibelleInput = document.getElementById("prefsLibelle");
-const prefsDescriptionInput = document.getElementById("prefsDescription");
 
 const addPreferenceBtn = document.getElementById("addPreferenceBtn");
 
@@ -379,133 +346,6 @@ addPreferenceBtn.addEventListener("click", function (event) {
     addPreferences();
 });
 
-function addPreferences() {
-    let libelle = prefsLibelleInput.value;
-    let description = prefsDescriptionInput.value;
-
-    let myHeaders = new Headers();
-    myHeaders.append("X-AUTH-TOKEN", getToken());
-    let rawData = JSON.stringify({
-        "libelle": libelle,
-        "description": description
-    });
-    let requestOptions = {
-        method: 'POST',
-        headers: myHeaders,
-        body: rawData,
-        redirect: 'follow'
-    };
-    fetch(apiUrl + "account/preferences/add", requestOptions)
-        .then(response => {
-            if (response.ok) {
-                // On recharge la page pour afficher les nouvelles infos
-                window.location.reload();
-            } else {
-                console.log("Impossible d'ajouter la préférence");
-            }
-        })
-        .catch(error => console.error("Erreur lors de l'ajout de la préférence", error));
-
-}
-
-function deletePreference(id) {
-    // Afficher une boîte de dialogue de confirmation
-    const userConfirmed = confirm("Êtes-vous sûr de vouloir supprimer cette préférence ?");
-    
-    if (userConfirmed) {
-        let myHeaders = new Headers();
-        myHeaders.append("X-AUTH-TOKEN", getToken());
-        let requestOptions = {
-            method: 'DELETE',
-            headers: myHeaders,
-            redirect: 'follow'
-        };
-        fetch(apiUrl + "account/preferences/" + id, requestOptions)
-            .then(response => {
-                if (response.ok) {
-                    // On recharge la page pour afficher les nouvelles infos
-                    window.location.reload();
-                } else {
-                    console.log("Impossible de supprimer la préférence");
-                }
-            })
-            .catch(error => console.error("Erreur lors de la suppression de la préférence", error));
-    } else {
-        console.log("Suppression annulée par l'utilisateur.");
-    }
-}
-
-// Fonction pour sauvegarder une préférence
-async function savePreference(id, libelle, description, confirmationMessageId) {
-    try {
-        let myHeaders = new Headers();
-        myHeaders.append("X-AUTH-TOKEN", getToken());
-        myHeaders.append("Content-Type", "application/json");
-
-        let body = JSON.stringify({
-            libelle: libelle,
-            description: description
-        });
-
-        let requestOptions = {
-            method: 'PUT',
-            headers: myHeaders,
-            body: body,
-            redirect: 'follow'
-        };
-
-        let response = await fetch(apiUrl + "account/preferences/" + id, requestOptions);
-
-        if (response.ok) {
-            const confirmationMessage = document.getElementById(confirmationMessageId);
-            confirmationMessage.style.display = "block";
-            setTimeout(() => {
-                confirmationMessage.style.display = "none";
-            }, 3000);
-        } else {
-            console.error("Erreur lors de la sauvegarde de la préférence");
-        }
-    } catch (error) {
-        console.error("Erreur lors de la sauvegarde de la préférence", error);
-    }
-}
-
-
-// Fonction pour sauvegarder une préférence
-async function savePreference(id, libelle, description, confirmationMessageId) {
-    try {
-        let myHeaders = new Headers();
-        myHeaders.append("X-AUTH-TOKEN", getToken());
-        myHeaders.append("Content-Type", "application/json");
-
-        let body = JSON.stringify({
-            libelle: libelle,
-            description: description
-        });
-
-        let requestOptions = {
-            method: 'PUT',
-            headers: myHeaders,
-            body: body,
-            redirect: 'follow'
-        };
-
-        let response = await fetch(apiUrl + "account/preferences/" + id, requestOptions);
-
-        if (response.ok) {
-            // Afficher le message de confirmation
-            const confirmationMessage = document.getElementById(confirmationMessageId);
-            confirmationMessage.style.display = "block";
-            setTimeout(() => {
-                confirmationMessage.style.display = "none";
-            }, 3000); // Masquer le message après 3 secondes
-        } else {
-            console.error("Erreur lors de la sauvegarde de la préférence");
-        }
-    } catch (error) {
-        console.error("Erreur lors de la sauvegarde de la préférence", error);
-    }
-}
 
 // Ajouter des listeners pour les boutons radio
 document.querySelectorAll('input[name="SmokeAsk"]').forEach(radio => {
@@ -863,4 +703,11 @@ document.getElementById('vehicles-tab').addEventListener('shown.bs.tab', functio
 document.getElementById("addVehicleBtn").addEventListener("click", function (event) {
     event.preventDefault(); // Empêcher le comportement par défaut du bouton
     addVehicle(); // Appeler la fonction pour ajouter un véhicule
+});
+
+document.getElementById("preferences").addEventListener("click", function (event) {
+    if (event.target && event.target.id === "deletePreferenceBtn") {
+        const preferenceId = event.target.dataset.id; // Récupérer l'ID de la préférence
+        deletePreference(preferenceId);
+    }
 });

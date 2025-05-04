@@ -101,30 +101,6 @@ function sanitizeHtml(text){
 }
 
 
-async function getInfosUser(){
-    try {
-        let myHeaders = new Headers();
-        myHeaders.append("X-AUTH-TOKEN", getToken());
-
-        let requestOptions = {
-            method: 'GET',
-            headers: myHeaders,
-            redirect: 'follow'
-        };
-
-        let response = await fetch(apiUrl+"account/me", requestOptions);
-
-        if (response.ok) {
-            let result = await response.json();
-            return result;
-        } else {
-            console.log("Impossible de récupérer les informations utilisateur");
-        }
-    } catch (error) {
-        console.error("erreur lors de la récupération des données utilisateur", error);
-    }
-}
-
 
 function isValidDate(dateString) {
     if (!dateString) return false;

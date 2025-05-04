@@ -49,10 +49,16 @@ const LoadContentPage = async () => {
   document.getElementById("main-page").innerHTML = html;
 
   // Ajout du contenu JavaScript
-  if (actualRoute.pathJS != "") {
-    // Création d'une balise script
-    let scriptTag = document.createElement("script");
-    scriptTag.setAttribute("type", "text/javascript");
+  if (actualRoute.pathJS !== "") {
+    // Supprimer les anciens scripts pour éviter les doublons
+    const existingScript = document.querySelector(`script[src="${actualRoute.pathJS}"]`);
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    // Création d'une balise script avec type="module"
+    const scriptTag = document.createElement("script");
+    scriptTag.setAttribute("type", "module");
     scriptTag.setAttribute("src", actualRoute.pathJS);
 
     // Ajout de la balise script au corps du document
