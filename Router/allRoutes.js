@@ -5,12 +5,6 @@ export const allRoutes = [
     new Route("/", "Accueil", "/pages/home.html", [], "/js/home.js"), // home.js pour vérifier le formulaire de recherche en page d'accueil
     new Route("/mentionslegales", "Mentions légales", "/pages/mentionslegales.html", []),
     new Route("/contact", "Contactez-nous", "/pages/contact.html", []),
-<<<<<<< HEAD
-    new Route("/signin", "Connexion", "/pages/auth/signin.html", []),
-    new Route("/signup", "Inscription", "/pages/auth/signup.html", []),
-    new Route("/account", "Mon compte", "/pages/auth/account.html", []),
-    new Route("/editPassword", "Changement de mot de passe", "/pages/auth/editPassword.html", []),
-=======
     new Route("/searchcovoiturages", "Liste des covoiturages", "/pages/covoiturages/searchcovoiturages.html", [], "/js/covoiturages/searchcovoiturages.js"),
     new Route("/signin", "Connexion", "/pages/auth/signin.html", ["disconnected"], "/js/auth/signin.js"),
     new Route("/signup", "Inscription", "/pages/auth/signup.html", ["disconnected"], "/js/auth/signup.js"),
@@ -18,7 +12,6 @@ export const allRoutes = [
     new Route("/editPassword", "Changement de mot de passe", "/pages/account/editPassword.html", ["ROLE_USER", "employee", "admin"], "/js/account/editPassword.js"),
     new Route("/mescovoiturages", "Mes covoiturages", "/pages/covoiturages/mescovoiturages.html", ["ROLE_USER"]),
     
->>>>>>> Account
 ];
 
 //Le titre s'affiche comme ceci : Route.titre - websitename
