@@ -1,0 +1,43 @@
+<h1 id="title-h1" class="text-center text-secondary">titreh1</h1>
+
+<div class="container">
+  <form id="formulaireInscription">
+        <div class="mb-3">
+            <label for="PseudoInput" class="form-label">Pseudo</label>
+            <input type="text" class="form-control" id="PseudoInput" placeholder="Votre pseudo" name="pseudo"> 
+            <div class="invalid-feedback">
+              Le pseudo est obligatoire
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="EmailInput" class="form-label">Email</label>
+          <input type="email" class="form-control" id="EmailInput" placeholder="test@mail.fr" name="email"> 
+          <div class="invalid-feedback">
+            Le mail n'est pas au bon format
+        </div>
+        </div>
+        <div class="mb-3">
+          <label for="PasswordInput" class="form-label">Mot de passe</label>
+          <input type="password" class="form-control" id="PasswordInput" name="mdp">
+          <div class="invalid-feedback">
+            Le mot de passe n'est pas assez robuste : Au moins 8 caractères, comprenant au moins 1 lettre majuscule, 1 lettre minuscule, 1 chiffre et 1 caractère spécial
+          </div>
+        </div>
+        <div class="mb-3">
+            <label for="ValidatePasswordInput" class="form-label">Validez votre mot de passe</label>
+            <input type="password" class="form-control" id="ValidatePasswordInput" name="PasswordConfirm">
+            <div class="invalid-feedback">
+              La confirmation n'est pas identique au mot de passe
+          </div>
+          <div class="valid-feedback">
+              Les mots de passe sont identiques
+          </div>
+        </div>
+        <div class="text-center">
+            <button type="button" class="btn btn-primary" id="btn-validation-inscription" disabled>Inscription</button>
+        </div>
+    </form>
+    <div class="text-center pt-3">
+        <a href="/signin">Vous avez déjà un compte ? Connectez-vous ici !</a>
+    </div>
+</div>
