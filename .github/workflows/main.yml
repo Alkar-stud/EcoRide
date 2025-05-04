@@ -13,7 +13,7 @@ jobs:
         with:
           server: votre-hote-ftp
           username: votre-username-ftp
-          password: ${{ secrets.ftp_password }}
+          password: ${{ secrets.ftp_password_alwaysdata }}
           exclude: |
             **/.git*
             **/.git*/**
