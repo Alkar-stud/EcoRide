@@ -2,7 +2,7 @@ import Route from "./Route.js";
 
 //Définir ici vos routes
 export const allRoutes = [
-    new Route("/", "Accueil", "/pages/home.html", [], "/js/home.js"), // home.js pour vérifier le formulaire de recherche en page d'accueil
+    new Route("/", "Accueil", "/pages/home.html", [], "/js/home.js"), 
     new Route("/mentionslegales", "Mentions légales", "/pages/mentionslegales.html", []),
     new Route("/contact", "Contactez-nous", "/pages/contact.html", []),
     new Route("/searchcovoiturages", "Liste des covoiturages", "/pages/covoiturages/searchcovoiturages.html", [], "/js/covoiturages/searchcovoiturages.js"),
