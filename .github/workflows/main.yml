@@ -19,11 +19,11 @@ jobs:
       - name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: ssh-ecoridefront.alwaysdata.net
+          server: sftp://ssh-ecoridefront.alwaysdata.net
           port: 22
           username: ecoridefront
           password: ${{ secrets.ftp_password_alwaysdata }}
-          protocol: ftps
+          protocol: ftp
           exclude: |
             **/.git*
             **/.git*/**
