@@ -117,4 +117,3 @@ document.getElementById("preferences").addEventListener("click", function (event
         deletePreference(preferenceId);
     }
 });
-

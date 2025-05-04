@@ -190,4 +190,3 @@ export function deletePreference(id) {
         console.log("Suppression annulée par l'utilisateur.");
     }
 }
-
