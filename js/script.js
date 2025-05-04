@@ -125,3 +125,20 @@ async function getInfosUser(){
     }
 }
 
+
+function isValidDate(dateString) {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    return !isNaN(date.getTime());
+}
+
+
+function showMessage(messageId) {
+    const messageElement = document.getElementById(messageId);
+    if (messageElement) {
+        messageElement.style.display = "block";
+        setTimeout(() => {
+            messageElement.style.display = "none";
+        }, 5000); // Masquer le message après 5 secondes
+    }
+}

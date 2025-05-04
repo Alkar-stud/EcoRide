@@ -121,57 +121,119 @@
         <div class="tab-pane fade" id="vehicles" role="tabpanel" aria-labelledby="vehicles-tab">
             <section class="mb-4">
                 <h2 class="fs-4">Mes véhicules</h2>
-                <div class="accordion" id="vehicleAccordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="vehicleHeading">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vehicleCollapse" aria-expanded="false" aria-controls="vehicleCollapse">
-                                Informations sur le(s) véhicule(s)
-                            </button>
-                        </h2>
-                        <div id="vehicleCollapse" class="accordion-collapse collapse" aria-labelledby="vehicleHeading" data-bs-parent="#vehicleAccordion">
-                            <div class="accordion-body">
-                                <fieldset class="border rounded-3 p-3">
-                                    <legend>&Agrave propos du véhicule</legend>
-                                    <div class="mb-3">
-                                        <label for="LicensePlateInput" class="form-label">Plaque d'immatriculation</label>
-                                        <input type="text" class="form-control" id="LicensePlateInput">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="LicenseDateInput" class="form-label">Date de première immatriculation</label>
-                                        <input type="date" class="form-control" id="LicenseDateInput">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="VehicleBrandInput" class="form-label">Marque du véhicule</label>
-                                        <input type="text" class="form-control" id="VehicleBrandInput">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="VehicleModelInput" class="form-label">Modèle du véhicule</label>
-                                        <input type="text" class="form-control" id="VehicleModelInput">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="VehicleColorInput" class="form-label">Couleur du véhicule</label>
-                                        <input type="text" class="form-control" id="VehicleColorInput">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="VehicleEnergyInput" class="form-label">&Eacute;nergie du véhicule</label>
-                                        <select id="VehicleEnergyInput" class="form-select">
-                                            <option value="">--- Choisir ---</option>
-                                            <option value="Electrique">Electrique</option>
-                                            <option value="Hybride">Hybride</option>
-                                            <option value="Essence">Essence</option>
-                                            <option value="Diesel">Diesel</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="AvailablePlacesInput" class="form-label">Nombres de places disponibles</label>
-                                        <input type="number" class="form-control" id="AvailablePlacesInput" placeholder="Combien vous êtes habituellement ?" value="4" name="NbConvives">
-                                    </div>
-                                </fieldset>
+                <div class="mt-4">
+                    <h3>Mes véhicules enregistrés</h3>
+                    <div id="vehicleConfirmationMessage" class="text-success" style="display: none;">Véhicule ajouté avec succès !</div>
+                    <div id="vehicleErrorMessage" class="text-danger" style="display: none;">Erreur lors de l'ajout du véhicule.</div>
+                    <div id="vehicleDeleteMessage" class="text-danger" style="display: none;">Véhicule supprimé avec succès !</div>
+                    <div id="vehicleDeleteErrorMessage" class="text-danger" style="display: none;">Erreur lors de la suppression du véhicule.</div>
+                    <div id="vehicleUpdateMessage" class="text-success" style="display: none;">Véhicule mis à jour avec succès !</div>
+                    <div id="vehicleUpdateErrorMessage" class="text-danger" style="display: none;">Erreur lors de la mise à jour du véhicule.</div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Marque - Modèle</th>
+                                    <th class="d-none d-md-table-cell">Couleur</th>
+                                    <th>Plaque d'immatriculation</th>
+                                    <th class="d-none d-md-table-cell">Date de 1ère immatriculation</th>
+                                    <th class="d-none d-md-table-cell">Nombre de places</th>
+                                    <th class="d-none d-md-table-cell">Energie</th>
+                                    <th class="d-none d-md-table-cell">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehicleList">
+                                <!-- Les véhicules seront ajoutés ici dynamiquement -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Modale pour afficher les détails du véhicule -->
+                    <div class="modal fade" id="vehicleModal" tabindex="-1" aria-labelledby="vehicleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="vehicleModalLabel">Détails du véhicule</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="vehicleForm">
+                                        <div class="mb-3">
+                                            <label for="modalVehicleBrand" class="form-label">Marque</label>
+                                            <input type="text" class="form-control" id="modalVehicleBrand">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleModel" class="form-label">Modèle</label>
+                                            <input type="text" class="form-control" id="modalVehicleModel">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleColor" class="form-label">Couleur</label>
+                                            <input type="text" class="form-control" id="modalVehicleColor">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleRegistration" class="form-label">Plaque d'immatriculation</label>
+                                            <input type="text" class="form-control" id="modalVehicleRegistration">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleRegistrationDate" class="form-label">Date de 1ère immatriculation</label>
+                                            <input type="date" class="form-control" id="modalVehicleRegistrationDate">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleNbPlace" class="form-label">Nombre de places</label>
+                                            <input type="number" class="form-control" id="modalVehicleNbPlace">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleEnergy" class="form-label">Énergie</label>
+                                            <select class="form-select" id="modalVehicleEnergy">
+                                                <option value="">--- Choisir une énergie ---</option>
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" id="saveVehicleBtn"><i class="bi bi-pencil"></i> Modifier</button>
+                                    <button type="button" class="btn btn-danger" id="deleteVehicleBtn"><i class="bi bi-trash"></i> Supprimer</button>
+                                </div>
                             </div>
                         </div>
-                        <a href="#" class="btn btn-outline-secondary mt-3"><i class="bi bi-plus-circle"></i> Ajouter un véhicule</a>
                     </div>
-                </div>
+                <fieldset class="border rounded-3 p-3">
+                    <form id="vehiclesForm">
+                        <div class="mb-3">
+                            <label for="vehicleBrand" class="form-label">Marque</label>
+                            <input type="text" class="form-control" id="vehicleBrand" name="vehicleBrand">
+                        </div>
+                        <div class="mb-3">
+                            <label for="vehicleModel" class="form-label">Modèle</label>
+                            <input type="text" class="form-control" id="vehicleModel" name="vehicleModel">
+                        </div>
+                        <div class="mb-3">
+                            <label for="vehicleColor" class="form-label">Couleur</label>
+                            <input type="text" class="form-control" id="vehicleColor" name="vehicleColor">
+                        </div>
+                        <div class="mb-3">
+                            <label for="vehicleRegistration" class="form-label">Plaque d'immatriculation</label>
+                            <input type="text" class="form-control" id="vehicleRegistration" name="vehicleRegistration">
+                        </div>
+                        <div class="mb-3">
+                            <label for="registrationFirstDate" class="form-label">Date de 1ère immatriculation</label>
+                            <input type="date" class="form-control" id="registrationFirstDate" name="registrationFirstDate">
+                        </div>
+                        <div class="mb-3">
+                            <label for="nbPlace" class="form-label">Nombre de places</label>
+                            <input type="number" class="form-control" id="nbPlace" name="nbPlace">
+                        </div>
+                        <div class="mb-3">
+                            <label for="VehicleEnergy" class="form-label">Énergie</label>
+                            <select class="form-select" id="VehicleEnergy">
+                                <option value="">--- Choisir une énergie ---</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-outline-secondary mt-3" id="addVehicleBtn">Ajouter un véhicule</button>
+                        </div>
+                    </form>
+                </fieldset>
             </section>
         </div>
     </div>

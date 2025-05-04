@@ -12253,4 +12253,9 @@ p {
   color: #000;
   padding: 10px;
 }
+
+.vehicle:hover {
+  background-color: #f8f9fa; /* Couleur de fond légèrement grisée */
+  cursor: pointer; /* Changer le curseur pour indiquer que c'est cliquable */
+}
 /*# sourceMappingURL=main.css.map */
