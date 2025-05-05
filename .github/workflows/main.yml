@@ -15,6 +15,7 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ssh-ecoridefront.alwaysdata.net
+          protocol: ftps
           port: 22
           username: ecoridefront
           password: ${{ secrets.ftp_password_alwaydata }}
