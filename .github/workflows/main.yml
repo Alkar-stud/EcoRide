@@ -1,20 +1,26 @@
-on: [push]
-
+on: push
+name: 🚀 Deploy website on push on AlwaysData
 jobs:
-  deploy_job:
+  web-deploy:
+    name: 🎉 Deploy
     runs-on: ubuntu-latest
-    name: Deploy Files
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4
 
-      - name: Deploy to Server
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
-        with:
-          username: ecoridefront
-          server: ssh-ecoridefront.alwaysdata.net
-          port: 22
-          local_path: './*'
-          remote_path: '/var/www/app'
-          sftp_only: true
-          password: ${{ secrets.FTP_PASSWORD_ALWAYSDATA }}
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ssh-ecoridefront.alwaysdata.net
+        username: ecoridefront
+        password: ${{ secrets.FTP_PASSWORD_ALWAYSDATA }}
+        protocol: ftps
+        port: 22
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/bootstrap/scss/**
+          **/node_modules/bootstrap/js/**
+          **/node_modules/bootstrap-icons/icons/**  
+        server-dir: /www/
+        timeout: 60000
