@@ -8,11 +8,6 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@v3
 
-      - name: 📂 Install dependencies
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
       - name: 📂 Install npm dependencies
         run: npm install
       
@@ -22,11 +17,11 @@ jobs:
           server: ssh-ecoridefront.alwaysdata.net
           port: 22
           username: ecoridefront
-          password: ${{ secrets.ftp_password_alwaysdata }}
+          password: ${{ secrets.ftp_password_alwaydata }}
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/bootstrap/scss/**
             **/node_modules/bootstrap/js/**
-            **/node_modules/bootstrap-icons/icons/**
+            **/node_modules/bootstrap-icons/icons/**  
           server-dir: /www/
