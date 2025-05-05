@@ -1,26 +1,20 @@
-on: push
-name: Publish Website on SHH AlwayData
-jobs:
-  web-deploy:
-    name: 🚀 Deploy Website Every Commit
-    runs-on: ubuntu-latest
-    steps:
-    - name: 🚚 Get Latest Code
-      uses: actions/checkout@v3
+on: [push]
 
-    - name: 📂 Install npm dependencies
-      run: npm install
-      
-    - name: 📂 Sync Files
-      uses: SamKirkland/web-deploy@v1
-      with:
-        target-server: ssh-ecoridefront.alwaysdata.net
-        remote-user: ecoridefront
-        private-ssh-key: ${{ secrets.FTP_PASSWORD_ALWAYSDATA }}
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/bootstrap/scss/**
-          **/node_modules/bootstrap/js/**
-          **/node_modules/bootstrap-icons/icons/** 
-        destination-path: ~/www/
+jobs:
+  deploy_job:
+    runs-on: ubuntu-latest
+    name: Deploy Files
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy to Server
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
+        with:
+          username: ecoridefront
+          server: ssh-ecoridefront.alwaysdata.net
+          port: 22
+          local_path: './*'
+          remote_path: '/var/www/app'
+          sftp_only: true
+          password: ${{ secrets.FTP_PASSWORD_ALWAYSDATA }}
