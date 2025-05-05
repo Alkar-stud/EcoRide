@@ -18,7 +18,7 @@ jobs:
           protocol: ftps
           port: 22
           username: ecoridefront
-          password: ${{ secrets.ftp_password_alwaydata }}
+          password: ${{ secrets.FTP_PASSWORD_ALWAYSDATA }}
           exclude: |
             **/.git*
             **/.git*/**
