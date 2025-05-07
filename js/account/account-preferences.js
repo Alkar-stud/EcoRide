@@ -94,6 +94,9 @@ export function addPreferences() {
 // Fonction pour sauvegarder une préférence
 export async function savePreference(id, libelle, description, confirmationMessageId) {
     try {
+        const confirmationMessageLoading = document.getElementById(confirmationMessageId + 'Loadding');
+        confirmationMessageLoading.style.display = "block";
+
         let myHeaders = new Headers();
         myHeaders.append("X-AUTH-TOKEN", getToken());
         myHeaders.append("Content-Type", "application/json");
@@ -141,6 +144,7 @@ export async function savePreference(id, libelle, description, confirmationMessa
             // Afficher un message de confirmation
             const confirmationMessage = document.getElementById(confirmationMessageId);
             confirmationMessage.style.display = "block";
+            confirmationMessageLoading.style.display = "none";
             setTimeout(() => {
                 confirmationMessage.style.display = "none";
             }, 3000); // Masquer le message après 3 secondes
