@@ -45,7 +45,7 @@ async function getUserInfo() {
             let result = await response.json();
             // Vérification de la présence d'une photo
             if (result.photo) {
-                result.photo = url + "uploads/photos/" + result.photo;
+                result.photo = url + "images/" + result.photo;
             } else {
                 result.photo = "/images/default-avatar.png";
             }
