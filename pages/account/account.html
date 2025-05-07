@@ -95,6 +95,9 @@
                         <div class="mb-3">
                             <label for="NoPet">Acceptez-vous les animaux ?</label>
                             <div id="petConfirmationMessage" class="text-success" style="display: none;">Préférence sauvegardée avec succès !</div>
+                            <div class="spinner-border text-secondary" role="status" style="display: none;" id="petConfirmationMessageLoading">
+                                <span class="sr-only">Loading...</span>
+                              </div>
                             <div>
                                 <input type="radio" class="form-check-input" id="NoPet" name="PetAsk" value="no" data-id="petsAllowedId">
                                 <label for="NoPet" class="form-check-label"><img src="/images/animaux-non.png" alt="Pas d'animaux"> Pas d'animaux</label>
