@@ -94,7 +94,7 @@ export function addPreferences() {
 // Fonction pour sauvegarder une préférence
 export async function savePreference(id, libelle, description, confirmationMessageId) {
     try {
-        const confirmationMessageLoading = document.getElementById(confirmationMessageId + 'Loading'); // Correction orthographique
+        const confirmationMessageLoading = document.getElementById(confirmationMessageId + 'Loading');
         confirmationMessageLoading.style.display = "block";
 
         let myHeaders = new Headers();
