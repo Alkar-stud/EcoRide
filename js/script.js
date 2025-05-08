@@ -1,7 +1,7 @@
 const tokenCookieName = "accesstoken";
 const RoleCookieName = "role";
 const signoutBtn = document.getElementById("signout-btn");
-const url = "https://localhost:8000/";
+const url = "http://localhost:8080/";
 const apiUrl = url + "api/";
 signoutBtn.addEventListener("click", signout);
 
@@ -118,3 +118,15 @@ function showMessage(messageId) {
         }, 5000); // Masquer le message après 5 secondes
     }
 }
+
+// Ajout d'un gestionnaire global pour détecter l'appui sur la touche Entrée
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        const activeElement = document.activeElement;
+        // Vérifie si l'élément actif est un bouton ou un champ de formulaire
+        if (activeElement.tagName === "BUTTON" || (activeElement.tagName === "INPUT" && activeElement.type !== "submit")) {
+            event.preventDefault(); // Empêche le comportement par défaut
+            activeElement.click(); // Simule un clic sur l'élément actif
+        }
+    }
+});

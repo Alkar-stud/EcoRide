@@ -85,10 +85,11 @@
                         <div class="mb-3">
                             <label for="NoSmoke">Fumeur ?</label>
                             <div id="smokeConfirmationMessage" class="text-success" style="display: none;">Préférence sauvegardée avec succès !</div>
-                            <output class="spinner-border text-secondary" style="display: none;" id="smokeConfirmationMessageLoading">
-                                <span class="sr-only">Loading...</span>
-                            </output>
-                            <div>
+                            <div id="smokeConfirmationMessageLoading" style="display: none;">
+                                <div class="spinner-border text-secondary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                  </div>                                
+                            </div>
                             <div>
                                 <input type="radio" class="form-check-input" id="NoSmoke" name="SmokeAsk" value="no" data-id="smokingAllowedId">
                                 <label for="NoSmoke" class="form-check-label"><img src="/images/fumeur-non.png" alt="Non-fumeur"> Non-fumeur</label>
@@ -99,9 +100,11 @@
                         <div class="mb-3">
                             <label for="NoPet">Acceptez-vous les animaux ?</label>
                             <div id="petConfirmationMessage" class="text-success" style="display: none;">Préférence sauvegardée avec succès !</div>
-                            <output class="spinner-border text-secondary" style="display: none;" id="petConfirmationMessageLoading">
-                                <span class="sr-only">Loading...</span>
-                            </output>
+                            <div id="petConfirmationMessageLoading" style="display: none;">
+                                <div class="spinner-border text-secondary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                  </div>                                
+                            </div>
                             <div>
                                 <input type="radio" class="form-check-input" id="NoPet" name="PetAsk" value="no" data-id="petsAllowedId">
                                 <label for="NoPet" class="form-check-label"><img src="/images/animaux-non.png" alt="Pas d'animaux"> Pas d'animaux</label>
