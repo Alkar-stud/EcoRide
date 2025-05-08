@@ -7,6 +7,14 @@ const signinForm = document.getElementById("signinForm");
 
 btnSignin.addEventListener("click", checkCredentials);
 
+// Ajout d'un écouteur pour détecter l'appui sur la touche Entrée
+signinForm.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        event.preventDefault(); // Empêche le comportement par défaut du formulaire
+        checkCredentials(); // Appelle la fonction de validation
+    }
+});
+
 //Function permettant de valider tout le formulaire
 function checkCredentials(){
     let dataForm = new FormData(signinForm);
