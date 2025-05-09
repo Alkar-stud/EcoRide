@@ -1,7 +1,7 @@
 const tokenCookieName = "accesstoken";
 const RoleCookieName = "role";
 const signoutBtn = document.getElementById("signout-btn");
-const url = "http://localhost:8000/";
+const url = "https://ecorideback.alwaysdata.net/";
 const apiUrl = url + "api/";
 signoutBtn.addEventListener("click", signout);
 
