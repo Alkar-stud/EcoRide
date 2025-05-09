@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
 * fonctions pour les préférences
 */
 
+
 const addPreferenceBtn = document.getElementById("addPreferenceBtn");
 
 addPreferenceBtn.addEventListener("click", function (event) {
