@@ -2,6 +2,8 @@ import { getUserInfo, setUserInfo, deleteAccount, checkRoleSelection, validateFo
 import { addPreferences, savePreference, deletePreference } from './account-preferences.js';
 import { addVehicle, loadEnergyOptions } from './account-vehicles.js';
 
+alert('ok');
+
 //Pour les infos perso du user
 const pseudoInput = document.getElementById("PseudoInput");
 const photo = document.getElementById("photo"); // Affichage de la photo
@@ -58,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function () {
 /*
 * fonctions pour les préférences
 */
-
 
 const addPreferenceBtn = document.getElementById("addPreferenceBtn");
 
