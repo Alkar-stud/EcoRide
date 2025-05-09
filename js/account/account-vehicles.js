@@ -221,12 +221,13 @@ export async function refreshVehiclesTab() {
 
             // Boucle pour afficher les véhicules
             vehicles.forEach(vehicle => {
-                const vehicleRow = document.createElement("tr");
+                const licenseDate = new Date(vehicle.licenseFirstDate);
+                const formattedDate = isNaN(licenseDate) ? "Date invalide" : licenseDate.toLocaleDateString('fr-FR');                const vehicleRow = document.createElement("tr");
                 vehicleRow.className = "vehicle";
                 vehicleRow.innerHTML = `
                     <td>${vehicle.brand} ${vehicle.model}</td>
                     <td class="d-none d-md-table-cell">${vehicle.color}</td>
-                    <td>${vehicle.registration}</td>
+                    <td>${vehicle.licensePlate}</td>
                     <td class="d-none d-md-table-cell">${new Date(vehicle.licenseFirstDate).toLocaleDateString('fr-FR')}</td>
                     <td class="d-none d-md-table-cell">${vehicle.nbPlace}</td>
                     <td class="d-none d-md-table-cell">${vehicle.energy.libelle}</td>
