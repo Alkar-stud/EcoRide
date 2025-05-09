@@ -38,7 +38,7 @@ export async function addVehicle() {
             brand: document.getElementById("vehicleBrand").value,
             model: document.getElementById("vehicleModel").value,
             color: document.getElementById("vehicleColor").value,
-            registration: document.getElementById("vehicleRegistration").value,
+            licensePlate: document.getElementById("vehicleRegistration").value,
             licenseFirstDate: document.getElementById("licenseFirstDate").value,
             nbPlace: parseInt(document.getElementById("nbPlace").value, 10),
             energy: {
