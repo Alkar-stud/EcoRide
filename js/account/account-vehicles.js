@@ -39,7 +39,7 @@ export async function addVehicle() {
             model: document.getElementById("vehicleModel").value,
             color: document.getElementById("vehicleColor").value,
             registration: document.getElementById("vehicleRegistration").value,
-            registrationFirstDate: document.getElementById("registrationFirstDate").value,
+            licenseFirstDate: document.getElementById("licenseFirstDate").value,
             nbPlace: parseInt(document.getElementById("nbPlace").value, 10),
             energy: {
                 id: parseInt(document.getElementById("VehicleEnergy").value, 10)
@@ -47,13 +47,13 @@ export async function addVehicle() {
         };
 
         // Vérifier si tous les champs obligatoires sont remplis
-        if (!vehicleData.brand || !vehicleData.model || !vehicleData.registration || !vehicleData.registrationFirstDate || !vehicleData.energy.id) {
+        if (!vehicleData.brand || !vehicleData.model || !vehicleData.registration || !vehicleData.licenseFirstDate || !vehicleData.energy.id) {
             alert("Veuillez remplir tous les champs obligatoires.");
             return;
         }
 
         // Vérifier si la date est valide
-        if (!isValidDate(vehicleData.registrationFirstDate)) {
+        if (!isValidDate(vehicleData.licenseFirstDate)) {
             alert("Veuillez saisir une date valide pour la première immatriculation.");
             return;
         }
@@ -102,7 +102,7 @@ function openVehicleModal(vehicle) {
     document.getElementById("modalVehicleModel").value = vehicle.model;
     document.getElementById("modalVehicleColor").value = vehicle.color;
     document.getElementById("modalVehicleRegistration").value = vehicle.registration;
-    document.getElementById("modalVehicleRegistrationDate").value = vehicle.registrationFirstDate.split('T')[0];
+    document.getElementById("modalVehicleRegistrationDate").value = vehicle.licenseFirstDate.split('T')[0];
     document.getElementById("modalVehicleNbPlace").value = vehicle.nbPlace;
 
     // Ajouter les actions pour les boutons Modifier et Supprimer
@@ -153,10 +153,10 @@ export async function editVehicle(vehicleId) {
     try {
 
         // Récupérer la date saisie
-        const registrationFirstDate = document.getElementById("modalVehicleRegistrationDate").value;
+        const licenseFirstDate = document.getElementById("modalVehicleRegistrationDate").value;
 
         // Vérifier si la date est valide
-        if (!isValidDate(registrationFirstDate)) {
+        if (!isValidDate(licenseFirstDate)) {
             alert("Veuillez saisir une date valide pour la première immatriculation.");
             return; // Arrêter l'exécution si la date est invalide
         }
@@ -166,7 +166,7 @@ export async function editVehicle(vehicleId) {
             model: document.getElementById("modalVehicleModel").value,
             color: document.getElementById("modalVehicleColor").value,
             registration: document.getElementById("modalVehicleRegistration").value,
-            registrationFirstDate: document.getElementById("modalVehicleRegistrationDate").value,
+            licenseFirstDate: document.getElementById("modalVehicleRegistrationDate").value,
             nbPlace: parseInt(document.getElementById("modalVehicleNbPlace").value, 10),
             energy: {
                 id: parseInt(document.getElementById("modalVehicleEnergy").value, 10)
@@ -227,7 +227,7 @@ export async function refreshVehiclesTab() {
                     <td>${vehicle.brand} ${vehicle.model}</td>
                     <td class="d-none d-md-table-cell">${vehicle.color}</td>
                     <td>${vehicle.registration}</td>
-                    <td class="d-none d-md-table-cell">${new Date(vehicle.registrationFirstDate).toLocaleDateString('fr-FR')}</td>
+                    <td class="d-none d-md-table-cell">${new Date(vehicle.licenseFirstDate).toLocaleDateString('fr-FR')}</td>
                     <td class="d-none d-md-table-cell">${vehicle.nbPlace}</td>
                     <td class="d-none d-md-table-cell">${vehicle.energy.libelle}</td>
                     <td class="d-none d-md-table-cell">
