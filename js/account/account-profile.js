@@ -118,7 +118,7 @@ async function getUserInfo() {
                     vehicleRow.innerHTML = `
                         <td>${vehicle.brand} ${vehicle.model}</td>
                         <td class="d-none d-md-table-cell">${vehicle.color}</td>
-                        <td>${vehicle.registration}</td>
+                        <td>${vehicle.licensePlate}</td>
                         <td class="d-none d-md-table-cell">${new Date(vehicle.licenseFirstDate).toLocaleDateString('fr-FR')}</td>
                         <td class="d-none d-md-table-cell">${vehicle.nbPlace}</td>
                         <td class="d-none d-md-table-cell">${vehicle.energy.libelle}</td>
