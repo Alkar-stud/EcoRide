@@ -1,7 +1,8 @@
 const tokenCookieName = "accesstoken";
 const RoleCookieName = "role";
 const signoutBtn = document.getElementById("signout-btn");
-const url = "https://ecorideback.alwaysdata.net/";
+
+const url = "http://localhost:8080/";
 const apiUrl = url + "api/";
 signoutBtn.addEventListener("click", signout);
 
@@ -16,7 +17,7 @@ function signout(){
 }
 
 function setToken(token){
-    setCookie(tokenCookieName, token, 7);
+    setCookie(tokenCookieName, token, 1);
 }
 
 function getToken(){
@@ -30,7 +31,7 @@ function setCookie(name,value,days) {
         date.setTime(date.getTime() + (days*24*60*60*1000));
         expires = "; expires=" + date.toUTCString();
     }
-    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict";
 }
 
 function getCookie(name) {

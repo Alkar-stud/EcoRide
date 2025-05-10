@@ -4,8 +4,8 @@
     <!-- Onglets -->
     <ul class="nav nav-tabs" id="accountTabs" id="account">
         <button class="nav-link active" id="personal-info-tab" data-bs-toggle="tab" data-bs-target="#personal-info" type="button" role="tab" aria-controls="personal-info" aria-selected="true">Mes informations personnelles</button>
-        <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab" aria-controls="preferences" aria-selected="false" data-show="ROLE_USER">Mes préférences</button>
-        <button class="nav-link" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab" aria-controls="vehicles" aria-selected="false" data-show="client">Mes véhicules</button>
+        <button class="nav-link d-none" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab" aria-controls="preferences" aria-selected="false" data-show="ROLE_USER">Mes préférences</button>
+        <button class="nav-link d-none" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab" aria-controls="vehicles" aria-selected="false" data-show="client">Mes véhicules</button>
     </ul>
 
     <!-- Contenu des onglets -->
@@ -239,7 +239,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="nbPlace" class="form-label">Nombre de places</label>
-                            <input type="number" class="form-control" id="nbPlace" name="nbPlace">
+                            <input type="number" class="form-control" id="nbPlace" name="nbPlace" min="1">
                         </div>
                         <div class="mb-3">
                             <label for="VehicleEnergy" class="form-label">Énergie</label>

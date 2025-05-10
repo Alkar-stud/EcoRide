@@ -1,7 +1,7 @@
 # EcoRide
 Ce site est la partie Front de la startup EcoRide
 
-# Installation
-Install bootstrap & bootstrap-icons
+# Installation en local
+`sudo docker run -d -p 3000:3000 --name ecoride_front_container ecoride_front`
 
-# Deployment
+Le dossier local étant monté dans le conteneur, le développement se fait sans avoir à reconstruire l'image

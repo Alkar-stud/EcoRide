@@ -53,22 +53,23 @@ async function getUserInfo() {
             if (result.roles[0] != "ROLE_USER" && result.isDriver == false && result.isPassenger == false) {
                 submitFormInfoUser.disabled = false;
             }
-            //Si ni chauffeur ni passager, on bloque le bouton Enregistrer
+
+            //Si ni chauffeur ni passager, on bloque le bouton Enregistrer et on cache les autres onglets
             if (result.isDriver == true && result.isPassenger == null) {
                 document.getElementById("isDriver").checked = true;
-                document.getElementById("vehicles-tab").style.display = "block";
-                document.getElementById("preferences-tab").style.display = "block";
+                document.getElementById("preferences-tab").classList.remove('d-none');
+                document.getElementById("vehicles-tab").classList.remove('d-none');
             } else if (result.isDriver == null && result.isPassenger == true) {
                 document.getElementById("isPassenger").checked = true;
-                document.getElementById("vehicles-tab").style.display = "none";
-                document.getElementById("preferences-tab").style.display = "none";
+                document.getElementById("preferences-tab").classList.add('d-none');
+                document.getElementById("vehicles-tab").classList.add('d-none');
             } else if (result.isDriver == true && result.isPassenger == true) {
                 document.getElementById("isBoth").checked = true;
-                document.getElementById("vehicles-tab").style.display = "block";
-                document.getElementById("preferences-tab").style.display = "block";
+                document.getElementById("preferences-tab").classList.remove('d-none');
+                document.getElementById("vehicles-tab").classList.remove('d-none');
             } else {
-                document.getElementById("vehicles-tab").style.display = "none";
-                document.getElementById("preferences-tab").style.display = "none";
+                document.getElementById("preferences-tab").classList.add('d-none');
+                document.getElementById("vehicles-tab").classList.add('d-none');
                 //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
                 if (getCookie('role') == "ROLE_USER") {
                     document.getElementById("roleNone").style.display = "block";

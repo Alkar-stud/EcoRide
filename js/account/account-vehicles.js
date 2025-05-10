@@ -41,13 +41,11 @@ export async function addVehicle() {
             licensePlate: document.getElementById("vehicleRegistration").value,
             licenseFirstDate: document.getElementById("licenseFirstDate").value,
             nbPlace: parseInt(document.getElementById("nbPlace").value, 10),
-            energy: {
-                id: parseInt(document.getElementById("VehicleEnergy").value, 10)
-            }
+            energy: parseInt(document.getElementById("VehicleEnergy").value, 10)
         };
 
         // Vérifier si tous les champs obligatoires sont remplis
-        if (!vehicleData.brand || !vehicleData.model || !vehicleData.registration || !vehicleData.licenseFirstDate || !vehicleData.energy.id) {
+        if (!vehicleData.brand || !vehicleData.model || !vehicleData.color || !vehicleData.licensePlate || !vehicleData.licenseFirstDate || !vehicleData.nbPlace || !vehicleData.energy) {
             alert("Veuillez remplir tous les champs obligatoires.");
             return;
         }
@@ -70,7 +68,6 @@ export async function addVehicle() {
         };
 
         let response = await fetch(apiUrl + "vehicle/add", requestOptions);
-
         if (response.ok) {
             // Réinitialiser le formulaire
             vehicleForm.reset();
@@ -79,7 +76,8 @@ export async function addVehicle() {
             showMessage("vehicleConfirmationMessage"); // Afficher le message de succès
             refreshVehiclesTab(); // Rafraîchir l'onglet
         } else {
-            console.error("Erreur lors de l'ajout du véhicule");
+            const errorData = await response.json();
+            console.error("Erreur lors de l'ajout du véhicule :", errorData.message);
         }
     } catch (error) {
         console.error("Erreur lors de l'ajout du véhicule", error);
@@ -94,6 +92,8 @@ function openVehicleModal(vehicle) {
         const energySelect = document.getElementById("modalVehicleEnergy");
         if (vehicle.energy && vehicle.energy.id) {
             energySelect.value = vehicle.energy.id;
+        } else {
+            console.warn("Aucune énergie correspondante trouvée pour ce véhicule.");
         }
     });
 
@@ -168,9 +168,7 @@ export async function editVehicle(vehicleId) {
             registration: document.getElementById("modalVehicleRegistration").value,
             licenseFirstDate: document.getElementById("modalVehicleRegistrationDate").value,
             nbPlace: parseInt(document.getElementById("modalVehicleNbPlace").value, 10),
-            energy: {
-                id: parseInt(document.getElementById("modalVehicleEnergy").value, 10)
-            }
+            energy: parseInt(document.getElementById("modalVehicleEnergy").value, 10)
         };
 
         let myHeaders = new Headers();
