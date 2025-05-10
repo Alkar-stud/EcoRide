@@ -1,8 +1,26 @@
 const tokenCookieName = "accesstoken";
 const RoleCookieName = "role";
 const signoutBtn = document.getElementById("signout-btn");
+let localhost = location.host;
+let url;
+switch (localhost) {
+    case "localhost:3000":
+        url = "http://localhost:8080/"; //URL locale
+        console.log("Environnement local");
+        break;
+    case "ecoride.alkar0.com":
+        url = "https://ecoride.alkar0.com/"; //URL de dev
+        console.log("Environnement de développement");
+        break;
+    case "ecorideback.alwaysdata.net":
+        url = "https://ecorideback.alwaysdata.net/";   //URL de production
+        console.log("Environnement de production");
+        break;
+    default:
+        console.log("Environnement inconnu");
+        break;
+}
 
-const url = "http://localhost:8080/";
 const apiUrl = url + "api/";
 signoutBtn.addEventListener("click", signout);
 
