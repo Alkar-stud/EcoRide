@@ -38,3 +38,103 @@ main {
   flex-grow: 1; /* Allow main to take up remaining space */
   padding-top: 101px; /* Add padding to prevent content from being hidden behind the header */
 }
+
+a.header {
+  font-size: 30px;
+}
+
+
+p {
+  font-family: $font-family-serif;
+  font-size:18px;
+}
+
+
+.hero-scene{
+  position: relative;
+  &::before{
+      content:"";
+      position: absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background-image: url(../images/FondHeroScene.jpg);
+      background-size: cover;
+      filter: brightness(0.3);
+  }
+
+  *{
+      //Positionner les éléments devant le ::before
+      position:relative;
+  }
+
+  .hero-scene-content{
+      height: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+  }
+}
+
+.container {
+  min-width: 100%;
+}
+
+.img-introduction {
+  padding:4px;
+  text-align: center;
+  // Remove float: left;
+  max-height: 100%;
+  margin:5px 10px 15px;
+  display:block;
+  // Add a max-width to the image
+  max-width: 200px;
+}
+
+// Add styles for the container
+.container.bg-secondary-subtle {
+  padding: 15px; // Add padding to the container
+}
+
+// Add styles for the paragraph
+.container.bg-secondary-subtle p {
+  text-align: justify; // Justify the text
+}
+
+
+.allcovoiturages{
+  a{
+      display: block;
+      color: $black;
+      padding:10px;
+  }
+}
+
+.vehicle:hover {
+  background-color: #f8f9fa; /* Couleur de fond légèrement grisée */
+  cursor: pointer; /* Changer le curseur pour indiquer que c'est cliquable */
+}
+
+
+/*
+  * Autocompletion openStreetMap styles
+  */
+.autocomplete-suggestions {
+    position: absolute;
+    z-index: 1000;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.autocomplete-item {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.autocomplete-item:hover {
+    background-color: #f0f0f0;
+}

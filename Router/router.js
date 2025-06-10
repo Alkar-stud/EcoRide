@@ -1,5 +1,6 @@
 import Route from "./Route.js";
 import { allRoutes, websiteName } from "./allRoutes.js";
+import { showAndHideElementsForRoles, isConnected, getRole } from "../js/script.js";
 
 // Création d'une route pour la page 404 (page introuvable)
 const route404 = new Route("404", "Page introuvable", "/pages/404.html", []);
