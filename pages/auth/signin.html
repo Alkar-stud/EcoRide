@@ -1,0 +1,23 @@
+<h1 id="title-h1" class="text-center text-secondary">titreh1</h1>
+
+<div class="container" id="container">
+    <form id="signinForm">
+        <div class="mb-3">
+          <label for="EmailInput" class="form-label">Email</label>
+          <input type="email" class="form-control" id="EmailInput" placeholder="test@mail.fr" name="email" value="adresse@email.com"> 
+          <div class="invalid-feedback">
+            Le mail et/ou le mot de passe ne correspondent pas
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="PasswordInput" class="form-label">Mot de passe</label>
+          <input type="password" class="form-control" id="PasswordInput" name="mdp" value="M0t de passe">
+        </div>
+        <div class="text-center">
+            <button type="button" class="btn btn-primary" id="btnSignin">Connexion</button>
+        </div>
+    </form>
+    <div class="text-center pt-3">
+        <a href="/signup">Vous n’avez pas de compte ? Inscrivez-vous ici !</a>
+    </div>
+</div>

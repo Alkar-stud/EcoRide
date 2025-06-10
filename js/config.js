@@ -1,1 +1,1 @@
-export const API_PATH_URL = 'http://localhost:3000/'
+export const apiUrl = 'https://localhost:8000/api/'

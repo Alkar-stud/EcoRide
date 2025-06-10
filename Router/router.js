@@ -23,25 +23,48 @@ const getRouteByUrl = (url) => {
 };
 
 // Fonction pour charger le contenu de la page
+// Gérér la logique d'accès aux pages
+function handleAccessControl(allRolesArray) {
+  if (allRolesArray.length > 0) {
+    if (allRolesArray.includes("disconnected")) {
+      if (isConnected()) {
+        window.location.replace("/");
+        return false;
+      }
+    } else {
+      const roleUser = getRole();
+      if (!allRolesArray.includes(roleUser)) {
+        window.location.replace("/");
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+// Fonction pour activer le lien du menu correspondant à la page actuelle
+function activateMenuLink(path) {
+  let myLinkPath = path;
+  if (myLinkPath === "/") {
+    myLinkPath = "accueil";
+  } else {
+    myLinkPath = myLinkPath.substring(1);
+  }
+  const myLink = document.getElementById("link-" + myLinkPath);
+  if (myLink) {
+    myLink.classList.add("link-menu-active");
+  }
+}
+
 const LoadContentPage = async () => {
   const path = window.location.pathname;
   // Récupération de l'URL actuelle
   const actualRoute = getRouteByUrl(path);
-  //Vérifer les droits d'accès à la page
+  // Vérifier les droits d'accès à la page
   const allRolesArray = actualRoute.authorize;
 
-  if(allRolesArray.length > 0){
-    if(allRolesArray.includes("disconnected")){
-      if(isConnected()){
-        window.location.replace("/");
-      }
-    }
-    else{
-      const roleUser = getRole();
-      if(!allRolesArray.includes(roleUser)){
-        window.location.replace("/");
-      }
-    }
+  if (!handleAccessControl(allRolesArray)) {
+    return;
   }
 
   // Récupération du contenu HTML de la route
@@ -68,26 +91,17 @@ const LoadContentPage = async () => {
 
   // Changement du titre de la page
   document.title = actualRoute.title + " - " + websiteName;
-  //Changement du title h1
+  // Changement du title h1
   const titleH1 = document.getElementById("title-h1");
   if (actualRoute.title !== "Accueil") {
     titleH1.innerHTML = actualRoute.title;
   }
-  
-  //Afficher et masquer les éléments en fonction du rôle
+
+  // Afficher et masquer les éléments en fonction du rôle
   showAndHideElementsForRoles();
 
   // Ajout de la class sur le lien du menu qui est actif
-  let myLinkPath = path;
-  if (myLinkPath === "/") {
-    myLinkPath = "accueil";
-  } else {
-    myLinkPath = myLinkPath.substring(1);
-  }
-  const myLink = document.getElementById("link-" + myLinkPath);
-  if (myLink) {
-    myLink.classList.add("link-menu-active");
-  }
+  activateMenuLink(path);
 };
 
 // Fonction pour gérer les événements de routage (clic sur les liens)

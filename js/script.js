@@ -1,16 +1,10 @@
 // File: js/script.js
 // This file contains utility functions for handling cookies, user authentication, and UI interactions.
 // It includes functions to set, get, and erase cookies, check user connection status, and manage UI elements based on user roles.
-import { API_PATH_URL } from './config.js';
-
 const tokenCookieName = "accesstoken";
 const RoleCookieName = "role";
 const signoutBtn = document.getElementById("signout-btn");
-const url = API_PATH_URL.endsWith("/") ? API_PATH_URL : API_PATH_URL + "/";
-if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    console.error("API_PATH_URL must start with 'http://' or 'https://'");
-}
-const apiUrl = url + "api/";
+
 signoutBtn.addEventListener("click", signout);
 
 function getRole(){
@@ -139,4 +133,18 @@ document.addEventListener("keydown", function(event) {
     }
 });
 
-export { showAndHideElementsForRoles, isConnected, getRole };
+export {
+    showAndHideElementsForRoles,
+    isConnected,
+    getRole,
+    setToken,
+    setCookie,
+    RoleCookieName,
+    eraseCookie,
+    getToken,
+    getCookie,
+    signout,
+    sanitizeHtml,
+    isValidDate,
+    showMessage
+};
