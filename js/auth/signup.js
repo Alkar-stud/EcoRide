@@ -1,5 +1,6 @@
 //Fichier JS de la page d'inscription
 import { apiUrl } from '../config.js';
+import { sendFetchRequest } from '../script.js';
 
 const inputPseudo = document.getElementById("PseudoInput");
 const inputMail = document.getElementById("EmailInput");
@@ -89,44 +90,21 @@ function validateConfirmationPassword(inputPwd, inputConfirmPwd){
     }
 }
 
-function inscrireUtilisateur(){
-    // Crée un nouvel objet FormData à partir du formulaire contenu dans la variable "formInscription"
+async function inscrireUtilisateur(){
     let dataForm = new FormData(formInscription);
 
-    // Crée un nouvel objet Headers pour définir les en-têtes de la requête HTTP
-    let myHeaders = new Headers();
-    // Ajoute l'en-tête "Content-Type" avec la valeur "application/json"
-    myHeaders.append("Content-Type", "application/json");
-
-    // Convertit les données du formulaire en une chaîne JSON
     let raw = JSON.stringify({
         "pseudo": dataForm.get("pseudo"),
         "email": dataForm.get("email"),
         "password": dataForm.get("mdp")
     });
 
-    // Configure les options de la requête HTTP
-    let requestOptions = {
-        method: 'POST',
-        headers: myHeaders,
-        body: raw,
-        redirect: 'follow'
-    };
-
-    fetch(apiUrl + "registration", requestOptions)
-    .then((response) => {
-        if (response.ok) {
-            return response.json();
-        }
-        else {
-            alert("Erreur lors de l'inscription");
-            throw new Error("Erreur lors de l'inscription");
-        }
-        
-    })
-    .then((result) => {
+    try {
+        let result = await sendFetchRequest(apiUrl + "registration", null, 'POST', raw);
         alert("Vous êtes maintenant inscrit, vous devez cliquer sur le lien dans le mail reçu afin de pouvoir vous connecter.");
-        window.location.href="/signin";
-    })
-    .catch((error) => console.error(error));
+        window.location.href = "/signin";
+    } catch (error) {
+        alert("Erreur lors de l'inscription");
+        console.error(error);
+    }
 }
