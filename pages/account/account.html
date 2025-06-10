@@ -1,0 +1,258 @@
+<h1 id="title-h1" class="text-center text-secondary mb-4">titreh1</h1>
+
+<div class="container">
+    <!-- Onglets -->
+    <ul class="nav nav-tabs" id="accountTabs" id="account">
+        <button class="nav-link active" id="personal-info-tab" data-bs-toggle="tab" data-bs-target="#personal-info" type="button" role="tab" aria-controls="personal-info" aria-selected="true">Mes informations</button>
+        <button class="nav-link d-none" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab" aria-controls="preferences" aria-selected="false" data-show="ROLE_USER">Mes préférences</button>
+        <button class="nav-link d-none" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab" aria-controls="vehicles" aria-selected="false" data-show="ROLE_USER">Mes véhicules</button>
+    </ul>
+
+    <!-- Contenu des onglets -->
+    <div class="tab-content mt-4" id="accountTabsContent">
+        <!-- Onglet : Informations personnelles -->
+        <div class="tab-pane fade show active" id="personal-info" role="tabpanel" aria-labelledby="personal-info-tab">
+            <form id="accountForm">
+                <!-- Section: Rôle utilisateur -->
+                <section class="mb-4">
+                    <h2 class="fs-4">Informations personnelles</h2>
+                    <div class="mb-3" data-show="client">
+                        <label for="userRole" class="form-label">Vous êtes : </label>
+                        <div>
+                            <input type="radio" class="form-check-input" id="isPassenger" name="userRole" value="Passager">
+                            <label for="rolePassenger" class="form-check-label">Passager</label>
+                            <input type="radio" class="form-check-input" id="isDriver" name="userRole" value="Chauffeur">
+                            <label for="roleDriver" class="form-check-label">Chauffeur</label>
+                            <input type="radio" class="form-check-input" id="isBoth" name="userRole" value="Les 2">
+                            <label for="roleBoth" class="form-check-label">Les 2</label>
+                            <div class="invalid-feedback" id="roleNone" style="display: none;">
+                                Il faut choisir !
+                            </div>
+                        </div>
+                    </div>
+                </section>
+        
+                <!-- Section: Pseudo-->
+                <section class="mb-4" data-show="client">
+                    <div class="mb-3">
+                        <label for="PhotoInput" class="form-label">Photo de profil</label>
+                        <br>
+                        <img src="/images/default-avatar.png" class="img-fluid rounded-circle mb-3" alt="Avatar" id="photo">
+                        <br>
+                        <input type="file" class="form-control" id="PhotoInput" value="" alt="" name="Photo">
+                        <!-- checkbox pour supprimer la photo -->
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="deletePhotoCheck">
+                            <label class="form-check-label" for="deletePhotoCheck">Supprimer la photo de profil</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="PseudoInput" class="form-label">Pseudo</label>
+                        <input type="text" class="form-control" id="PseudoInput" placeholder="Votre pseudo" name="Pseudo">
+                        <div class="invalid-feedback">Le pseudo est requis</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="credits" class="form-label">Vos crédits disponibles</label><br>
+                        <span id="credits" name="credits"></span> <img src="/images/logo_credit_light.png" alt="Crédit" class="img-fluid" style="width: 20px; height: 20px;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="grade" class="form-label">Votre note globale</label><br>
+                        <span id="grade" name="grade">
+                        </span>
+                    </div>
+                    <!-- bouton pour envoyer le formulaire -->
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary" id="btnSubmitFormInfoUser">Enregistrer</button>
+                        <button type="button" class="btn btn-danger" id="btnDelete">Supprimer mon compte</button>
+                    </div>
+                </section>
+
+                <!-- section avec le lien pour changer le mot de passe-->
+                <section class="mb-4">
+                    <div class="mb-3">
+                        <a href="/editPassword" class="btn btn-link">Modifier mon mot de passe</a>
+                    </div>
+                </section>
+            </form>
+        </div>
+
+        <!-- Onglet : Préférences -->
+        <div class="tab-pane fade" id="preferences" role="tabpanel" aria-labelledby="preferences-tab">
+            <section class="mb-4">
+                <h2 class="fs-4">Mes préférences</h2>
+                <fieldset class="border rounded-3 p-3">
+                    <form id="preferencesForm">
+                        <div class="mb-3">
+                            <label for="NoSmoke">Fumeur ?</label>
+                            <div id="smokeConfirmationMessage" class="text-success" style="display: none;">Préférence sauvegardée avec succès !</div>
+                            <div id="smokeConfirmationMessageLoading" style="display: none;">
+                                <div class="spinner-border text-secondary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                  </div>                                
+                            </div>
+                            <div>
+                                <input type="radio" class="form-check-input" id="NoSmoke" name="SmokeAsk" value="no" data-id="smokingAllowedId">
+                                <label for="NoSmoke" class="form-check-label"><img src="/images/fumeur-non.png" alt="Non-fumeur"> Non-fumeur</label>
+                                <input type="radio" class="form-check-input" id="OkSmoke" name="SmokeAsk" value="yes" data-id="smokingAllowedId">
+                                <label for="OkSmoke" class="form-check-label"><img src="/images/fumeur-ok.png" alt="Fumeur autorisé"> Fumeur autorisé</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="NoPet">Acceptez-vous les animaux ?</label>
+                            <div id="petConfirmationMessage" class="text-success" style="display: none;">Préférence sauvegardée avec succès !</div>
+                            <div id="petConfirmationMessageLoading" style="display: none;">
+                                <div class="spinner-border text-secondary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                  </div>                                
+                            </div>
+                            <div>
+                                <input type="radio" class="form-check-input" id="NoPet" name="PetAsk" value="no" data-id="petsAllowedId">
+                                <label for="NoPet" class="form-check-label"><img src="/images/animaux-non.png" alt="Pas d'animaux"> Pas d'animaux</label>
+                                <input type="radio" class="form-check-input" id="OkPet" name="PetAsk" value="yes" data-id="petsAllowedId">
+                                <label for="OkPet" class="form-check-label"><img src="/images/animaux-ok.png" alt="Animaux autorisé"> Animaux acceptés</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            D'autres préférences ?
+                            <br>
+                            <div id="preferencesList">
+                                <!-- Les préférences seront ajoutés ici dynamiquement -->
+                            </div>
+                            <br>
+                            <label for="prefsLibelle" class="form-label">Libellé</label>
+                            <input type="text" class="form-control" id="prefsLibelle" name="prefsLibelle">
+                            <label for="prefsDescription" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="prefsDescription" name="prefsDescription">
+                            <!-- bouton ajouter préférence-->
+                            <button type="button" class="btn btn-outline-secondary mt-3" id="addPreferenceBtn">Ajouter une préférence</button>
+                        </div>
+                    </form>
+                </fieldset>
+            </section>
+        </div>
+
+        <!-- Onglet : Véhicules -->
+        <div class="tab-pane fade" id="vehicles" role="tabpanel" aria-labelledby="vehicles-tab">
+            <section class="mb-4">
+                <h2 class="fs-4">Mes véhicules</h2>
+                <div class="mt-4">
+                    <h3>Mes véhicules enregistrés</h3>
+                    <div id="vehicleConfirmationMessage" class="text-success" style="display: none;">Véhicule ajouté avec succès !</div>
+                    <div id="vehicleErrorMessage" class="text-danger" style="display: none;">Erreur lors de l'ajout du véhicule.</div>
+                    <div id="vehicleDeleteMessage" class="text-danger" style="display: none;">Véhicule supprimé avec succès !</div>
+                    <div id="vehicleDeleteErrorMessage" class="text-danger" style="display: none;">Erreur lors de la suppression du véhicule.</div>
+                    <div id="vehicleUpdateMessage" class="text-success" style="display: none;">Véhicule mis à jour avec succès !</div>
+                    <div id="vehicleUpdateErrorMessage" class="text-danger" style="display: none;">Erreur lors de la mise à jour du véhicule.</div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Marque - Modèle</th>
+                                    <th class="d-none d-md-table-cell">Couleur</th>
+                                    <th>Plaque d'immatriculation</th>
+                                    <th class="d-none d-md-table-cell">Date de 1ère immatriculation</th>
+                                    <th class="d-none d-md-table-cell">Nombre de places</th>
+                                    <th class="d-none d-md-table-cell">Energie</th>
+                                    <th class="d-none d-md-table-cell">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehicleList">
+                                <!-- Les véhicules seront ajoutés ici dynamiquement -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Modale pour afficher les détails du véhicule -->
+                    <div class="modal fade" id="vehicleModal" tabindex="-1" aria-labelledby="vehicleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="vehicleModalLabel">Détails du véhicule</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="vehicleForm">
+                                        <div class="mb-3">
+                                            <label for="modalVehicleBrand" class="form-label">Marque</label>
+                                            <input type="text" class="form-control" id="modalVehicleBrand">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleModel" class="form-label">Modèle</label>
+                                            <input type="text" class="form-control" id="modalVehicleModel">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleColor" class="form-label">Couleur</label>
+                                            <input type="text" class="form-control" id="modalVehicleColor">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleLicensePlate" class="form-label">Plaque d'immatriculation</label>
+                                            <input type="text" class="form-control" id="modalVehicleLicensePlate">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleLicenseFirstDate" class="form-label">Date de 1ère immatriculation</label>
+                                            <input type="date" class="form-control" id="modalVehicleLicenseFirstDate">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleNbPlace" class="form-label">Nombre de places</label>
+                                            <input type="number" class="form-control" id="modalVehicleNbPlace">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalVehicleEnergy" class="form-label">Énergie</label>
+                                            <select class="form-select" id="modalVehicleEnergy">
+                                                <option value="">--- Choisir une énergie ---</option>
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" id="saveVehicleBtn"><i class="bi bi-pencil"></i> Modifier</button>
+                                    <button type="button" class="btn btn-danger" id="deleteVehicleBtn"><i class="bi bi-trash"></i> Supprimer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-primary" id="showVehicleFormBtn">Ajouter un véhicule</button>
+                </div>
+                <fieldset class="border rounded-3 p-3" style="display: none;" id="vehiclesFormContainer">
+                    <legend class="float-none w-auto px-2">Ajouter un véhicule</legend>
+                    <form id="vehiclesForm">
+                        <div class="mb-3">
+                            <label for="vehicleBrand" class="form-label">Marque</label>
+                            <input type="text" class="form-control" id="vehicleBrand" name="vehicleBrand">
+                        </div>
+                        <div class="mb-3">
+                            <label for="vehicleModel" class="form-label">Modèle</label>
+                            <input type="text" class="form-control" id="vehicleModel" name="vehicleModel">
+                        </div>
+                        <div class="mb-3">
+                            <label for="vehicleColor" class="form-label">Couleur</label>
+                            <input type="text" class="form-control" id="vehicleColor" name="vehicleColor">
+                        </div>
+                        <div class="mb-3">
+                            <label for="vehicleLicensePlate" class="form-label">Plaque d'immatriculation</label>
+                            <input type="text" class="form-control" id="vehicleLicensePlate" name="vehicleLicensePlate">
+                        </div>
+                        <div class="mb-3">
+                            <label for="licenseFirstDate" class="form-label">Date de 1ère immatriculation</label>
+                            <input type="date" class="form-control" id="licenseFirstDate" name="licenseFirstDate">
+                        </div>
+                        <div class="mb-3">
+                            <label for="nbPlace" class="form-label">Nombre de places</label>
+                            <input type="number" class="form-control" id="nbPlace" name="nbPlace" min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label for="VehicleEnergy" class="form-label">Énergie</label>
+                            <select class="form-select" id="VehicleEnergy">
+                                <option value="">--- Choisir une énergie ---</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-outline-secondary mt-3" id="addVehicleBtn">Ajouter un véhicule</button>
+                        </div>
+                    </form>
+                </fieldset>
+            </section>
+        </div>
+    </div>
+</div>

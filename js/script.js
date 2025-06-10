@@ -1,4 +1,6 @@
 // File: js/script.js
+import { apiUrl } from './config.js';
+
 // This file contains utility functions for handling cookies, user authentication, and UI interactions.
 // It includes functions to set, get, and erase cookies, check user connection status, and manage UI elements based on user roles.
 const tokenCookieName = "accesstoken";
@@ -121,6 +123,55 @@ function showMessage(messageId) {
     }
 }
 
+async function getUserInfo() {
+    try {
+        let response = await sendFetchRequest(apiUrl + "account/me", getToken(), 'GET', null);
+        if (response.email) {
+            return response;
+        } else {
+            console.log("Impossible de récupérer les informations de l'utilisateur");
+        }
+    } catch (error) {
+        console.error("Erreur lors de la récupération des informations de l'utilisateur", error);
+    }
+}
+
+
+async function sendFetchRequest(url, apiToken, method = 'GET', body = null) {
+    let myHeaders = new Headers();
+    if (apiToken) {
+        myHeaders.append("X-AUTH-TOKEN", apiToken);
+    }
+
+    let requestOptions = {
+        method: method,
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    if (body) {
+        requestOptions.body = body;
+        myHeaders.append("Content-Type", "application/json");
+    }
+
+    return fetch(url, requestOptions)
+        .then(response => {
+            if (response.status === 401) {
+                signout();
+            }
+            if (response.status === 404) {
+                console.error("Resource not found:", apiUrl);
+                throw new Error("Ressource non trouvée");
+            }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .catch(error => console.error('Fetch error:', error));
+}
+
+
 // Ajout d'un gestionnaire global pour détecter l'appui sur la touche Entrée
 document.addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
@@ -132,6 +183,7 @@ document.addEventListener("keydown", function(event) {
         }
     }
 });
+
 
 export {
     showAndHideElementsForRoles,
@@ -146,5 +198,7 @@ export {
     signout,
     sanitizeHtml,
     isValidDate,
-    showMessage
+    showMessage,
+    getUserInfo,
+    sendFetchRequest
 };
