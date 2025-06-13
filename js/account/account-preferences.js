@@ -155,9 +155,9 @@ async function savePreference(id, libelle, description, confirmationMessageId) {
             const updatedPreference = await response.json(); // Récupérer la préférence mise à jour
 
             // Remplacer l'objet correspondant dans la liste locale
-            const index = preferences.findIndex(pref => pref.id === id);
+            const index = preferencesTab.findIndex(pref => pref.id === id);
             if (index !== -1) {
-                preferences[index] = updatedPreference; // Mettre à jour l'objet dans la liste
+                preferencesTab[index] = updatedPreference; // Mettre à jour l'objet dans la liste
             }
 
             updatePreferenceCheckboxes(libelle, description);
