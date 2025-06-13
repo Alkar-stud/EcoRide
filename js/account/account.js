@@ -1,119 +1,53 @@
-import { displayUserInfo, setUserInfo, deleteAccount, checkRoleSelection, validateFormAccount } from './account-profile.js';
-import { addPreferences, savePreference, deletePreference } from './account-preferences.js';
-import { addVehicle, loadEnergyOptions } from './account-vehicles.js';
-
-//Pour les infos perso du user
-const pseudoInput = document.getElementById("PseudoInput");
-const photo = document.getElementById("photo"); // Affichage de la photo
-const photoInput = document.getElementById("PhotoInput"); //form pour changer la photo
-
-const credits = document.getElementById("credits");
-const grade = document.getElementById("grade");
-
-const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
-submitFormInfoUser.addEventListener("click", setUserInfo);
-
-const btnDeleteAccount = document.getElementById("btnDelete");
-
-pseudoInput.addEventListener("blur", validateFormAccount); 
-photoInput.addEventListener("blur", validateFormAccount);
-btnDeleteAccount.addEventListener("click", deleteAccount);
+import { getUserInfo } from '../script.js';
+import { displayUserInfo } from './account-profile.js';
+import { displayUserPreferences } from './account-preferences.js';
 
 
-/*
-* Fonction pour gérer les infos de l'utilisateur
-*/
-displayUserInfo();
+
+async function chargerInfosUtilisateur() {
+    const user = await getUserInfo(); // 1 seule requête API
+console.log("Informations de l'utilisateur récupérées :", user);
+    //Affichage des infos de l'utilisateur
+    if (!user) {
+        console.error("Aucun utilisateur trouvé");
+        return;
+    }
+    displayUserInfo(user);
+    displayUserPreferences(user.userPreferences);    
+
+}
 
 
-// Initialiser l'état du bouton au chargement de la page
-checkRoleSelection();
+chargerInfosUtilisateur();
 
 
-document.addEventListener('DOMContentLoaded', function () {
-    const roleRadios = document.querySelectorAll('input[name="userRole"]');
-    const additionalInfoSection = document.getElementById('additionalInfo');
-
-    // Fonction pour afficher/masquer les informations supplémentaires
-    function toggleAdditionalInfo() {
-        const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
-        if (selectedRole === 'Chauffeur' || selectedRole === 'Les 2') {
-            additionalInfoSection.style.display = 'block';
+// Gère l'affichage des rôles et des onglets sans recharger la page
+export function handleRoleAndTabs(result) {
+        //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
+    if (result.roles[0] != "ROLE_USER" && !result.isDriver && !result.isPassenger) {
+        submitFormInfoUser.disabled = false;
+    }
+    if (result.isDriver === true && result.isPassenger === false) {
+        document.getElementById("isDriver").checked = true;
+        document.getElementById("preferences-tab").classList.remove('d-none');
+        document.getElementById("vehicles-tab").classList.remove('d-none');
+    } else if (result.isDriver === false && result.isPassenger === true) {
+        document.getElementById("isPassenger").checked = true;
+        document.getElementById("preferences-tab").classList.add('d-none');
+        document.getElementById("vehicles-tab").classList.add('d-none');
+    } else if (result.isDriver === true && result.isPassenger === true) {
+        document.getElementById("isBoth").checked = true;
+        document.getElementById("preferences-tab").classList.remove('d-none');
+        document.getElementById("vehicles-tab").classList.remove('d-none');
+    } else {
+        document.getElementById("preferences-tab").classList.add('d-none');
+        document.getElementById("vehicles-tab").classList.add('d-none');
+        if (getCookie('role') == "ROLE_USER") {
+            document.getElementById("roleNone").style.display = "block";
+            submitFormInfoUser.disabled = true;
         } else {
-            additionalInfoSection.style.display = 'none';
+            submitFormInfoUser.setAttribute('title', "Vous devez choisir d'être chauffeur, passager ou les deux.");
+            submitFormInfoUser.disabled = false;
         }
     }
-
-    // Ajout d'un écouteur d'événement sur les boutons radio
-    roleRadios.forEach(radio => {
-        radio.addEventListener('change', toggleAdditionalInfo);
-    });
-
-    // Initialisation de l'affichage
-    toggleAdditionalInfo();
-});
-
-
-
-/*
-* fonctions pour les préférences
-*/
-
-const addPreferenceBtn = document.getElementById("addPreferenceBtn");
-
-addPreferenceBtn.addEventListener("click", function (event) {
-    // Empêcher le comportement par défaut du bouton
-    event.preventDefault();
-
-    // Appeler la fonction pour ajouter une préférence
-    addPreferences();
-});
-
-// Ajouter des listeners pour les boutons radio
-document.querySelectorAll('input[name="SmokeAsk"]').forEach(radio => {
-    radio.addEventListener("change", (event) => {
-        const description = event.target.value;
-        const id = event.target.dataset.id; // Récupérer l'ID de la préférence
-        savePreference(id, "smokingAllowed", description, "smokeConfirmationMessage");
-    });
-});
-
-document.querySelectorAll('input[name="PetAsk"]').forEach(radio => {
-    radio.addEventListener("change", (event) => {
-        const description = event.target.value;
-        const id = event.target.dataset.id; // Récupérer l'ID de la préférence
-        savePreference(id, "petsAllowed", description, "petConfirmationMessage");
-    });
-});
-
-
-/*
-* fonctions pour les véhicules
-*/
-// Fonction pour ouvrir le formulaire d'ajout de véhicule
-const showVehicleFormBtn = document.getElementById("showVehicleFormBtn");
-showVehicleFormBtn.addEventListener("click", function (event) {
-    // Empêcher le comportement par défaut du bouton
-    event.preventDefault();
-
-    // Afficher le formulaire pour ajouter un véhicule
-    document.getElementById("vehiclesFormContainer").style.display = "block";
-});
-
-//Pour afficher la liste des énergies/motorisations
-document.getElementById('vehicles-tab').addEventListener('shown.bs.tab', function () {
-    loadEnergyOptions('VehicleEnergy');
-});
-
-//Listener pour ajouter un véhicule
-document.getElementById("addVehicleBtn").addEventListener("click", function (event) {
-    event.preventDefault(); // Empêcher le comportement par défaut du bouton
-    addVehicle(); // Appeler la fonction pour ajouter un véhicule
-});
-//Listener pour supprimer un véhicule
-document.getElementById("preferences").addEventListener("click", function (event) {
-    if (event.target && event.target.id === "deletePreferenceBtn") {
-        const preferenceId = event.target.dataset.id; // Récupérer l'ID de la préférence
-        deletePreference(preferenceId);
-    }
-});
+}

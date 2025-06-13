@@ -136,8 +136,46 @@ async function getUserInfo() {
     }
 }
 
+function setGradeStyle(gradeValue) {
+    // Sélecteur du conteneur des étoiles
+    const starsContainer = document.getElementById("starsContainer");
+    if (!starsContainer) return;
+    // Nettoie le conteneur
+    starsContainer.innerHTML = "";
 
-async function sendFetchRequest(url, apiToken, method = 'GET', body = null) {
+    // La note est un nombre entre 0 et 10, on la ramène sur 5
+    gradeValue = gradeValue / 2;
+
+    // Détermine la couleur selon la note
+    let colorClass = "";
+    if (gradeValue >= 3) {
+        colorClass = "text-success";
+    } else if (gradeValue >= 1.5 && gradeValue < 3) {
+        colorClass = "text-warning";
+    } else {
+        colorClass = "text-danger";
+    }
+
+
+
+    // Génère les 5 étoiles avec la bonne couleur
+    for (let i = 1; i <= 5; i++) {
+        const star = document.createElement("i");
+        star.classList.add("bi", colorClass);
+
+        if (gradeValue >= i) {
+            star.classList.add("bi-star-fill");
+        } else if (gradeValue >= i - 0.5) {
+            star.classList.add("bi-star-half");
+        } else {
+            star.classList.add("bi-star");
+        }
+        starsContainer.appendChild(star);
+    }
+}
+
+
+async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFile = false) {
     let myHeaders = new Headers();
     if (apiToken) {
         myHeaders.append("X-AUTH-TOKEN", apiToken);
@@ -151,7 +189,14 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null) {
 
     if (body) {
         requestOptions.body = body;
-        myHeaders.append("Content-Type", "application/json");
+        if (!isFile) {
+            myHeaders.append("Content-Type", "application/json");
+        } 
+        //Si body contient un fichier, on ne met pas de Content-Type
+        // car le navigateur va gérer le multipart/form-data automatiquement
+        // myHeaders.append("Content-Type", "multipart/form-data");
+        
+
     }
 
     return fetch(url, requestOptions)
@@ -172,19 +217,6 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null) {
 }
 
 
-// Ajout d'un gestionnaire global pour détecter l'appui sur la touche Entrée
-document.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-        const activeElement = document.activeElement;
-        // Vérifie si l'élément actif est un bouton ou un champ de formulaire
-        if (activeElement.tagName === "BUTTON" || (activeElement.tagName === "INPUT" && activeElement.type !== "submit")) {
-            event.preventDefault(); // Empêche le comportement par défaut
-            activeElement.click(); // Simule un clic sur l'élément actif
-        }
-    }
-});
-
-
 export {
     showAndHideElementsForRoles,
     isConnected,
@@ -200,5 +232,6 @@ export {
     isValidDate,
     showMessage,
     getUserInfo,
+    setGradeStyle,
     sendFetchRequest
 };

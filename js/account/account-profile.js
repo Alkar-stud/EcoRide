@@ -1,110 +1,57 @@
 //Module pour gérer les infos de l'utilisateur
 import { apiUrl, url } from '../config.js';
-import { getUserInfo, getCookie, getToken, eraseCookie, sendFetchRequest } from '../script.js';
-import { setPreferences, displayPreferences } from './account-preferences.js';
+import { getToken, eraseCookie, setGradeStyle, sendFetchRequest } from '../script.js';
+import { handleRoleAndTabs } from './account.js';
+
+
 
 //Pour les infos perso du user
 const pseudoInput = document.getElementById("PseudoInput");
 const photo = document.getElementById("photo"); // Affichage de la photo
 const photoInput = document.getElementById("PhotoInput"); //form pour changer la photo
+
 const credits = document.getElementById("credits");
+const AddCreditsBtn = document.getElementById("AddCreditsBtn");
+AddCreditsBtn.addEventListener("click", function() {
+  alert('[Mode démo renvoi vers le formulaire lié à la banque] Crédits ajoutés !');
+});
+const widrawCreditsBtn = document.getElementById("widrawCreditsBtn");
+widrawCreditsBtn.addEventListener("click", function() {
+  alert('[Mode démo renvoi vers le formulaire lié à la banque] Crédits retirés !');
+});
+
+
+
 const grade = document.getElementById("grade");
 
-const roleRadios = document.querySelectorAll('input[name="userRole"]');
-
-
-//Les boutons et leur(s) listener(s)
-//Pour mettre à jour le compte
 const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
 submitFormInfoUser.addEventListener("click", setUserInfo);
 
-//listener lorsque l'utilisateur coche la case pour supprimer la photo, à condition que la photo existe et que l'un des boutons radio soit coché
-const deletePhotoCheck = document.getElementById("deletePhotoCheck"); //checkbox pour supprimer la photo
-deletePhotoCheck.addEventListener("change", function() {
-    submitFormInfoUser.disabled = false;
-});
-
-
-// Ajouter un listener sur chaque bouton radio
-roleRadios.forEach(radio => {
-    radio.addEventListener('change', checkRoleSelection);
-});
+const btnDeleteAccount = document.getElementById("btnDelete");
+btnDeleteAccount.addEventListener("click", deleteAccount);
 
 
 // Fonction pour afficher les infos de l'utilisateur, si il est passager, chauffeur ou les deux, son pseudo et la photo s'il y en a une
-export async function displayUserInfo() {
-    let result = await getUserInfo();
+export async function displayUserInfo(user) {
+    
     // Vérification de la présence d'une photo
-    result.photo = result.photo ? url + "uploads/photos/" + result.photo : "/images/default-avatar.png";
+    user.photo = user.photo ? url + "uploads/photos/" + user.photo : "/images/default-avatar.png";
 
-    handleRoleAndTabs(result);
+    handleRoleAndTabs(user);
 
-    setGradeStyle(result.grade);
-    grade.innerHTML = result.grade;
-    credits.innerHTML = result.credits;
-    pseudoInput.value = result.pseudo;
-    photo.src = result.photo;
-
-    // On affiche les préférences de l'utilisateur
-    if (result.preferences) {
-        setPreferences(result.preferences);
-        displayPreferences(result.preferences);
+    if (user.grade !== null && user.grade !== undefined) {
+        setGradeStyle(user.grade);
     }
+    credits.innerHTML = user.credits;
+    pseudoInput.value = user.pseudo;
+    photo.src = user.photo;
 
-    // On affiche les véhicules de l'utilisateur
-    if (result.vehicles) {
-        renderVehicles(result.vehicles);
-    }
-
-    return result;
-}
-
-// Gère l'affichage des rôles et des onglets
-function handleRoleAndTabs(result) {
-        //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
-    if (result.roles[0] != "ROLE_USER" && !result.isDriver && !result.isPassenger) {
-        submitFormInfoUser.disabled = false;
-    }
-    if (result.isDriver === true && result.isPassenger === false) {
-        document.getElementById("isDriver").checked = true;
-        document.getElementById("preferences-tab").classList.remove('d-none');
-        document.getElementById("vehicles-tab").classList.remove('d-none');
-    } else if (result.isDriver === false && result.isPassenger === true) {
-        document.getElementById("isPassenger").checked = true;
-        document.getElementById("preferences-tab").classList.add('d-none');
-        document.getElementById("vehicles-tab").classList.add('d-none');
-    } else if (result.isDriver === true && result.isPassenger === true) {
-        document.getElementById("isBoth").checked = true;
-        document.getElementById("preferences-tab").classList.remove('d-none');
-        document.getElementById("vehicles-tab").classList.remove('d-none');
-    } else {
-        document.getElementById("preferences-tab").classList.add('d-none');
-        document.getElementById("vehicles-tab").classList.add('d-none');
-        if (getCookie('role') == "ROLE_USER") {
-            document.getElementById("roleNone").style.display = "block";
-            submitFormInfoUser.disabled = true;
-        } else {
-            submitFormInfoUser.setAttribute('title', "Vous devez choisir d'être chauffeur, passager ou les deux.");
-            submitFormInfoUser.disabled = false;
-        }
-    }
-}
-
-// Applique la classe de style à la note
-function setGradeStyle(gradeValue) {
-    grade.classList.remove("bg-success", "bg-warning", "bg-danger");
-    if (gradeValue >= 4) {
-        grade.classList.add("bg-success");
-    } else if (gradeValue >= 1.5 && gradeValue < 4) {
-        grade.classList.add("bg-warning");
-    } else {
-        grade.classList.add("bg-danger");
-    }
+    return user;
 }
 
 
 //Pour mettre à jour les données de l'utilisateur
-export function setUserInfo() {
+export async function setUserInfo() {
     let isDriver = false;
     let isPassenger = false;
 
@@ -119,29 +66,13 @@ export function setUserInfo() {
     if (photoInput.files.length > 0) {
         let formData = new FormData();
         formData.append("photo", photoInput.files[0]); // Ajoute le fichier au form-data
-    
-        let myHeaders = new Headers();
-        myHeaders.append("X-AUTH-TOKEN", getToken()); // Ajoute uniquement le token
-    
-        let requestOptions = {
-            method: 'POST',
-            headers: myHeaders, 
-            body: formData, 
-            redirect: 'follow'
-        };
 
-        fetch(apiUrl + "account/upload", requestOptions)
-        .then(async response => {
-            if (!response.ok) {
-                const errorDetails = await response.text();
-                console.error("Erreur :", response.status, errorDetails);
-            }
-            return response.json();
-        })
-        .then(result => {
-            console.log("Résultat de l'upload :", result);
-        })
-        .catch(error => console.error("Erreur :", error));
+        let response = await sendFetchRequest(apiUrl + "account/upload", getToken(), 'POST', formData, true)
+        if (response?.success) {
+            photo.src = url + "uploads/photos/" + response.fileName; // Met à jour la source de l'image
+        } else {
+            console.error("Erreur lors de l'envoi de la photo");
+        }
     }
 
     //Envoi des données de l'utilisateur
@@ -156,9 +87,9 @@ export function setUserInfo() {
         "isPassenger": isPassenger,
         "deletePhoto": deletePhoto
     });
-
+    
     try {
-        let response = sendFetchRequest(apiUrl + "account/edit", getToken(), 'PUT', rawData);
+        await sendFetchRequest(apiUrl + "account/edit", getToken(), 'PUT', rawData);
         // On recharge la page pour afficher les nouvelles infos
         window.location.reload();
     } catch (error) {

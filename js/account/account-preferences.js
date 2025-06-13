@@ -1,18 +1,50 @@
 //Module pour gérer les préférences de l'utilisateur
+import { apiUrl } from '../config.js';
+import { getToken, showMessage, sendFetchRequest } from '../script.js';
+
 
 const prefsLibelleInput = document.getElementById("prefsLibelle");
 const prefsDescriptionInput = document.getElementById("prefsDescription");
 
-let preferences = []; // Liste des préférences
+const addPreferenceBtn = document.getElementById("addPreferenceBtn");
+
+addPreferenceBtn.addEventListener("click", function (event) {
+    // Empêcher le comportement par défaut du bouton
+    event.preventDefault();
+
+    // Appeler la fonction pour ajouter une préférence
+    addPreferences();
+});
+
+// Ajouter des listeners pour les boutons radio
+document.querySelectorAll('input[name="SmokeAsk"]').forEach(radio => {
+    radio.addEventListener("change", (event) => {
+        const description = event.target.value;
+        const id = event.target.dataset.id; // Récupérer l'ID de la préférence
+        savePreference(id, "smokingAllowed", description, "smokeConfirmationMessage");
+    });
+});
+
+document.querySelectorAll('input[name="PetAsk"]').forEach(radio => {
+    radio.addEventListener("change", (event) => {
+        const description = event.target.value;
+        const id = event.target.dataset.id; // Récupérer l'ID de la préférence
+        savePreference(id, "petsAllowed", description, "petConfirmationMessage");
+    });
+});
 
 
-
-export function setPreferences(newPreferences) {
-    preferences = newPreferences;
-}
+let preferencesTab = []; // Liste des préférences
 
 //Fonction pour afficher les préférences
-export function displayPreferences(preferences) {
+export function displayUserPreferences(preferences) {
+    preferencesTab = preferences; // Pour ajouter et supprimer des préférences sans recharger la page
+    // Vider le conteneur des préférences avant de les afficher
+    if (!preferences || preferences.length === 0) {
+        document.getElementById("preferencesList").innerHTML = "<p>Aucune préférence définie.</p>";
+        return;
+    }
+
     const preferencesList = document.getElementById('preferencesList');
     preferencesList.innerHTML = ''; // Vider le conteneur avant d'ajouter les préférences
 
@@ -44,50 +76,44 @@ export function displayPreferences(preferences) {
     preferencesList.replaceWith(preferencesList.cloneNode(true));
     const updatedPreferencesList = document.getElementById("preferencesList");
     updatedPreferencesList.addEventListener("click", function (event) {
-        if (event.target && event.target.classList.contains("delete-preference-btn")) {
-            const id = event.target.dataset.id; // Récupérer l'ID de la préférence
-            deletePreference(id);
+        if (event.target?.classList.contains("delete-preference-btn")) {
+            deletePreference(event.target.dataset.id);
         }
     });
 }
 
 //Fonction pour ajouter une préférence
-export function addPreferences() {
+async function addPreferences() {
     let libelle = prefsLibelleInput.value;
     let description = prefsDescriptionInput.value;
 
-    let myHeaders = new Headers();
-    myHeaders.append("X-AUTH-TOKEN", getToken());
+
     let rawData = JSON.stringify({
         "libelle": libelle,
         "description": description
     });
-    let requestOptions = {
-        method: 'POST',
-        headers: myHeaders,
-        body: rawData,
-        redirect: 'follow'
-    };
+    
+    try {
+        let response = await sendFetchRequest(apiUrl + "account/preferences/add", getToken(), 'POST', rawData)
+        if (response.id) {
+            // Ajouter la nouvelle préférence à la liste locale
+            preferencesTab.push(response);
 
-    fetch(apiUrl + "account/preferences/add", requestOptions)
-        .then(response => {
-            if (response.ok) {
-                response.json().then(newPreference => {
-                    // Ajouter la nouvelle préférence à la liste locale
-                    preferences.push(newPreference);
-                    displayPreferences(preferences); // Réafficher la liste mise à jour
+            displayUserPreferences(preferencesTab); // Réafficher la liste mise à jour
 
-                    showMessage("preferenceUpdateMessage"); // Afficher un message de succès
+            showMessage("preferenceUpdateMessage"); // Afficher un message de succès
 
-                    // Réinitialiser les champs du formulaire
-                    prefsLibelleInput.value = '';
-                    prefsDescriptionInput.value = '';
-                });
-            } else {
-                console.error("Erreur lors de l'ajout de la préférence");
-            }
-        })
-        .catch(error => console.error("Erreur lors de l'ajout de la préférence", error));
+            // Réinitialiser les champs du formulaire
+            prefsLibelleInput.value = '';
+            prefsDescriptionInput.value = '';
+            return response;
+        } else {
+            console.log("Erreur lors de l'ajout de la préférence: ", response);
+        }
+    } catch (error) {
+        console.error("Erreur lors de l'ajout de la préférence", error);
+    }
+
 }
 
 
@@ -102,7 +128,7 @@ function updatePreferenceCheckboxes(libelle, description) {
     }
 }
 
-export async function savePreference(id, libelle, description, confirmationMessageId) {
+async function savePreference(id, libelle, description, confirmationMessageId) {
     try {
         const confirmationMessageLoading = document.getElementById(confirmationMessageId + 'Loading');
         confirmationMessageLoading.style.display = "block";
@@ -152,39 +178,31 @@ export async function savePreference(id, libelle, description, confirmationMessa
 }
 
 
-export function deletePreference(id) {
+async function deletePreference(preferenceId) {
     const userConfirmed = confirm("Êtes-vous sûr de vouloir supprimer cette préférence ?");
     
     if (userConfirmed) {
-        let myHeaders = new Headers();
-        myHeaders.append("X-AUTH-TOKEN", getToken());
-        let requestOptions = {
-            method: 'DELETE',
-            headers: myHeaders,
-            redirect: 'follow'
-        };
+        try {
+            let response = await sendFetchRequest(apiUrl + "account/preferences/" + preferenceId, getToken(), 'DELETE')
+            if (response) {
+                // Supprimer la préférence de la liste locale
+                const idNumber = parseInt(preferenceId, 10);
+                preferencesTab = preferencesTab.filter(preference => preference.id !== idNumber);
 
-        fetch(apiUrl + "account/preferences/" + id, requestOptions)
-            .then(response => {
-                if (response.ok) {
-                    // Supprimer la préférence de la liste locale
-                    const index = preferences.findIndex(pref => pref.id === id);
-                    if (index !== -1) {
-                        preferences.splice(index, 1); // Retirer l'élément de la liste
-                    }
-
-                    // Supprimer l'élément HTML correspondant
-                    const preferenceElement = document.querySelector(`.delete-preference-btn[data-id="${id}"]`).parentElement;
-                    if (preferenceElement) {
-                        preferenceElement.remove();
-                    }
-
-                    showMessage("preferenceDeleteMessage"); // Afficher un message de succès
-                } else {
-                    console.error("Erreur lors de la suppression de la préférence");
+                // Supprimer l'élément HTML correspondant
+                const preferenceElement = document.querySelector(`.delete-preference-btn[data-id="${preferenceId}"]`).parentElement;
+                if (preferenceElement) {
+                    preferenceElement.remove();
                 }
-            })
-            .catch(error => console.error("Erreur lors de la suppression de la préférence", error));
+
+                showMessage("preferenceDeleteMessage"); // Afficher un message de succès
+                return response;
+            } else {
+                console.log("Erreur lors de la suppression de la préférence: ", response);
+            }
+        } catch (error) {
+            console.error("Erreur lors de la suppression de la préférence", error);
+        }
     } else {
         console.log("Suppression annulée par l'utilisateur.");
     }
