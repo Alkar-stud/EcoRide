@@ -128,53 +128,36 @@ function updatePreferenceCheckboxes(libelle, description) {
     }
 }
 
-async function savePreference(id, libelle, description, confirmationMessageId) {
+async function savePreference(preferenceId, libelle, description, confirmationMessageId) {
     try {
         const confirmationMessageLoading = document.getElementById(confirmationMessageId + 'Loading');
         confirmationMessageLoading.style.display = "block";
 
-        let myHeaders = new Headers();
-        myHeaders.append("X-AUTH-TOKEN", getToken());
-        myHeaders.append("Content-Type", "application/json");
-
-        let body = JSON.stringify({
+        let rawData = JSON.stringify({
             libelle: libelle,
             description: description
         });
 
-        let requestOptions = {
-            method: 'PUT',
-            headers: myHeaders,
-            body: body,
-            redirect: 'follow'
-        };
+        let response = await sendFetchRequest(apiUrl + "account/preferences/" + preferenceId, getToken(), 'PUT', rawData)
+        if (response.success) {
+            // Ajouter la nouvelle préférence à la liste locale
+            preferencesTab.push(response);
 
-        let response = await fetch(apiUrl + "account/preferences/" + id, requestOptions);
+            displayUserPreferences(preferencesTab); // Réafficher la liste mise à jour
 
-        if (response.ok) {
-            const updatedPreference = await response.json(); // Récupérer la préférence mise à jour
+            showMessage("preferenceUpdateMessage"); // Afficher un message de succès
 
-            // Remplacer l'objet correspondant dans la liste locale
-            const index = preferencesTab.findIndex(pref => pref.id === id);
-            if (index !== -1) {
-                preferencesTab[index] = updatedPreference; // Mettre à jour l'objet dans la liste
-            }
-
-            updatePreferenceCheckboxes(libelle, description);
-
-            // Afficher un message de confirmation
-            const confirmationMessage = document.getElementById(confirmationMessageId);
-            confirmationMessage.style.display = "block";
-            confirmationMessageLoading.style.display = "none";
-            setTimeout(() => {
-                confirmationMessage.style.display = "none";
-            }, 3000); // Masquer le message après 3 secondes
+            // Réinitialiser les champs du formulaire
+            prefsLibelleInput.value = '';
+            prefsDescriptionInput.value = '';
+            return response;
         } else {
-            console.error("Erreur lors de la sauvegarde de la préférence");
+            console.log("Erreur lors de la sauvegarde de la préférence: ", response);
         }
     } catch (error) {
         console.error("Erreur lors de la sauvegarde de la préférence", error);
     }
+
 }
 
 
