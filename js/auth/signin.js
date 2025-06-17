@@ -26,26 +26,43 @@ async function checkCredentials(){
         "password": dataForm.get("mdp")
     });
 
-    let result = await sendFetchRequest(apiUrl+"login", null, 'POST', raw);
- 
-    if (result.email == "") {
+    try {
+        let result = await sendFetchRequest(apiUrl+"login", null, 'POST', raw);
+        
+        // Vérification si l'authentification a échoué
+        if (!result || !result.apiToken || result.error) {
+            // Afficher l'erreur d'authentification
+            mailInput.classList.add("is-invalid");
+            passwordInput.classList.add("is-invalid");
+            // Vider le champ de mot de passe
+            passwordInput.value = "";
+            return;
+        }
+
+        // Authentification réussie
+        mailInput.classList.remove("is-invalid");
+        passwordInput.classList.remove("is-invalid");
+        
+        const token = result.apiToken;
+        setToken(token);
+        //placer ce token en cookie
+        setCookie(RoleCookieName, result.roles[0], 1);
+        //On cherche si on n'essaie pas d'atteindre une autre page, sinon page accueil
+        //On récupère les paramètres de la page courante
+        const urlParams = new URLSearchParams(window.location.search);
+        //Si le paramètre page existe, on redirige vers cette page
+        const redirectPage = urlParams.get("page");
+        if (redirectPage) {
+            window.location.replace(redirectPage);
+        } else {
+            window.location.replace("/");
+        }
+    } catch (error) {
+        // Gestion des erreurs de requête
+        console.error("Erreur lors de la connexion:", error);
         mailInput.classList.add("is-invalid");
         passwordInput.classList.add("is-invalid");
-        return;
-    }
-
-    const token = result.apiToken;
-    setToken(token);
-    //placer ce token en cookie
-    setCookie(RoleCookieName, result.roles[0], 1);
-    //On cherche si on n'essaie pas d'atteindre une autre page, sinon page accueil
-    //On récupère les paramètres de la page courante
-    const urlParams = new URLSearchParams(window.location.search);
-    //Si le paramètre page existe, on redirige vers cette page
-    const redirectPage = urlParams.get("page");
-    if (redirectPage) {
-        window.location.replace(redirectPage);
-    } else {
-        window.location.replace("/");
+        // Vider le champ de mot de passe
+        passwordInput.value = "";
     }
 }
