@@ -21,6 +21,8 @@ widrawCreditsBtn.addEventListener("click", function() {
 });
 
 
+const notices = document.getElementById("notices");
+
 
 const grade = document.getElementById("grade");
 
@@ -45,6 +47,9 @@ export async function displayUserInfo(user) {
     credits.innerHTML = user.credits;
     pseudoInput.value = user.pseudo;
     photo.src = user.photo;
+
+    // Afficher les avis récents
+    displayRecentNotices(user);
 
     return user;
 }
@@ -131,35 +136,75 @@ async function deleteAccount() {
 }
 
 
-// Fonction pour vérifier si un bouton radio est sélectionné
-async function checkRoleSelection() {
-    const isChecked = Array.from(roleRadios).some(radio => radio.checked);
-    submitFormInfoUser.disabled = !isChecked; // Active ou désactive le bouton
-    document.getElementById("roleNone").style.display = "none";
-}
+// Fonction pour afficher les 3 avis les plus récents
+function displayRecentNotices(user) {
+    if (!user.notices || !user.notices.ridesNotices || Object.keys(user.notices.ridesNotices).length === 0) {
+        notices.innerHTML = "<em>Aucun avis pour le moment</em>";
+        return;
+    }
 
-//Function permettant de valider tout le formulaire
-function validateFormAccount(){
-    const pseudoOk = validateRequiredAccount(pseudoInput);
-    const userRoleOk = document.querySelector('input[name="userRole"]:checked') != null;
-
-    if (pseudoOk && userRoleOk) {
-        submitFormInfoUser.disabled = false;
-    }
-    else {
-        submitFormInfoUser.disabled = true;
-    }
-}
-
-function validateRequiredAccount(input){
-    if(input.value != ''){
-        input.classList.add("is-valid");
-        input.classList.remove("is-invalid");
-        return true;
-    }
-    else{
-        input.classList.remove("is-valid");
-        input.classList.add("is-invalid");
-        return false;
-    }
+    // Convertir l'objet en tableau
+    const noticesArray = Object.values(user.notices.ridesNotices);
+    
+    // Trier par date de création (du plus récent au plus ancien)
+    noticesArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    // Prendre les 3 premiers avis
+    const recentNotices = noticesArray.slice(0, 3);
+    
+    // Créer le HTML pour afficher les avis
+    let noticesHtml = '<div class="recent-notices">';
+    
+    recentNotices.forEach((ride, rideIndex) => {
+        const rideDate = new Date(ride.startingAt).toLocaleDateString() + ' à ' + 
+                         new Date(ride.startingAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        noticesHtml += `
+            <div class="ride-item mb-3 p-2 border rounded">
+                <div class="ride-info mb-2">
+                    <div><strong>Trajet :</strong> ${ride.startingCity} → ${ride.arrivalCity}</div>
+                    <div><strong>Date :</strong> ${rideDate}</div>
+                </div>`;
+        
+        // Vérifier si des avis existent pour ce trajet
+        if (ride.notices && ride.notices.length > 0) {
+            noticesHtml += `<div class="notices-list">`;
+            ride.notices.forEach((notice, noticeIndex) => {
+                const noticeDate = new Date(notice.createdAt).toLocaleDateString();
+                noticesHtml += `
+                    <div class="notice-item p-2 mb-2 border-top">
+                        <div class="d-flex justify-content-between">
+                            <strong>${notice.title}</strong>
+                            <div class="d-flex align-items-center">
+                                <div id="stars-ride-${rideIndex}-notice-${noticeIndex}" class="me-2"></div>
+                                <small>(${notice.grade}/10)</small>
+                            </div>
+                        </div>
+                        <p class="mb-1">${notice.content}</p>
+                        <small class="text-muted">Avis posté le ${noticeDate}</small>
+                    </div>
+                `;
+            });
+            noticesHtml += `</div>`;
+        } else {
+            noticesHtml += `<div class="text-muted">Aucun avis pour ce trajet</div>`;
+        }
+        
+        noticesHtml += `</div>`;
+    });
+    
+    noticesHtml += '</div>';
+    notices.innerHTML = noticesHtml;
+    
+    // Maintenant que le HTML est en place, on ajoute les étoiles
+    recentNotices.forEach((ride, rideIndex) => {
+        if (ride.notices && ride.notices.length > 0) {
+            ride.notices.forEach((notice, noticeIndex) => {
+                const starsContainer = document.getElementById(`stars-ride-${rideIndex}-notice-${noticeIndex}`);
+                if (starsContainer) {
+                    setGradeStyle(notice.grade, starsContainer);
+                }
+            });
+        }
+    });
 }

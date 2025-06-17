@@ -1,4 +1,4 @@
-import { getUserInfo } from '../script.js';
+import { getUserInfo, getCookie } from '../script.js';
 import { displayUserInfo } from './account-profile.js';
 import { displayUserPreferences } from './account-preferences.js';
 import { displayUserVehicles } from './account-vehicles.js';
@@ -6,8 +6,8 @@ import { displayUserVehicles } from './account-vehicles.js';
 
 
 async function chargerInfosUtilisateur() {
-    const user = await getUserInfo(); // 1 seule requête API
-console.log("Informations de l'utilisateur récupérées :", user);
+    const user = await getUserInfo();
+    console.log("Informations de l'utilisateur récupérées :", user);
     //Affichage des infos de l'utilisateur
     if (!user) {
         console.error("Aucun utilisateur trouvé");
@@ -16,16 +16,120 @@ console.log("Informations de l'utilisateur récupérées :", user);
     displayUserInfo(user);
     displayUserPreferences(user.userPreferences);
     displayUserVehicles(user.userVehicles);
-
 }
 
 
 chargerInfosUtilisateur();
 
+// Fonction pour gérer la touche Entrée sur les champs de formulaire
+function setupEnterKeyListener() {
+    console.log("Configuration des écouteurs pour la touche Entrée");
+    
+    // Désactiver la soumission par défaut pour tous les formulaires
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log("Soumission de formulaire interceptée");
+            
+            // Déterminer quel bouton doit être cliqué en fonction du formulaire
+            if (form.id === 'preferencesForm') {
+                const addPreferenceBtn = document.getElementById('addPreferenceBtn');
+                if (addPreferenceBtn && !addPreferenceBtn.disabled) {
+                    console.log("Simulation du clic sur le bouton d'ajout de préférence");
+                    addPreferenceBtn.click();
+                }
+            } else if (form.id === 'vehiclesForm') {
+                const addVehicleBtn = document.getElementById('addVehicleBtn');
+                if (addVehicleBtn && !addVehicleBtn.disabled) {
+                    console.log("Simulation du clic sur le bouton d'ajout de véhicule");
+                    addVehicleBtn.click();
+                }
+            } else if (form.id === 'vehicleForm') {
+                const saveVehicleBtn = document.getElementById('saveVehicleBtn');
+                if (saveVehicleBtn && !saveVehicleBtn.disabled) {
+                    console.log("Simulation du clic sur le bouton de modification de véhicule");
+                    saveVehicleBtn.click();
+                }
+            } else {
+                // Formulaire d'informations personnelles par défaut
+                const submitButton = document.getElementById('btnSubmitFormInfoUser');
+                if (submitButton && !submitButton.disabled) {
+                    console.log("Simulation du clic sur le bouton d'enregistrement");
+                    submitButton.click();
+                }
+            }
+        });
+    });
+    
+    // Utilisons aussi la délégation d'événements pour la touche Entrée
+    document.addEventListener('keydown', function(event) {
+        if ((event.key === 'Enter' || event.keyCode === 13) && 
+            (event.target.tagName === 'INPUT' || 
+             event.target.tagName === 'SELECT' || 
+             event.target.tagName === 'TEXTAREA')) {
+            
+            event.preventDefault();
+            event.stopPropagation();
+            console.log("Touche Entrée détectée sur", event.target);
+            
+            // Vérifier si l'élément est dans le formulaire de préférences
+            if (event.target.id === 'prefsLibelle' || event.target.id === 'prefsDescription' || 
+                event.target.closest('#preferencesForm')) {
+                const addPreferenceBtn = document.getElementById('addPreferenceBtn');
+                if (addPreferenceBtn && !addPreferenceBtn.disabled) {
+                    console.log("Simulation du clic sur le bouton d'ajout de préférence");
+                    addPreferenceBtn.click();
+                    return false;
+                }
+            } 
+            // Vérifier si l'élément est dans le formulaire d'ajout de véhicule
+            else if (event.target.id.startsWith('vehicle') || event.target.id === 'nbPlace' || 
+                     event.target.id === 'licenseFirstDate' || event.target.id === 'VehicleEnergy' ||
+                     event.target.closest('#vehiclesForm')) {
+                const addVehicleBtn = document.getElementById('addVehicleBtn');
+                if (addVehicleBtn && !addVehicleBtn.disabled) {
+                    console.log("Simulation du clic sur le bouton d'ajout de véhicule");
+                    addVehicleBtn.click();
+                    return false;
+                }
+            } 
+            // Vérifier si l'élément est dans le formulaire de modification de véhicule (modal)
+            else if (event.target.id.startsWith('modalVehicle') || event.target.closest('#vehicleForm')) {
+                const saveVehicleBtn = document.getElementById('saveVehicleBtn');
+                if (saveVehicleBtn && !saveVehicleBtn.disabled) {
+                    console.log("Simulation du clic sur le bouton de modification de véhicule");
+                    saveVehicleBtn.click();
+                    return false;
+                }
+            } 
+            else {
+                // Par défaut, cliquer sur le bouton d'enregistrement des informations personnelles
+                const submitButton = document.getElementById('btnSubmitFormInfoUser');
+                if (submitButton && !submitButton.disabled) {
+                    console.log("Simulation du clic sur le bouton d'enregistrement");
+                    submitButton.click();
+                    return false;
+                }
+            }
+        }
+    }, true);
+}
+
+// S'assurer que les écouteurs sont configurés une fois que le DOM est chargé
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupEnterKeyListener);
+} else {
+    // Le DOM est déjà chargé
+    setupEnterKeyListener();
+}
 
 // Gère l'affichage des rôles et des onglets sans recharger la page
 export function handleRoleAndTabs(result) {
-        //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
+    // Récupérer le bouton de soumission pour pouvoir y faire référence
+    const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
+    
+    //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
     if (result.roles[0] != "ROLE_USER" && !result.isDriver && !result.isPassenger) {
         submitFormInfoUser.disabled = false;
     }

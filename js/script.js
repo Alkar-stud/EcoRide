@@ -132,7 +132,10 @@ async function showMessage(messageId) {
 async function getUserInfo() {
     try {
         let response = await sendFetchRequest(apiUrl + "account/me", getToken(), 'GET', null);
-        if (response.email) {
+        if (response.id) {
+            //Récupération des avis associés à l'utilisateur
+            let responseNotices = await sendFetchRequest(apiUrl + "notices/" + response.id, getToken(), 'GET', null);
+            response.notices = responseNotices;
             return response;
         } else {
             console.log("Impossible de récupérer les informations de l'utilisateur");
@@ -142,12 +145,12 @@ async function getUserInfo() {
     }
 }
 
-function setGradeStyle(gradeValue) {
-    // Sélecteur du conteneur des étoiles
-    const starsContainer = document.getElementById("starsContainer");
-    if (!starsContainer) return;
+function setGradeStyle(gradeValue, container = document.getElementById("starsContainer")) {
+    // Vérifie si le conteneur existe
+    if (!container) return;
+    
     // Nettoie le conteneur
-    starsContainer.innerHTML = "";
+    container.innerHTML = "";
 
     // La note est un nombre entre 0 et 10, on la ramène sur 5
     gradeValue = gradeValue / 2;
@@ -162,8 +165,6 @@ function setGradeStyle(gradeValue) {
         colorClass = "text-danger";
     }
 
-
-
     // Génère les 5 étoiles avec la bonne couleur
     for (let i = 1; i <= 5; i++) {
         const star = document.createElement("i");
@@ -176,7 +177,7 @@ function setGradeStyle(gradeValue) {
         } else {
             star.classList.add("bi-star");
         }
-        starsContainer.appendChild(star);
+        container.appendChild(star);
     }
 }
 
