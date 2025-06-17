@@ -1,6 +1,7 @@
 import { getUserInfo } from '../script.js';
 import { displayUserInfo } from './account-profile.js';
 import { displayUserPreferences } from './account-preferences.js';
+import { displayUserVehicles } from './account-vehicles.js';
 
 
 
@@ -13,7 +14,8 @@ console.log("Informations de l'utilisateur récupérées :", user);
         return;
     }
     displayUserInfo(user);
-    displayUserPreferences(user.userPreferences);    
+    displayUserPreferences(user.userPreferences);
+    displayUserVehicles(user.userVehicles);
 
 }
 

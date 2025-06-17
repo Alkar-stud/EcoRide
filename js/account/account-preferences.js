@@ -140,13 +140,17 @@ async function savePreference(preferenceId, libelle, description, confirmationMe
 
         let response = await sendFetchRequest(apiUrl + "account/preferences/" + preferenceId, getToken(), 'PUT', rawData)
         if (response.success) {
-            // Ajouter la nouvelle préférence à la liste locale
-            preferencesTab.push(response);
+            confirmationMessageLoading.style.display = "none";
+            if (libelle === 'smokingAllowed' || libelle === 'petsAllowed') {
+                await showMessage(confirmationMessageId); // Afficher un message de succès
+            } else {
+                // Ajouter la nouvelle préférence à la liste locale
+                preferencesTab.push(response);
 
-            displayUserPreferences(preferencesTab); // Réafficher la liste mise à jour
-
-            showMessage("preferenceUpdateMessage"); // Afficher un message de succès
-
+                displayUserPreferences(preferencesTab); // Réafficher la liste mise à jour
+            }
+            
+            
             // Réinitialiser les champs du formulaire
             prefsLibelleInput.value = '';
             prefsDescriptionInput.value = '';

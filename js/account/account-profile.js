@@ -51,7 +51,7 @@ export async function displayUserInfo(user) {
 
 
 //Pour mettre à jour les données de l'utilisateur
-export async function setUserInfo() {
+async function setUserInfo() {
     let isDriver = false;
     let isPassenger = false;
 
@@ -100,7 +100,7 @@ export async function setUserInfo() {
 
 
 // Fonction pour supprimer le compte utilisateur
-export async function deleteAccount() {
+async function deleteAccount() {
     // Afficher une boîte de dialogue de confirmation
     const userConfirmed = confirm("Êtes-vous sûr de vouloir supprimer votre compte ?");
 
@@ -132,17 +132,14 @@ export async function deleteAccount() {
 
 
 // Fonction pour vérifier si un bouton radio est sélectionné
-export async function checkRoleSelection() {
+async function checkRoleSelection() {
     const isChecked = Array.from(roleRadios).some(radio => radio.checked);
     submitFormInfoUser.disabled = !isChecked; // Active ou désactive le bouton
     document.getElementById("roleNone").style.display = "none";
 }
 
-
-
-
 //Function permettant de valider tout le formulaire
-export function validateFormAccount(){
+function validateFormAccount(){
     const pseudoOk = validateRequiredAccount(pseudoInput);
     const userRoleOk = document.querySelector('input[name="userRole"]:checked') != null;
 

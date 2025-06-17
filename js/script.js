@@ -113,14 +113,20 @@ function isValidDate(dateString) {
 }
 
 
-function showMessage(messageId) {
+async function showMessage(messageId) {
     const messageElement = document.getElementById(messageId);
     if (messageElement) {
         messageElement.style.display = "block";
-        setTimeout(() => {
-            messageElement.style.display = "none";
-        }, 5000); // Masquer le message après 5 secondes
+        
+        // Retourne une promesse qui se résout après la durée d'affichage
+        return new Promise(resolve => {
+            setTimeout(() => {
+                messageElement.style.display = "none";
+                resolve(true);
+            }, 5000); // Masquer le message après 5 secondes
+        });
     }
+    return true;
 }
 
 async function getUserInfo() {
@@ -195,25 +201,29 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFi
         //Si body contient un fichier, on ne met pas de Content-Type
         // car le navigateur va gérer le multipart/form-data automatiquement
         // myHeaders.append("Content-Type", "multipart/form-data");
-        
-
     }
 
-    return fetch(url, requestOptions)
-        .then(response => {
-            if (response.status === 401) {
-                signout();
-            }
-            if (response.status === 404) {
-                console.error("Resource not found:", apiUrl);
-                throw new Error("Ressource non trouvée");
-            }
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .catch(error => console.error('Fetch error:', error));
+    try {
+        const response = await fetch(url, requestOptions);
+
+        if (response.status === 401) {
+            signout();
+            throw new Error("Unauthorized");
+        }
+        if (response.status === 404) {
+            console.error("Resource not found:", url);
+            throw new Error("Ressource non trouvée");
+        }
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+
+    } catch (error) {
+        console.error('Fetch error:', error);
+        throw error; // Rejeter la promesse pour que l'appelant puisse gérer l'erreur
+    }
 }
 
 
