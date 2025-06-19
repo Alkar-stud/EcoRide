@@ -1,11 +1,56 @@
-<h1 id="title-h1" class="text-center text-secondary mb-4">titreh1</h1>
+<h1 id="title-h1" class="text-center text-secondary mb-4">Mes covoiturages</h1>
 
-<div class="container allcovoiturages">
-    <!-- Les covoiturages seront affichés ici par le JavaScript -->
-    <div class="text-center">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Chargement...</span>
+<div class="container">
+    <!-- Bouton d'ajout de covoiturage -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div></div> <!-- Espace vide pour centrer les onglets -->
+        <button type="button" class="btn btn-primary" id="proposerCovoiturageBtn">
+            <i class="fas fa-plus me-2"></i>Proposer un covoiturage
+        </button>
+    </div>
+
+    <!-- Onglets de navigation -->
+    <ul class="nav nav-tabs nav-fill mb-4" id="covoituragesTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="driver-tab" data-bs-toggle="tab" data-bs-target="#driver" 
+                    type="button" role="tab" aria-controls="driver" aria-selected="true">
+                <i class="fas fa-car me-2"></i>Mes covoiturages chauffeur
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="passenger-tab" data-bs-toggle="tab" data-bs-target="#passenger" 
+                    type="button" role="tab" aria-controls="passenger" aria-selected="false">
+                <i class="fas fa-users me-2"></i>Mes covoiturages passager
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenu des onglets -->
+    <div class="tab-content" id="covoituragesTabsContent">
+        <!-- Onglet Chauffeur -->
+        <div class="tab-pane fade show active" id="driver" role="tabpanel" aria-labelledby="driver-tab">
+            <div class="allcovoiturages-driver">
+                <!-- Les covoiturages chauffeur seront affichés ici -->
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <p>Chargement des covoiturages chauffeur...</p>
+                </div>
+            </div>
         </div>
-        <p>Chargement des covoiturages...</p>
+
+        <!-- Onglet Passager -->
+        <div class="tab-pane fade" id="passenger" role="tabpanel" aria-labelledby="passenger-tab">
+            <div class="allcovoiturages-passenger">
+                <!-- Les covoiturages passager seront affichés ici -->
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <p>Chargement des covoiturages passager...</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

@@ -1,0 +1,187 @@
+<!-- Modale pour créer un nouveau covoiturage -->
+<div class="modal fade" id="nouveauCovoiturageModal" tabindex="-1" aria-labelledby="nouveauCovoiturageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="nouveauCovoiturageModalLabel">
+                    <i class="fas fa-car me-2"></i>Proposer un nouveau covoiturage
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Message d'encouragement -->
+                <div class="alert alert-info" id="encouragementMessage" style="display: none;">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Aucun covoiturage trouvé pour votre recherche ?</strong>
+                    Soyez le premier à proposer ce trajet et aidez d'autres personnes à se déplacer !
+                </div>
+
+                <!-- Formulaire de création de covoiturage -->
+                <form id="nouveauCovoiturageForm">
+                    <div class="row">
+                        <!-- Départ -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="departAdresse" class="form-label">
+                                    <i class="fas fa-map-marker-alt text-success me-1"></i>Adresse de départ *
+                                </label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="departAdresse" name="departAdresse" required 
+                                           placeholder="Ex: 10 Rue de Rivoli, 75001 Paris"
+                                           autocomplete="off">
+                                    <div id="departSuggestions" class="position-absolute w-100 bg-white border rounded shadow-sm" 
+                                         style="display: none; z-index: 1000; max-height: 200px; overflow-y: auto; top: 100%;"></div>
+                                </div>
+                                <div class="form-text">Saisissez l'adresse complète du point de rendez-vous</div>
+                                <!-- Champs cachés pour stocker les données parsées -->
+                                <input type="hidden" id="departStreet" name="departStreet">
+                                <input type="hidden" id="departPostcode" name="departPostcode">
+                                <input type="hidden" id="departCity" name="departCity">
+                            </div>
+                        </div>
+
+                        <!-- Arrivée -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="arriveeAdresse" class="form-label">
+                                    <i class="fas fa-flag-checkered text-danger me-1"></i>Adresse d'arrivée *
+                                </label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="arriveeAdresse" name="arriveeAdresse" required 
+                                           placeholder="Ex: 25 Avenue des Champs-Élysées, 75008 Paris"
+                                           autocomplete="off">
+                                    <div id="arriveeSuggestions" class="position-absolute w-100 bg-white border rounded shadow-sm" 
+                                         style="display: none; z-index: 1000; max-height: 200px; overflow-y: auto; top: 100%;"></div>
+                                </div>
+                                <div class="form-text">Saisissez l'adresse complète du point d'arrivée</div>
+                                <!-- Champs cachés pour stocker les données parsées -->
+                                <input type="hidden" id="arriveeStreet" name="arriveeStreet">
+                                <input type="hidden" id="arriveePostcode" name="arriveePostcode">
+                                <input type="hidden" id="arriveeCity" name="arriveeCity">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Date de départ -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dateDepart" class="form-label">
+                                    <i class="fas fa-calendar text-primary me-1"></i>Date de départ *
+                                </label>
+                                <input type="date" class="form-control" id="dateDepart" name="dateDepart" required>
+                            </div>
+                        </div>
+
+                        <!-- Heure de départ -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="heureDepart" class="form-label">
+                                    <i class="fas fa-clock text-primary me-1"></i>Heure de départ *
+                                </label>
+                                <input type="time" class="form-control" id="heureDepart" name="heureDepart" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Véhicule -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="vehicule" class="form-label">
+                                    <i class="fas fa-car text-info me-1"></i>Véhicule *
+                                </label>
+                                <select class="form-select" id="vehicule" name="vehicule" required>
+                                    <option value="">Sélectionnez votre véhicule</option>
+                                    <!-- Les véhicules seront chargés dynamiquement -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Nombre de places -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nbPlaces" class="form-label">
+                                    <i class="fas fa-users text-info me-1"></i>Nombre de places disponibles *
+                                </label>
+                                <select class="form-select" id="nbPlaces" name="nbPlaces" required>
+                                    <option value="">Sélectionnez le nombre de places</option>
+                                    <option value="1">1 place</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Prix par place -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="prix" class="form-label">
+                                    <i class="fas fa-euro-sign text-warning me-1"></i>Prix par place (en crédits) *
+                                </label>
+                                <input type="number" class="form-control" id="prix" name="prix" required 
+                                       min="1" step="1" pattern="[0-9]+" placeholder="Ex: 15">
+                                <div class="form-text">Le prix doit être équitable et couvrir les frais d'essence tout en prenant en compte la commission de EcoRide. Le prix moyen constaté est de 1 à 2 crédits par kilomètre</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Colonne vide pour l'équilibrage -->
+                        <div class="col-md-6"></div>
+                    </div>
+
+                    <!-- Préférences -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-cog me-2"></i>Préférences pour ce covoiturage</h6>
+                        
+                        <!-- Préférences prédéfinies (smokingAllowed et petsAllowed) -->
+                        <div class="row" id="predefinedPreferences">
+                            <!-- Ces cases seront cochées automatiquement selon les préférences utilisateur -->
+                        </div>
+                        
+                        <!-- Préférences personnalisées existantes -->
+                        <div id="customPreferences" class="mt-3">
+                            <!-- Les préférences personnalisées seront affichées ici -->
+                        </div>
+                        
+                        <!-- Ajouter une nouvelle préférence -->
+                        <div class="border p-3 mt-3 bg-light">
+                            <h6><i class="fas fa-plus me-2"></i>Ajouter une préférence personnalisée</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control form-control-sm" id="newPrefTitle" 
+                                           placeholder="Titre (obligatoire)" maxlength="50">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control form-control-sm" id="newPrefDescription" 
+                                           placeholder="Description (facultatif)" maxlength="100">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-sm btn-success" id="addPreferenceBtn">
+                                        <i class="fas fa-save me-1"></i>Sauvegarder
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-info-circle me-1"></i>
+                                La préférence sera sauvegardée dans votre compte et disponible pour tous vos futurs covoiturages.
+                            </div>
+                        </div>
+                        
+                        <!-- Liste des préférences ajoutées pour ce covoiturage -->
+                        <div id="addedPreferences" class="mt-3">
+                            <!-- Les nouvelles préférences ajoutées apparaîtront ici -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Annuler
+                </button>
+                <button type="button" class="btn btn-primary" id="creerCovoiturageBtn">
+                    <i class="fas fa-plus me-1"></i>Créer le covoiturage
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

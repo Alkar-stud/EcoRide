@@ -12288,4 +12288,102 @@ p {
 .autocomplete-item:hover {
   background-color: #f0f0f0;
 }
+
+/* Styles pour les covoiturages expirés */
+/* Styles pour les onglets */
+.nav-tabs .nav-link {
+  border-radius: 0.5rem 0.5rem 0 0;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  background-color: #f8f9fa;
+}
+
+.nav-tabs .nav-link.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* Styles pour les covoiturages expirés */
+.covoiturage-expired {
+  position: relative;
+  opacity: 0.6;
+  filter: grayscale(20%);
+  background-color: #f8f9fa !important;
+}
+
+.covoiturage-expired .card-body {
+  color: #6c757d !important;
+}
+
+.covoiturage-expired .text-primary {
+  color: #6c757d !important;
+}
+
+.covoiturage-expired .text-success {
+  color: #6c757d !important;
+}
+
+.covoiturage-expired .text-danger {
+  color: #6c757d !important;
+}
+
+.covoiturage-expired .btn-outline-primary {
+  border-color: #6c757d;
+  color: #6c757d;
+}
+
+.covoiturage-expired .btn-outline-primary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.covoiturage-expired::before {
+  content: "Dépassé";
+  position: absolute;
+  top: 20px;
+  right: 10px;
+  background-color: #dc3545;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 1;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.covoiturages-list {
+  margin-bottom: 2rem;
+}
+
+/* Styles pour l'autocomplétion d'adresses */
+.address-suggestion {
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.address-suggestion:hover {
+  background-color: #f8f9fa !important;
+}
+
+.suggestions-container {
+  border-top: none !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+/* Améliorer le z-index pour les suggestions */
+#departSuggestions,
+#arriveeSuggestions {
+  z-index: 1050 !important; /* Plus élevé que la modale Bootstrap */
+}
 /*# sourceMappingURL=main.css.map */
