@@ -8,6 +8,7 @@ let currentPageDriver = 1;
 let currentPagePassenger = 1;
 let limitPerPage = 5;
 let currentTab = 'driver'; // Onglet par défaut 'driver'
+let currentStatusDriver = 'coming'; // Statut par défaut pour les covoiturages chauffeur
 
 // Fonction pour récupérer les covoiturages depuis l'API
 async function fetchCovoiturages(type = 'driver', state = 'coming', page = 1) {
@@ -17,15 +18,27 @@ async function fetchCovoiturages(type = 'driver', state = 'coming', page = 1) {
         // Différencier l'endpoint selon le type
         if (type === 'driver') {
             // Endpoint pour les covoiturages où l'utilisateur est chauffeur
-            endpoint = apiUrl + 'ride/list/' + state + '?page=' + page + '&limit=' + limitPerPage;
+            if (state === 'all') {
+                // Récupérer tous les covoiturages sans filtre de statut
+                endpoint = apiUrl + 'ride/list/all?page=' + page + '&limit=' + limitPerPage;
+            } else {
+                endpoint = apiUrl + 'ride/list/' + state + '?page=' + page + '&limit=' + limitPerPage;
+            }
         } else {
             // Endpoint pour les covoiturages où l'utilisateur est passager
             endpoint = apiUrl + 'ride/list/passenger/' + state + '?page=' + page + '&limit=' + limitPerPage;
         }
         
-        const data = await sendFetchRequest(endpoint, getToken(), 'GET');
+        const data = await sendFetchRequest(endpoint, getToken(), 'GET', null, false, true);
         return data;
     } catch (error) {
+        // Gestion spécifique des erreurs 404 pour les filtres (aucun covoiturage trouvé)
+        if (error.status === 404) {
+            console.info(`Aucun covoiturage ${type} trouvé pour le filtre "${state}"`);
+            return { rides: [], pagination: {} };
+        }
+        
+        // Pour toutes les autres erreurs, les afficher et retourner un résultat vide
         console.error(`Erreur lors de la récupération des covoiturages ${type}:`, error);
         return { rides: [], pagination: {} };
     }
@@ -47,7 +60,12 @@ function formatDateTime(dateTimeString) {
 function isDatePassed(dateTimeString) {
     const rideDate = new Date(dateTimeString);
     const today = new Date();
-    return rideDate < today;
+    
+    // Réinitialiser l'heure à 00:00:00 pour ne comparer que les dates
+    const rideDateOnly = new Date(rideDate.getFullYear(), rideDate.getMonth(), rideDate.getDate());
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    return rideDateOnly < todayOnly;
 }
 
 // Fonction pour calculer le nombre de places restantes
@@ -75,21 +93,26 @@ function showLoadingIndicator(container, type) {
 
 // Fonction pour afficher un message d'encouragement quand il n'y a pas de covoiturages
 function showEmptyStateMessage(container, type) {
+    // Créer le message vide dans un div séparé pour ne pas écraser les boutons de filtrage
+    const emptyStateDiv = document.createElement('div');
+    
     if (type === 'driver') {
-        container.innerHTML = `
+        emptyStateDiv.innerHTML = `
             <div class="text-center py-5">
                 <div class="mb-4">
                     <i class="fas fa-car text-muted" style="font-size: 4rem;"></i>
                 </div>
-                <h4 class="text-muted mb-3">Vous n'avez pas encore proposé de covoiturage</h4>
+                <h4 class="text-muted mb-3">Aucun covoiturage trouvé pour ce filtre</h4>
                 <p class="text-muted mb-4">
-                    Commencez dès maintenant à partager vos trajets et contribuer à la mobilité durable !
+                    Essayez un autre filtre ou proposez un nouveau covoiturage !
                 </p>
                 <button class="btn btn-primary btn-lg" id="creerPremierCovoiturage">
-                    <i class="fas fa-plus me-2"></i>Proposer mon premier covoiturage
+                    <i class="fas fa-plus me-2"></i>Proposer un covoiturage
                 </button>
             </div>
         `;
+        
+        container.appendChild(emptyStateDiv);
         
         // Ajouter l'événement pour ouvrir la modale
         document.getElementById('creerPremierCovoiturage').addEventListener('click', () => {
@@ -102,7 +125,7 @@ function showEmptyStateMessage(container, type) {
             });
         });
     } else {
-        container.innerHTML = `
+        emptyStateDiv.innerHTML = `
             <div class="text-center py-5">
                 <div class="mb-4">
                     <i class="fas fa-users text-muted" style="font-size: 4rem;"></i>
@@ -116,11 +139,18 @@ function showEmptyStateMessage(container, type) {
                 </a>
             </div>
         `;
+        
+        container.appendChild(emptyStateDiv);
     }
 }
 
 // Fonction principale pour afficher les covoiturages
-async function displayCovoiturages(type = 'driver', page = 1) {
+async function displayCovoiturages(type = 'driver', page = 1, status = null) {
+    // Mettre à jour le statut courant pour le chauffeur si fourni
+    if (status !== null && type === 'driver') {
+        currentStatusDriver = status;
+    }
+    
     // Mettre à jour la page courante selon le type
     if (type === 'driver') {
         currentPageDriver = page;
@@ -142,8 +172,17 @@ async function displayCovoiturages(type = 'driver', page = 1) {
     showLoadingIndicator(container, type);
     
     try {
-        // Récupérer les données avec le bon type
-        const result = await fetchCovoiturages(type, 'coming', page);
+        // Récupérer les données avec le bon type et statut
+        let actualStatus;
+        if (status !== null) {
+            actualStatus = status;
+        } else if (type === 'driver') {
+            actualStatus = currentStatusDriver;
+        } else {
+            actualStatus = 'coming';
+        }
+        
+        const result = await fetchCovoiturages(type, actualStatus, page);
         if (!result) {
             throw new Error("Aucun résultat retourné par l'API");
         }
@@ -152,6 +191,11 @@ async function displayCovoiturages(type = 'driver', page = 1) {
 
         // Vider le conteneur
         container.innerHTML = '';
+        
+        // Ajouter les boutons de filtrage pour l'onglet chauffeur
+        if (type === 'driver') {
+            createStatusFilterButtons(container);
+        }
         
         if (covoiturages.length === 0) {
             showEmptyStateMessage(container, type);
@@ -366,8 +410,12 @@ function getStatusBadgeClass(status) {
             return 'bg-primary';
         case 'FINISHED':
             return 'bg-success';
-        case 'CANCELLED':
+        case 'CANCELED':
             return 'bg-danger';
+        case 'AWAITINGVALIDATION':
+            return 'bg-warning';
+        case 'BADEXP':
+            return 'bg-info';
         default:
             return 'bg-secondary';
     }
@@ -380,8 +428,12 @@ function getStatusLabel(status) {
             return 'À venir';
         case 'FINISHED':
             return 'Terminé';
-        case 'CANCELLED':
+        case 'CANCELED':
             return 'Annulé';
+        case 'AWAITINGVALIDATION':
+            return 'En attente de validation';
+        case 'BADEXP':
+            return 'En cours d\'examen';
         default:
             return status;
     }
@@ -423,6 +475,52 @@ function initializeCreateButton() {
     } else {
         console.error('Bouton #proposerCovoiturageBtn non trouvé');
     }
+}
+
+// Fonction pour créer et afficher les boutons de filtrage par statut
+function createStatusFilterButtons(container) {
+    const filterContainer = document.createElement('div');
+    filterContainer.className = 'mb-3';
+    
+    const statusToShow = currentStatusDriver || 'coming';
+    
+    filterContainer.innerHTML = `
+        <div class="btn-group flex-wrap" role="group" aria-label="Filtrer par statut">
+            <button type="button" class="btn ${statusToShow === 'coming' ? 'btn-primary' : 'btn-outline-primary'} status-filter-btn" data-status="coming">
+                <i class="fas fa-clock me-1"></i>À venir
+            </button>
+            <button type="button" class="btn ${statusToShow === 'all' ? 'btn-secondary' : 'btn-outline-secondary'} status-filter-btn" data-status="all">
+                <i class="fas fa-list me-1"></i>Tous
+            </button>
+            <button type="button" class="btn ${statusToShow === 'finished' ? 'btn-success' : 'btn-outline-success'} status-filter-btn" data-status="finished">
+                <i class="fas fa-check me-1"></i>Terminés
+            </button>
+            <button type="button" class="btn ${statusToShow === 'canceled' ? 'btn-danger' : 'btn-outline-danger'} status-filter-btn" data-status="canceled">
+                <i class="fas fa-times me-1"></i>Annulés
+            </button>
+            <button type="button" class="btn ${statusToShow === 'awaitingvalidation' ? 'btn-warning' : 'btn-outline-warning'} status-filter-btn" data-status="awaitingvalidation">
+                <i class="fas fa-hourglass-half me-1"></i>En validation
+            </button>
+            <button type="button" class="btn ${statusToShow === 'badexp' ? 'btn-info' : 'btn-outline-info'} status-filter-btn" data-status="badexp">
+                <i class="fas fa-search me-1"></i>En examen
+            </button>
+        </div>
+    `;
+    
+    // Insérer les boutons au début du conteneur
+    container.insertBefore(filterContainer, container.firstChild);
+    
+    // Ajouter les événements de clic
+    const filterButtons = filterContainer.querySelectorAll('.status-filter-btn');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Récupérer le statut et afficher les covoiturages
+            const status = this.getAttribute('data-status');
+            displayCovoiturages('driver', 1, status);
+        });
+    });
+    
+    return filterContainer;
 }
 
 // Ajouter un écouteur d'événement pour le rafraîchissement

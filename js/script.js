@@ -182,7 +182,7 @@ function setGradeStyle(gradeValue, container = document.getElementById("starsCon
 }
 
 
-async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFile = false) {
+async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFile = false, silent404 = false) {
     let myHeaders = new Headers();
     if (apiToken) {
         myHeaders.append("X-AUTH-TOKEN", apiToken);
@@ -212,8 +212,12 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFi
             throw new Error("Unauthorized");
         }
         if (response.status === 404) {
-            console.error("Resource not found:", url);
-            throw new Error("Ressource non trouvée");
+            if (!silent404) {
+                console.error("Resource not found:", url);
+            }
+            const error = new Error("Ressource non trouvée");
+            error.status = 404;
+            throw error;
         }
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
