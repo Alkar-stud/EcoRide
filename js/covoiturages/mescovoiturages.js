@@ -1,7 +1,7 @@
 // Module pour gérer les covoiturages de l'utilisateur
 import { apiUrl, url } from '../config.js';
 import { getToken, sendFetchRequest } from '../script.js';
-import nouveauCovoiturageModal from './nouveau-covoiturage-modal.js'; // Import de l'instance
+import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
 
 // Variables pour stocker les pages courantes
 let currentPageDriver = 1;
@@ -41,6 +41,17 @@ async function fetchCovoiturages(type = 'driver', state = 'coming', page = 1) {
         // Pour toutes les autres erreurs, les afficher et retourner un résultat vide
         console.error(`Erreur lors de la récupération des covoiturages ${type}:`, error);
         return { rides: [], pagination: {} };
+    }
+}
+
+// Fonction helper pour récupérer les données d'un covoiturage
+async function fetchCovoiturageData(covoiturageId) {
+    try {
+        const response = await sendFetchRequest(`${apiUrl}ride/show/${covoiturageId}`, getToken(), 'GET');
+        return response;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des données du covoiturage:', error);
+        throw error;
     }
 }
 
@@ -116,7 +127,7 @@ function showEmptyStateMessage(container, type) {
         
         // Ajouter l'événement pour ouvrir la modale
         document.getElementById('creerPremierCovoiturage').addEventListener('click', () => {
-            nouveauCovoiturageModal.show({
+            covoiturageModal.show('create', null, {
                 showEncouragement: true,
                 onSuccess: () => {
                     // Recharger les covoiturages chauffeur après création
@@ -210,9 +221,10 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null) {
         covoiturages.forEach(covoiturage => {
             const covoiturageItem = document.createElement('div');
             
-            // Vérifier si la date est passée pour appliquer la classe CSS
+            // Vérifier si la date est passée ou si le covoiturage est terminé/annulé pour appliquer la classe CSS
             const isPassed = isDatePassed(covoiturage.startingAt);
-            const cardClasses = `card mb-3 shadow-sm ${isPassed ? 'covoiturage-expired' : ''}`;
+            const isExpired = isPassed || covoiturage.status === 'FINISHED' || covoiturage.status === 'CANCELED';
+            const cardClasses = `card mb-3 shadow-sm ${isExpired ? 'covoiturage-expired' : ''}`;
             
             covoiturageItem.className = cardClasses;
             
@@ -289,7 +301,18 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null) {
                                     <img src="/images/logo_credit_light.png" alt="Crédit" class="img-fluid" style="width: 20px; height: 20px;">
                                 </strong>
                             </div>
-                            <a href="/covoiturages?id=${covoiturage.id}" class="btn btn-sm btn-outline-primary">Détails</a>
+                            <div class="d-flex flex-column gap-1">
+                                ${covoiturage.status !== 'COMING' ? `
+                                    <button class="btn btn-sm btn-outline-primary details-covoiturage-btn" data-covoiturage-id="${covoiturage.id}">
+                                        <i class="fas fa-eye me-1"></i>Détails
+                                    </button>
+                                ` : ''}
+                                ${type === 'driver' && canModifyCovoiturage(covoiturage) ? `
+                                    <button class="btn btn-sm btn-outline-warning modifier-covoiturage-btn" data-covoiturage-id="${covoiturage.id}">
+                                        <i class="fas fa-edit me-1"></i>Modifier
+                                    </button>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -299,6 +322,43 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null) {
         });
         
         container.appendChild(covoituragesList);
+
+        // Ajouter les événements pour les boutons de modification
+        const modifierBtns = container.querySelectorAll('.modifier-covoiturage-btn');
+        modifierBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const covoiturageId = btn.getAttribute('data-covoiturage-id');
+                
+                try {
+                    const covoiturageData = await fetchCovoiturageData(covoiturageId);
+                    covoiturageModal.show('edit', covoiturageData, {
+                        onSuccess: () => {
+                            // Recharger les covoiturages après modification/suppression
+                            displayCovoiturages(type, type === 'driver' ? currentPageDriver : currentPagePassenger);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Erreur lors de l\'ouverture de la modale de modification:', error);
+                }
+            });
+        });
+
+        // Ajouter les événements pour les boutons de détails
+        const detailsBtns = container.querySelectorAll('.details-covoiturage-btn');
+        detailsBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const covoiturageId = btn.getAttribute('data-covoiturage-id');
+                
+                try {
+                    const covoiturageData = await fetchCovoiturageData(covoiturageId);
+                    covoiturageModal.show('view', covoiturageData);
+                } catch (error) {
+                    console.error('Erreur lors de l\'ouverture de la modale de détails:', error);
+                }
+            });
+        });
 
         // Ajouter la pagination si nécessaire
         if (result.pagination && result.pagination.pages_totales > 1) {
@@ -466,7 +526,7 @@ function initializeCreateButton() {
     if (createBtn) {
         createBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            nouveauCovoiturageModal.show({
+            covoiturageModal.show('create', null, {
                 onSuccess: () => {
                     displayCovoiturages(currentTab, currentTab === 'driver' ? currentPageDriver : currentPagePassenger);
                 }
@@ -521,6 +581,12 @@ function createStatusFilterButtons(container) {
     });
     
     return filterContainer;
+}
+
+// Fonction pour vérifier si un covoiturage peut être modifié
+function canModifyCovoiturage(covoiturage) {
+    // Seuls les covoiturages 'COMING' peuvent être modifiés (peu importe le nombre de passagers)
+    return covoiturage.status === 'COMING';
 }
 
 // Ajouter un écouteur d'événement pour le rafraîchissement
