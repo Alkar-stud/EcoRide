@@ -1,5 +1,56 @@
-node_modules
+# Dépendances (seront installées dans le container)
+node_modules/
+npm-debug.log*
+
+# Fichiers Docker
 Dockerfile
 .dockerignore
+
+# Documentation
 README.md
-docs
+docs/
+*.md
+
+# Fichiers de développement
+.git/
+.gitignore
+
+# IDEs et éditeurs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Fichiers de build locaux
+dist/
+build/
+
+# Fichiers CSS générés localement (seront regénérés dans le container)
+scss/*.css
+scss/*.css.map
+
+# Variables d'environnement (peuvent contenir des secrets)
+.env
+.env.*
+
+# Logs locaux
+logs/
+*.log
+
+# Fichiers temporaires du système
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Cache de développement
+.cache/
+.parcel-cache/
+
+# Fichiers de test (si vous en avez)
+coverage/
+.nyc_output/
+
+# Fichiers de sauvegarde
+*.bak
+*.backup

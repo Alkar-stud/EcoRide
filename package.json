@@ -1,6 +1,15 @@
 {
+  "scripts": {
+    "sass:build": "sass scss/main.scss scss/main.css --style=expanded",
+    "sass:build:min": "sass scss/main.scss scss/main.min.css --style=compressed",
+    "sass:build:all": "npm run sass:build && npm run sass:build:min",
+    "sass:watch": "sass --watch scss/main.scss:scss/main.css --style=expanded"
+  },
   "dependencies": {
     "bootstrap": "^5.3.6",
     "bootstrap-icons": "^1.13.1"
+  },
+  "devDependencies": {
+    "sass": "^1.89.2"
   }
 }
