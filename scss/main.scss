@@ -52,6 +52,7 @@ p {
 
 .hero-scene{
   position: relative;
+  min-height: 400px; /* Hauteur fixe pour couvrir la zone 100px-400px */
   &::before{
       content:"";
       position: absolute;
@@ -61,7 +62,8 @@ p {
       height:100%;
       background-image: url(../images/FondHeroScene.jpg);
       background-size: cover;
-      filter: brightness(0.3);
+      background-position: center;
+      filter: brightness(0.4); /* Légèrement plus sombre pour améliorer la lisibilité du texte */
   }
 
   *{
@@ -70,12 +72,55 @@ p {
   }
 
   .hero-scene-content{
-      height: 300px;
+      min-height: 400px; /* Correspond à la zone 100px-400px */
+      padding: 2rem 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
   }
+}
+
+/* Styles pour le formulaire de recherche en superposition */
+.search-form-overlay {
+    background-color: rgba(255, 255, 255, 0.95); /* Fond blanc semi-transparent */
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px); /* Effet de flou pour un look moderne */
+    margin-top: 1rem;
+}
+
+/* Améliorer la lisibilité des titres sur l'image de fond */
+.hero-scene h1,
+.hero-scene h2 {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    margin-bottom: 1rem;
+}
+
+/* Responsive : ajuster sur mobile et tablette */
+@media (max-width: 768px) {
+    .hero-scene {
+        min-height: 350px; /* Légèrement plus petit sur mobile */
+    }
+    
+    .hero-scene-content {
+        min-height: 350px;
+        padding: 1rem;
+    }
+    
+    .search-form-overlay {
+        padding: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .hero-scene h1 {
+        font-size: 1.75rem;
+    }
+    
+    .hero-scene h2 {
+        font-size: 1.25rem;
+    }
 }
 
 .container {
