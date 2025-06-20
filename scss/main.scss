@@ -264,20 +264,114 @@ p {
 .address-suggestion {
     transition: background-color 0.2s ease;
     cursor: pointer;
+    color: #212529 !important; /* Texte sombre pour la lisibilité */
 }
 
 .address-suggestion:hover {
     background-color: #f8f9fa !important;
 }
 
+.address-suggestion .fw-bold {
+    color: #212529 !important; /* Nom de ville en noir */
+}
+
+.address-suggestion .text-muted {
+    color: #6c757d !important; /* Contexte en gris */
+}
+
 .suggestions-container {
     border-top: none !important;
     border-top-left-radius: 0 !important;
     border-top-right-radius: 0 !important;
+    color: #212529; /* Couleur de base du texte */
 }
 
 /* Améliorer le z-index pour les suggestions */
 #departSuggestions,
 #arriveeSuggestions {
     z-index: 1050 !important; /* Plus élevé que la modale Bootstrap */
+}
+
+/* Styles spécifiques pour les suggestions de la page d'accueil */
+.hero-scene .suggestions-container {
+    color: #212529 !important; /* Forcer le texte en noir */
+}
+
+.hero-scene .suggestion-item {
+    color: #212529 !important; /* Forcer le texte des suggestions en noir */
+}
+
+.hero-scene .suggestion-item .fw-bold {
+    color: #212529 !important; /* Nom de ville en noir */
+}
+
+.hero-scene .suggestion-item .text-muted {
+    color: #6c757d !important; /* Contexte en gris */
+}
+
+.hero-scene .suggestion-item:hover {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+}
+
+/* Styles pour la page de recherche de covoiturages */
+.search-page .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.search-page .btn-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.search-page .btn-link:hover {
+    color: #0056b3;
+}
+
+.search-page .collapse .card-body {
+    background-color: #fbfbfb;
+}
+
+.search-page .form-check {
+    margin-bottom: 0.5rem;
+}
+
+.search-page .form-check-label {
+    font-size: 0.9rem;
+}
+
+/* Améliorer l'affichage des cartes de covoiturage dans la recherche */
+.search-results .card {
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.search-results .card:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+.search-results .driver-info img {
+    object-fit: cover;
+}
+
+.search-results .btn-sm {
+    font-size: 0.8rem;
+}
+
+/* Responsive pour la page de recherche */
+@media (max-width: 768px) {
+    .search-page .card-body .row.g-3 > .col-md-3,
+    .search-page .card-body .row.g-3 > .col-md-2 {
+        margin-bottom: 1rem;
+    }
+    
+    .search-results .card .row .col-md-3,
+    .search-results .card .row .col-md-5,
+    .search-results .card .row .col-md-2 {
+        margin-bottom: 1rem;
+    }
+    
+    .search-results .card .text-md-end {
+        text-align: center !important;
+    }
 }

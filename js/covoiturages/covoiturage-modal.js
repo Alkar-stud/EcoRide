@@ -1,5 +1,5 @@
 // Module unifié pour gérer la modale de covoiturage (création, modification, lecture seule)
-import { apiUrl } from '../config.js';
+import { apiUrl, url } from '../config.js';
 import { getToken, sendFetchRequest, showMessage, getUserInfo } from '../script.js';
 
 class CovoiturageModal {
@@ -270,11 +270,11 @@ class CovoiturageModal {
                 header.className = 'modal-header bg-success text-white';
                 modalIcon.className = 'fas fa-users me-2';
                 modalTitle.textContent = 'Rejoindre ce covoiturage';
-                preferencesSection.style.display = 'block'; // Afficher les préférences du chauffeur
-                addPreferenceSection.style.display = 'none'; // Ne pas permettre d'ajouter des préférences
+                preferencesSection.style.display = 'none'; // On va créer une vue spéciale
+                addPreferenceSection.style.display = 'none';
                 editModeButtons.style.display = 'none';
                 closeBtn.innerHTML = '<i class="fas fa-times me-2"></i>Fermer';
-                this.setFieldsEnabled(false); // Tous les champs en lecture seule
+                // La vue conviviale sera créée après l'assignation des données dans show()
                 break;
         }
     }
@@ -578,22 +578,33 @@ class CovoiturageModal {
                 this.covoiturageData = data;
                 this.onSuccessCallback = options.onSuccess;
                 
-                // Pré-remplir le formulaire
-                this.populateForm(data);
-                
-                if (mode === 'edit') {
-                    // Configurer les boutons d'action pour la modification
-                    this.configureEditButtons();
-                    // Activer les champs selon les règles métier (après chargement des données)
-                    this.setFieldsEnabled(true);
-                } else if (mode === 'passenger-view') {
-                    // Configurer les boutons pour la vue passager
+                if (mode === 'passenger-view') {
+                    // En mode passenger-view, créer la vue spéciale après avoir assigné les données
+                    this.createPassengerView();
                     this.configurePassengerViewButtons();
+                } else {
+                    // Pour les modes edit et view, pré-remplir le formulaire
+                    this.populateForm(data);
+                    
+                    if (mode === 'edit') {
+                        // Configurer les boutons d'action pour la modification
+                        this.configureEditButtons();
+                        // Activer les champs selon les règles métier (après chargement des données)
+                        this.setFieldsEnabled(true);
+                    }
                 }
             }
 
             // Afficher la modale
             this.modal.show();
+
+            // Si on est en mode passenger-view, finaliser l'affichage après que la modale soit visible
+            if (mode === 'passenger-view') {
+                // Attendre que la modale soit visible pour afficher les étoiles et préférences
+                setTimeout(() => {
+                    this.finalizePassengerView();
+                }, 100);
+            }
 
         } catch (error) {
             console.error('Erreur lors de l\'affichage de la modale:', error);
@@ -601,45 +612,31 @@ class CovoiturageModal {
         }
     }
 
-    // Pré-remplir le formulaire avec les données existantes
+        // Pré-remplir le formulaire avec les données existantes
     populateForm(data) {
         
-        // Adresses de départ - nouvelle structure avec startingAddress
-        if (data.startingAddress && data.startingAddress.street && data.startingAddress.postcode && data.startingAddress.city) {
-            document.getElementById('departAdresse').value = `${data.startingAddress.street}, ${data.startingAddress.postcode} ${data.startingAddress.city}`;
-            // Remplir aussi les champs cachés
-            document.getElementById('startingStreet').value = data.startingAddress.street;
-            document.getElementById('startingPostCode').value = data.startingAddress.postcode;
-            document.getElementById('startingCity').value = data.startingAddress.city;
-        } else if (data.startingAddress?.city) {
-            document.getElementById('departAdresse').value = data.startingAddress.city;
-        } else if (data.startingStreet && data.startingPostCode && data.startingCity) {
-            // Fallback pour l'ancienne structure
+        // Adresses de départ - utiliser la vraie structure API
+        if (data.startingStreet && data.startingPostCode && data.startingCity) {
             document.getElementById('departAdresse').value = `${data.startingStreet}, ${data.startingPostCode} ${data.startingCity}`;
+            // Remplir aussi les champs cachés
             document.getElementById('startingStreet').value = data.startingStreet;
             document.getElementById('startingPostCode').value = data.startingPostCode;
             document.getElementById('startingCity').value = data.startingCity;
         } else if (data.startingCity) {
             document.getElementById('departAdresse').value = data.startingCity;
+            document.getElementById('startingCity').value = data.startingCity;
         }
 
-        // Adresses d'arrivée - nouvelle structure avec arrivalAddress
-        if (data.arrivalAddress && data.arrivalAddress.street && data.arrivalAddress.postcode && data.arrivalAddress.city) {
-            document.getElementById('arriveeAdresse').value = `${data.arrivalAddress.street}, ${data.arrivalAddress.postcode} ${data.arrivalAddress.city}`;
-            // Remplir aussi les champs cachés
-            document.getElementById('arrivalStreet').value = data.arrivalAddress.street;
-            document.getElementById('arrivalPostCode').value = data.arrivalAddress.postcode;
-            document.getElementById('arrivalCity').value = data.arrivalAddress.city;
-        } else if (data.arrivalAddress?.city) {
-            document.getElementById('arriveeAdresse').value = data.arrivalAddress.city;
-        } else if (data.arrivalStreet && data.arrivalPostCode && data.arrivalCity) {
-            // Fallback pour l'ancienne structure
+        // Adresses d'arrivée - utiliser la vraie structure API
+        if (data.arrivalStreet && data.arrivalPostCode && data.arrivalCity) {
             document.getElementById('arriveeAdresse').value = `${data.arrivalStreet}, ${data.arrivalPostCode} ${data.arrivalCity}`;
+            // Remplir aussi les champs cachés
             document.getElementById('arrivalStreet').value = data.arrivalStreet;
             document.getElementById('arrivalPostCode').value = data.arrivalPostCode;
             document.getElementById('arrivalCity').value = data.arrivalCity;
         } else if (data.arrivalCity) {
             document.getElementById('arriveeAdresse').value = data.arrivalCity;
+            document.getElementById('arrivalCity').value = data.arrivalCity;
         }
 
         // Date et heure (à partir de startingAt)
@@ -682,7 +679,228 @@ class CovoiturageModal {
         }
     }
 
-    // Afficher les préférences du chauffeur en mode passenger-view
+    // Afficher les étoiles de notation du chauffeur
+    // Afficher les étoiles de notation du chauffeur
+    async finalizePassengerView() {
+        if (!this.covoiturageData) return;
+
+        // Afficher les étoiles de notation du chauffeur
+        const driverRatingContainer = document.getElementById('driverRating');
+        if (driverRatingContainer && this.covoiturageData.driver?.grade !== undefined) {
+            // Import dynamique de setGradeStyle
+            try {
+                const { setGradeStyle } = await import('../script.js');
+                setGradeStyle(this.covoiturageData.driver.grade, driverRatingContainer);
+            } catch (error) {
+                console.warn('Impossible d\'importer setGradeStyle:', error);
+                // Fallback simple
+                driverRatingContainer.innerHTML = `Note: ${this.covoiturageData.driver.grade}/5`;
+            }
+        }
+
+        // Afficher les préférences du chauffeur
+        this.displayDriverPreferencesInView();
+    }
+
+    // Afficher les préférences du chauffeur dans la vue passager
+    displayDriverPreferencesInView() {
+        const preferencesContainer = document.getElementById('driverPreferencesContent');
+        
+        if (!preferencesContainer || !this.covoiturageData?.driver) {
+            return;
+        }
+
+        const driverPrefs = this.covoiturageData.driver.userPreferences || [];
+        
+        if (driverPrefs.length === 0) {
+            this.displayEmptyPreferencesMessage(preferencesContainer);
+            return;
+        }
+
+        this.renderDriverPreferences(preferencesContainer, driverPrefs);
+    }
+
+    // Afficher le message quand aucune préférence n'est définie
+    displayEmptyPreferencesMessage(container) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-info-circle fs-2 mb-3 d-block opacity-50"></i>
+                <p class="mb-0 fs-5">Aucune préférence spécifiée</p>
+                <small>Le chauffeur n'a pas défini de préférences particulières</small>
+            </div>
+        `;
+    }
+
+    // Rendre les préférences du chauffeur
+    renderDriverPreferences(container, driverPrefs) {
+        let preferencesHTML = '<div class="row g-3">';
+        
+        driverPrefs.forEach(preference => {
+            preferencesHTML += this.generatePreferenceCard(preference);
+        });
+        
+        preferencesHTML += '</div>';
+        container.innerHTML = preferencesHTML;
+    }
+
+    // Générer une carte de préférence
+    generatePreferenceCard(preference) {
+        if (this.isSmokingPreference(preference)) {
+            return this.generateSmokingCard(preference);
+        } else if (this.isPetsPreference(preference)) {
+            return this.generatePetsCard(preference);
+        } else {
+            return this.generateCustomCard(preference);
+        }
+    }
+
+    // Vérifier si c'est une préférence fumeur
+    isSmokingPreference(preference) {
+        return preference.libelle === 'smokingAllowed' || preference.key === 'smokingAllowed';
+    }
+
+    // Vérifier si c'est une préférence animaux
+    isPetsPreference(preference) {
+        return preference.libelle === 'petsAllowed' || preference.key === 'petsAllowed';
+    }
+
+    // Générer la carte pour la préférence fumeur
+    generateSmokingCard(preference) {
+        const allowed = preference.description === 'yes' || preference.value === 'true';
+        const iconImage = allowed ? '/images/fumeur-ok.png' : '/images/fumeur-non.png';
+        const text = allowed ? 'Fumeur accepté' : 'Non-fumeur uniquement';
+        const bgColor = allowed ? 'bg-success-subtle border-success' : 'bg-danger-subtle border-danger';
+        const textColor = allowed ? 'text-success-emphasis' : 'text-danger-emphasis';
+        
+        return `
+            <div class="col-md-6">
+                <div class="card h-100 ${bgColor} border">
+                    <div class="card-body d-flex align-items-center p-2">
+                        <div class="me-2">
+                            <img src="${iconImage}" alt="${text}" 
+                                 style="width: 28px; height: 28px; object-fit: contain;">
+                        </div>
+                        <div>
+                            <div class="fw-semibold ${textColor} small">${text}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">Préférence tabac</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Générer la carte pour la préférence animaux
+    generatePetsCard(preference) {
+        const allowed = preference.description === 'yes' || preference.value === 'true';
+        const iconImage = allowed ? '/images/animaux-ok.png' : '/images/animaux-non.png';
+        const text = allowed ? 'Animaux acceptés' : 'Animaux non autorisés';
+        const bgColor = allowed ? 'bg-success-subtle border-success' : 'bg-danger-subtle border-danger';
+        const textColor = allowed ? 'text-success-emphasis' : 'text-danger-emphasis';
+        
+        return `
+            <div class="col-md-6">
+                <div class="card h-100 ${bgColor} border">
+                    <div class="card-body d-flex align-items-center p-2">
+                        <div class="me-2">
+                            <img src="${iconImage}" alt="${text}" 
+                                 style="width: 28px; height: 28px; object-fit: contain;">
+                        </div>
+                        <div>
+                            <div class="fw-semibold ${textColor} small">${text}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">Préférence animaux</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Générer la carte pour les préférences personnalisées
+    generateCustomCard(preference) {
+        const prefTitle = preference.libelle || preference.key;
+        const prefDescription = preference.description || preference.value || '';
+        
+        return `
+            <div class="col-12">
+                <div class="card border-primary border">
+                    <div class="card-body p-2">
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold text-primary small">${prefTitle}</div>
+                                ${prefDescription ? `<div class="text-muted" style="font-size: 0.75rem;">${prefDescription}</div>` : ''}
+                                <small class="text-muted" style="font-size: 0.7rem;">Préférence personnalisée</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Afficher les passagers
+    displayPassengers() {
+        const passengersSection = document.getElementById('passengersSection');
+        const passengersList = document.getElementById('passengersList');
+
+        if (!passengersSection || !passengersList) return;
+
+        // Afficher la section seulement en mode edit et view (PAS en passenger-view)
+        if (this.currentMode === 'edit' || this.currentMode === 'view') {
+            passengersSection.style.display = 'block';
+
+            // Vérifier s'il y a des passagers
+            const passagers = this.covoiturageData?.passenger; // Propriété officielle API
+                             
+            if (passagers && Array.isArray(passagers) && passagers.length > 0) {
+                // Afficher la liste des passagers
+                const passengersHTML = passagers.map(passenger => `
+                    <div class="d-flex align-items-center mb-2 p-2 bg-white rounded border">
+                        <div class="me-3">
+                            <img src="${passenger.photo || '/images/default-avatar.png'}" 
+                                 alt="Photo de ${passenger.pseudo}" 
+                                 class="rounded-circle" 
+                                 style="width: 40px; height: 40px; object-fit: cover;">
+                        </div>
+                        <div>
+                            <strong class="text-primary">${passenger.pseudo}</strong>
+                            <div class="text-muted small">Passager inscrit</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                passengersList.innerHTML = `
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            ${passagers.length} passager(s) inscrit(s)
+                        </small>
+                    </div>
+                    ${passengersHTML}
+                `;
+            } else {
+                // Aucun passager inscrit
+                passengersList.innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-user-slash fs-3 mb-2 d-block"></i>
+                        <p class="mb-0">Aucun passager inscrit pour le moment</p>
+                        <small>Les places sont encore disponibles !</small>
+                    </div>
+                `;
+            }
+        } else {
+            // Masquer la section en mode création
+            passengersSection.style.display = 'none';
+        }
+    }
+
+    // Afficher les préférences du chauffeur
     displayDriverPreferences(predefinedContainer, customContainer) {
         if (!this.covoiturageData?.driver) return;
 
@@ -774,32 +992,253 @@ class CovoiturageModal {
         }
     }
 
-    // Configuration des boutons pour la vue passager
-    configurePassengerViewButtons() {
-        const editModeButtons = document.getElementById('editModeButtons');
-        const deleteBtn = document.getElementById('deleteCovoiturageBtn');
-        const cancelBtn = document.getElementById('cancelCovoiturageBtn');
-        
-        // Masquer les boutons d'édition
-        editModeButtons.style.display = 'none';
-        deleteBtn.style.display = 'none';
-        cancelBtn.style.display = 'none';
+    // Créer une vue conviviale pour le mode passenger-view
+    createPassengerView() {
+        const modalBody = document.querySelector('#covoiturageModal .modal-body');
+        if (!modalBody || !this.covoiturageData) {
+            return;
+        }
 
-        // Créer et afficher le bouton "Je m'inscris" s'il n'existe pas
-        let joinBtn = document.getElementById('joinCovoiturageBtn');
-        if (!joinBtn) {
-            joinBtn = document.createElement('button');
-            joinBtn.id = 'joinCovoiturageBtn';
-            joinBtn.className = 'btn btn-success me-2';
-            joinBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Je m\'inscris';
-            joinBtn.addEventListener('click', () => this.handleJoin());
-            
-            // Insérer avant le bouton fermer
-            const closeBtn = document.getElementById('closeBtn');
-            closeBtn.parentNode.insertBefore(joinBtn, closeBtn);
+        // Masquer le formulaire existant
+        const form = document.getElementById('covoiturageForm');
+        if (form) {
+            form.style.display = 'none';
+        }
+
+        // Créer le contenu convivial
+        const passengerViewHTML = this.generatePassengerViewHTML();
+        
+        // Insérer le contenu convivial
+        const existingPassengerView = document.getElementById('passengerViewContent');
+        if (existingPassengerView) {
+            existingPassengerView.remove();
         }
         
-        joinBtn.style.display = 'inline-block';
+        modalBody.insertAdjacentHTML('beforeend', passengerViewHTML);
+        
+        // Ajouter les boutons d'action spécifiques au mode passager
+        this.configurePassengerViewButtons();
+    }
+
+    // Générer le HTML pour la vue passager
+    generatePassengerViewHTML() {
+        const data = this.covoiturageData;
+        
+        const startDate = new Date(data.startingAt);
+        const arrivalDate = new Date(data.arrivalAt);
+        
+        // Formatage des dates et heures
+        const formatDate = (date) => date.toLocaleDateString('fr-FR', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+        });
+        const formatTime = (date) => date.toLocaleTimeString('fr-FR', { 
+            hour: '2-digit', minute: '2-digit' 
+        });
+
+        // Informations du chauffeur
+        const driver = data.driver || {};
+        const driverName = driver.pseudo || 'Chauffeur';
+        const driverPhoto = driver.photo ? `${url}uploads/photos/${driver.photo}` : '/images/default-avatar.png';
+
+        // Formatage des adresses selon la vraie structure de l'API
+        const startAddress = this.formatRealAddress(data.startingStreet, data.startingPostCode, data.startingCity);
+        const arrivalAddress = this.formatRealAddress(data.arrivalStreet, data.arrivalPostCode, data.arrivalCity);
+
+        // Véhicule
+        const vehicle = data.vehicle || {};
+        const vehicleInfo = vehicle.brand && vehicle.model ? 
+            `${vehicle.brand} ${vehicle.model}` : 'Véhicule non spécifié';
+
+        // Places restantes - calcul basé sur la vraie structure
+        const totalPlaces = data.nbPlacesAvailable || 0;
+        const passengersCount = (data.passenger && Array.isArray(data.passenger)) ? data.passenger.length : 0;
+        const remainingSeats = totalPlaces - passengersCount;
+
+        return `
+        <div id="passengerViewContent" class="passenger-view-content">
+            <!-- Informations du trajet -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-route me-2"></i>Détails du trajet</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Départ -->
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <i class="fas fa-map-marker-alt text-success fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-success mb-1">Départ</h6>
+                                    <p class="mb-1">${startAddress}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>${formatDate(startDate)}
+                                        <br>
+                                        <i class="fas fa-clock me-1"></i>${formatTime(startDate)}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Arrivée -->
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <i class="fas fa-map-marker-alt text-danger fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-danger mb-1">Arrivée</h6>
+                                    <p class="mb-1">${arrivalAddress}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>${formatDate(arrivalDate)}
+                                        <br>
+                                        <i class="fas fa-clock me-1"></i>${formatTime(arrivalDate)}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations du chauffeur -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-tie me-2"></i>Votre chauffeur</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <img src="${driverPhoto}" alt="Photo de ${driverName}" 
+                                 class="rounded-circle border" 
+                                 style="width: 80px; height: 80px; object-fit: cover;">
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-2">${driverName}</h5>
+                            <div class="mb-2" id="driverRating">
+                                <!-- Les étoiles seront ajoutées ici -->
+                            </div>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="border rounded p-2">
+                                        <i class="fas fa-car text-primary fs-4"></i>
+                                        <div class="small mt-1">${vehicleInfo}</div>
+                                        <div class="small text-muted">Couleur: ${vehicle.color || 'Non spécifiée'}</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="border rounded p-2">
+                                        <i class="fas fa-users text-success fs-4"></i>
+                                        <div class="small mt-1">${remainingSeats} place(s)</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="border rounded p-2">
+                                        <i class="fas fa-euro-sign text-warning fs-4"></i>
+                                        <div class="small mt-1">${data.price || 0} crédits</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Préférences du chauffeur -->
+            <div class="card mb-4" id="driverPreferencesCard">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Préférences du chauffeur</h5>
+                </div>
+                <div class="card-body" id="driverPreferencesContent">
+                    <!-- Les préférences seront ajoutées ici -->
+                </div>
+            </div>
+        </div>
+        `;
+    }
+
+    // Formater une adresse selon la vraie structure de l'API
+    formatRealAddress(street, postcode, city) {
+        const parts = [];
+        
+        if (street) {
+            parts.push(street);
+        }
+        
+        if (postcode && city) {
+            parts.push(`${postcode} ${city}`);
+        } else if (city) {
+            parts.push(city);
+        } else if (postcode) {
+            parts.push(postcode);
+        }
+        
+        return parts.length > 0 ? parts.join(', ') : 'Adresse non spécifiée';
+    }
+
+    // Formater une adresse (ancienne méthode conservée pour compatibilité)
+    formatAddress(address) {
+        if (!address) {
+            return 'Adresse non spécifiée';
+        }
+        
+        // Si l'adresse est une chaîne simple
+        if (typeof address === 'string') {
+            return address;
+        }
+        
+        // Si l'adresse est un objet
+        if (typeof address === 'object') {
+            const parts = [];
+            
+            if (address.street) {
+                parts.push(address.street);
+            }
+            
+            if (address.postcode && address.city) {
+                parts.push(`${address.postcode} ${address.city}`);
+            } else if (address.city) {
+                parts.push(address.city);
+            } else if (address.postcode) {
+                parts.push(address.postcode);
+            }
+            
+            if (parts.length > 0) {
+                return parts.join(', ');
+            }
+        }
+        
+        return 'Adresse non spécifiée';
+    }
+
+    // Configurer les boutons pour la vue passager
+    configurePassengerViewButtons() {
+        // Cacher tous les boutons d'édition
+        const editModeButtons = document.getElementById('editModeButtons');
+        if (editModeButtons) {
+            editModeButtons.style.display = 'none';
+        }
+
+        // Ajouter un bouton "Rejoindre" dans le footer
+        const footer = document.getElementById('covoiturageModalFooter');
+        const closeBtn = document.getElementById('closeBtn');
+        
+        // Supprimer l'ancien bouton rejoindre s'il existe
+        const existingJoinBtn = document.getElementById('joinCovoiturageBtn');
+        if (existingJoinBtn) {
+            existingJoinBtn.remove();
+        }
+
+        // Créer le nouveau bouton rejoindre
+        const joinBtn = document.createElement('button');
+        joinBtn.id = 'joinCovoiturageBtn';
+        joinBtn.className = 'btn btn-success me-2';
+        joinBtn.innerHTML = '<i class="fas fa-plus me-2"></i>Rejoindre ce covoiturage';
+        joinBtn.addEventListener('click', () => this.handleJoin());
+
+        // Insérer le bouton avant le bouton fermer
+        footer.insertBefore(joinBtn, closeBtn);
     }
 
     // Réinitialiser la modale
@@ -808,6 +1247,13 @@ class CovoiturageModal {
         const form = document.getElementById('covoiturageForm');
         if (form) {
             form.reset();
+            form.style.display = 'block'; // Réafficher le formulaire
+        }
+        
+        // Supprimer le contenu de la vue passager s'il existe
+        const passengerViewContent = document.getElementById('passengerViewContent');
+        if (passengerViewContent) {
+            passengerViewContent.remove();
         }
         
         // Vider les champs cachés
@@ -823,6 +1269,12 @@ class CovoiturageModal {
         const encouragementMessage = document.getElementById('encouragementMessage');
         if (encouragementMessage) {
             encouragementMessage.style.display = 'none';
+        }
+        
+        // Supprimer le bouton rejoindre s'il existe
+        const joinBtn = document.getElementById('joinCovoiturageBtn');
+        if (joinBtn) {
+            joinBtn.remove();
         }
     }
 
@@ -1101,62 +1553,6 @@ class CovoiturageModal {
                 dateArrivee.value = dateDepart.value;
             }
         });
-    }
-
-    // Afficher la liste des passagers
-    displayPassengers() {
-        const passengersSection = document.getElementById('passengersSection');
-        const passengersList = document.getElementById('passengersList');
-
-        if (!passengersSection || !passengersList) return;
-
-        // Afficher la section seulement en mode edit et view (PAS en passenger-view)
-        if (this.currentMode === 'edit' || this.currentMode === 'view') {
-            passengersSection.style.display = 'block';
-
-            // Vérifier s'il y a des passagers
-            const passagers = this.covoiturageData?.passenger; // Propriété officielle API
-                             
-            if (passagers && Array.isArray(passagers) && passagers.length > 0) {
-                // Afficher la liste des passagers
-                const passengersHTML = passagers.map(passenger => `
-                    <div class="d-flex align-items-center mb-2 p-2 bg-white rounded border">
-                        <div class="me-3">
-                            <img src="${passenger.photo || '/images/default-avatar.png'}" 
-                                 alt="Photo de ${passenger.pseudo}" 
-                                 class="rounded-circle" 
-                                 style="width: 40px; height: 40px; object-fit: cover;">
-                        </div>
-                        <div>
-                            <strong class="text-primary">${passenger.pseudo}</strong>
-                            <div class="text-muted small">Passager inscrit</div>
-                        </div>
-                    </div>
-                `).join('');
-
-                passengersList.innerHTML = `
-                    <div class="mb-2">
-                        <small class="text-muted">
-                            <i class="fas fa-info-circle me-1"></i>
-                            ${passagers.length} passager(s) inscrit(s)
-                        </small>
-                    </div>
-                    ${passengersHTML}
-                `;
-            } else {
-                // Aucun passager inscrit
-                passengersList.innerHTML = `
-                    <div class="text-center text-muted">
-                        <i class="fas fa-user-slash fs-3 mb-2 d-block"></i>
-                        <p class="mb-0">Aucun passager inscrit pour le moment</p>
-                        <small>Les places sont encore disponibles !</small>
-                    </div>
-                `;
-            }
-        } else {
-            // Masquer la section en mode création
-            passengersSection.style.display = 'none';
-        }
     }
 
     // Gérer l'inscription à un covoiturage
