@@ -126,12 +126,10 @@ async function deleteAccount() {
                     // Rediriger vers la page d'accueil ou afficher un message de succès
                     window.location.href = "/";
                 } else {
-                    console.log("Impossible de supprimer le compte");
+                    console.error("Impossible de supprimer le compte");
                 }
             })
             .catch(error => console.error("Erreur lors de la suppression du compte", error));
-    } else {
-        console.log("Suppression annulée par l'utilisateur.");
     }
 }
 

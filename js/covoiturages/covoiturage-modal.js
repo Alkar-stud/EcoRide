@@ -5,7 +5,7 @@ import { getToken, sendFetchRequest, showMessage, getUserInfo } from '../script.
 class CovoiturageModal {
     constructor() {
         this.modal = null;
-        this.currentMode = null; // 'create', 'edit', 'view'
+        this.currentMode = null; // 'create', 'edit', 'view', 'passenger-view'
         this.covoiturageId = null;
         this.covoiturageData = null;
         this.selectedVehicle = null;
@@ -77,7 +77,7 @@ class CovoiturageModal {
             this.resetModal();
         });
 
-        console.log('Événements attachés à la modale unifiée');
+        // Événements attachés avec succès
     }
 
     // Configuration de l'autocomplétion d'adresses
@@ -197,11 +197,7 @@ class CovoiturageModal {
             document.getElementById('arrivalCity').value = properties.city || '';
         }
         
-        console.log(`Adresse ${prefix} stockée:`, {
-            street: properties.name,
-            postcode: properties.postcode,
-            city: properties.city
-        });
+        // Adresse stockée avec succès
     }
 
     // Nettoyer les champs cachés
@@ -257,7 +253,6 @@ class CovoiturageModal {
                 editModeButtons.style.display = 'block';
                 updateBtn.style.display = 'inline-block';
                 closeBtn.innerHTML = '<i class="fas fa-times me-2"></i>Fermer';
-                this.setFieldsEnabled(true);
                 break;
 
             case 'view':
@@ -270,38 +265,77 @@ class CovoiturageModal {
                 closeBtn.innerHTML = '<i class="fas fa-times me-2"></i>Fermer';
                 this.setFieldsEnabled(false);
                 break;
+
+            case 'passenger-view':
+                header.className = 'modal-header bg-success text-white';
+                modalIcon.className = 'fas fa-users me-2';
+                modalTitle.textContent = 'Rejoindre ce covoiturage';
+                preferencesSection.style.display = 'block'; // Afficher les préférences du chauffeur
+                addPreferenceSection.style.display = 'none'; // Ne pas permettre d'ajouter des préférences
+                editModeButtons.style.display = 'none';
+                closeBtn.innerHTML = '<i class="fas fa-times me-2"></i>Fermer';
+                this.setFieldsEnabled(false); // Tous les champs en lecture seule
+                break;
         }
     }
 
-    // Activer/désactiver les champs du formulaire
+    // Activer/désactiver les champs du formulaire selon le mode et les données envoyées à l'API
     setFieldsEnabled(enabled) {
+        
         const form = document.getElementById('covoiturageForm');
         if (!form) return;
 
-        const inputs = form.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            input.disabled = !enabled;
-        });
+        if (!enabled) {
+            // Mode lecture seule : désactiver tous les champs
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+            
+            const addPreferenceBtn = document.getElementById('addPreferenceBtn');
+            if (addPreferenceBtn) {
+                addPreferenceBtn.disabled = true;
+            }
+            return;
+        }
 
-        // En mode modification avec passagers, désactiver les champs d'adresse et de date/heure
-        if (this.currentMode === 'edit' && enabled) {
+        // Mode actif : activer selon le contexte
+        if (this.currentMode === 'create') {
+            // En création : tous les champs sont modifiables (tous envoyés à l'API)
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.disabled = false;
+            });
+        } else if (this.currentMode === 'edit') {
+            // En modification : désactiver selon ce qui n'est PAS envoyé à l'API
             const hasPassengers = this.hasPassengers();
 
-            // Toujours désactiver les champs d'adresse en modification
-            const addressFields = ['departAdresse', 'arriveeAdresse', 'startingStreet', 'startingPostCode', 'startingCity', 'arrivalStreet', 'arrivalPostCode', 'arrivalCity'];
-            addressFields.forEach(fieldId => {
+            // Champs TOUJOURS modifiables en modification (toujours envoyés à l'API)
+            const alwaysEnabledFields = ['nbPlacesAvailable', 'vehicle'];
+            alwaysEnabledFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.disabled = false;
+            });
+
+            // Champs JAMAIS modifiables en modification (jamais envoyés à l'API)
+            const neverEnabledFields = ['departAdresse', 'arriveeAdresse', 'startingStreet', 'startingPostCode', 'startingCity', 'arrivalStreet', 'arrivalPostCode', 'arrivalCity'];
+            neverEnabledFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
                 if (field) field.disabled = true;
             });
 
-            // Si il y a des passagers, désactiver aussi les champs de date/heure ET le prix
-            if (hasPassengers) {
-                const restrictedFields = ['dateDepart', 'heureDepart', 'dateArrivee', 'heureArrivee', 'price'];
-                restrictedFields.forEach(fieldId => {
-                    const field = document.getElementById(fieldId);
-                    if (field) field.disabled = true;
-                });
+            // Prix : modifiable SEULEMENT sans passagers (pas envoyé à l'API avec passagers)
+            const priceField = document.getElementById('price');
+            if (priceField) {
+                priceField.disabled = hasPassengers;
             }
+
+            // Dates/heures : modifiables SEULEMENT sans passagers (envoyées mais non modifiables avec passagers)
+            const dateTimeFields = ['dateDepart', 'heureDepart', 'dateArrivee', 'heureArrivee'];
+            dateTimeFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.disabled = hasPassengers;
+            });
         }
 
         // Gérer spécifiquement le bouton d'ajout de préférence
@@ -399,9 +433,9 @@ class CovoiturageModal {
         }
     }
 
-    // Afficher les préférences (seulement en mode création)
+    // Afficher les préférences (en mode création ou passenger-view)
     displayPreferences() {
-        if (this.currentMode !== 'create') return;
+        if (this.currentMode !== 'create' && this.currentMode !== 'passenger-view') return;
         
         const predefinedContainer = document.getElementById('predefinedPreferences');
         const customContainer = document.getElementById('customPreferences');
@@ -413,7 +447,14 @@ class CovoiturageModal {
         
         predefinedContainer.innerHTML = '';
         customContainer.innerHTML = '';
+
+        // En mode passenger-view, afficher les préférences du chauffeur depuis les données du covoiturage
+        if (this.currentMode === 'passenger-view') {
+            this.displayDriverPreferences(predefinedContainer, customContainer);
+            return;
+        }
         
+        // Mode création : afficher les préférences de l'utilisateur
         if (!this.userPreferences || this.userPreferences.length === 0) {
             return;
         }
@@ -527,8 +568,8 @@ class CovoiturageModal {
                 document.getElementById('encouragementMessage').style.display = 
                     options.showEncouragement ? 'block' : 'none';
                 
-            } else if (mode === 'edit' || mode === 'view') {
-                // Mode modification ou lecture seule
+            } else if (mode === 'edit' || mode === 'view' || mode === 'passenger-view') {
+                // Mode modification, lecture seule ou vue passager
                 if (!data?.id) {
                     throw new Error('Données du covoiturage manquantes');
                 }
@@ -543,6 +584,11 @@ class CovoiturageModal {
                 if (mode === 'edit') {
                     // Configurer les boutons d'action pour la modification
                     this.configureEditButtons();
+                    // Activer les champs selon les règles métier (après chargement des données)
+                    this.setFieldsEnabled(true);
+                } else if (mode === 'passenger-view') {
+                    // Configurer les boutons pour la vue passager
+                    this.configurePassengerViewButtons();
                 }
             }
 
@@ -557,7 +603,6 @@ class CovoiturageModal {
 
     // Pré-remplir le formulaire avec les données existantes
     populateForm(data) {
-        console.log('Données reçues pour populateForm:', data);
         
         // Adresses de départ - nouvelle structure avec startingAddress
         if (data.startingAddress && data.startingAddress.street && data.startingAddress.postcode && data.startingAddress.city) {
@@ -627,6 +672,83 @@ class CovoiturageModal {
                 }
             }, 100); // Petit délai pour laisser le temps au handleVehicleChange de s'exécuter
         }
+
+        // Afficher la liste des passagers (pour les modes edit et view)
+        this.displayPassengers();
+        
+        // Afficher les préférences pour le mode passenger-view
+        if (this.currentMode === 'passenger-view') {
+            this.displayPreferences();
+        }
+    }
+
+    // Afficher les préférences du chauffeur en mode passenger-view
+    displayDriverPreferences(predefinedContainer, customContainer) {
+        if (!this.covoiturageData?.driver) return;
+
+        const driverPrefs = this.covoiturageData.driver.userPreferences || [];
+        
+        // Titre de section
+        predefinedContainer.innerHTML = `
+            <div class="col-12 mb-3">
+                <h6 class="text-muted mb-3">
+                    <i class="fas fa-user-cog me-2"></i>Préférences du chauffeur
+                </h6>
+            </div>
+        `;
+        
+        // Afficher les préférences prédéfinies avec icônes
+        driverPrefs.forEach(preference => {
+            if (preference.libelle === 'smokingAllowed' || preference.key === 'smokingAllowed') {
+                const isAllowed = (preference.description === 'yes' || preference.value === 'true');
+                const iconImage = isAllowed ? '/images/fumeur-ok.png' : '/images/fumeur-non.png';
+                const text = isAllowed ? 'Fumeur autorisé' : 'Non-fumeur';
+                
+                predefinedContainer.innerHTML += `
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2 p-2 bg-light rounded">
+                            <img src="${iconImage}" alt="${text}" style="width: 24px; height: 24px;" class="me-2">
+                            <span>${text}</span>
+                        </div>
+                    </div>
+                `;
+            } else if (preference.libelle === 'petsAllowed' || preference.key === 'petsAllowed') {
+                const isAllowed = (preference.description === 'yes' || preference.value === 'true');
+                const iconImage = isAllowed ? '/images/animaux-ok.png' : '/images/animaux-non.png';
+                const text = isAllowed ? 'Animaux acceptés' : 'Pas d\'animaux';
+                
+                predefinedContainer.innerHTML += `
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2 p-2 bg-light rounded">
+                            <img src="${iconImage}" alt="${text}" style="width: 24px; height: 24px;" class="me-2">
+                            <span>${text}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Préférences personnalisées
+                customContainer.innerHTML += `
+                    <div class="mb-2">
+                        <div class="p-2 bg-light rounded border-start border-3 border-primary">
+                            <div class="fw-bold text-primary">${preference.libelle}</div>
+                            <div class="text-muted small">${preference.description || ''}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        // Message si aucune préférence
+        if (driverPrefs.length === 0) {
+            predefinedContainer.innerHTML += `
+                <div class="col-12">
+                    <div class="text-muted text-center p-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Aucune préférence spécifiée par le chauffeur
+                    </div>
+                </div>
+            `;
+        }
     }
 
     // Configurer les boutons d'action pour le mode modification
@@ -638,27 +760,46 @@ class CovoiturageModal {
         deleteBtn.style.display = 'none';
         cancelBtn.style.display = 'none';
 
-        console.log('Configuration des boutons pour:', this.covoiturageData);
-        console.log('Status:', this.covoiturageData?.status);
-
         // Afficher les boutons selon la logique
         if (this.covoiturageData?.status === 'COMING') {
             const hasPassengers = this.hasPassengers();
 
-            console.log(`Présence de passagers: ${hasPassengers}`);
-
             if (!hasPassengers) {
                 // Aucun passager → Bouton Supprimer
-                console.log('Aucun passager détecté → Affichage bouton Supprimer');
                 deleteBtn.style.display = 'inline-block';
             } else {
                 // Il y a des passagers → Bouton Annuler
-                console.log('Passagers détectés → Affichage bouton Annuler');
                 cancelBtn.style.display = 'inline-block';
             }
-        } else {
-            console.log('Status différent de COMING, aucun bouton affiché');
         }
+    }
+
+    // Configuration des boutons pour la vue passager
+    configurePassengerViewButtons() {
+        const editModeButtons = document.getElementById('editModeButtons');
+        const deleteBtn = document.getElementById('deleteCovoiturageBtn');
+        const cancelBtn = document.getElementById('cancelCovoiturageBtn');
+        
+        // Masquer les boutons d'édition
+        editModeButtons.style.display = 'none';
+        deleteBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+
+        // Créer et afficher le bouton "Je m'inscris" s'il n'existe pas
+        let joinBtn = document.getElementById('joinCovoiturageBtn');
+        if (!joinBtn) {
+            joinBtn = document.createElement('button');
+            joinBtn.id = 'joinCovoiturageBtn';
+            joinBtn.className = 'btn btn-success me-2';
+            joinBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Je m\'inscris';
+            joinBtn.addEventListener('click', () => this.handleJoin());
+            
+            // Insérer avant le bouton fermer
+            const closeBtn = document.getElementById('closeBtn');
+            closeBtn.parentNode.insertBefore(joinBtn, closeBtn);
+        }
+        
+        joinBtn.style.display = 'inline-block';
     }
 
     // Réinitialiser la modale
@@ -743,23 +884,22 @@ class CovoiturageModal {
     }
 
     // Méthode utilitaire pour vérifier s'il y a des passagers
-    // TODO: Cette méthode doit être corrigée une fois que l'API fournira hasPassengers ou nbPassengers
-    // Le calcul actuel (placesRestantes < placesMaxVehicule) est incorrect car :
-    // - Les places peuvent être réduites pour famille/amis non payants
-    // - Les bagages encombrants peuvent occuper des places
-    // - Le conducteur peut volontairement réduire les places offertes
     hasPassengers() {
         if (this.currentMode !== 'edit' || !this.covoiturageData) {
-            console.log('hasPassengers: false (pas en mode edit ou pas de données)');
             return false;
         }
         
+        // Utiliser la propriété officielle de l'API selon la documentation
+        const passagers = this.covoiturageData.passenger; // Propriété officielle
+                         
+        if (passagers && Array.isArray(passagers)) {
+            return passagers.length > 0;
+        }
+        
+        // Fallback sur l'ancien calcul (à supprimer une fois l'API stabilisée)
         const placesRestantes = this.covoiturageData.nbPlacesAvailable || 0;
         const placesMaxVehicule = this.covoiturageData.vehicle?.maxNbPlacesAvailable || 0;
-        const hasPassengers = placesRestantes < placesMaxVehicule;
-        
-        console.log(`hasPassengers: places restantes=${placesRestantes}, places max=${placesMaxVehicule}, résultat=${hasPassengers} (CALCUL INCORRECT - À CORRIGER AVEC API)`);
-        return hasPassengers;
+        return placesRestantes < placesMaxVehicule;
     }
 
     // Valider le formulaire
@@ -820,19 +960,15 @@ class CovoiturageModal {
             const formData = this.collectFormData();
             
             if (this.currentMode === 'create') {
-                console.log('Données envoyées pour création:', formData);
                 await sendFetchRequest(`${apiUrl}ride/add`, getToken(), 'POST', JSON.stringify(formData));
                 showMessage('Covoiturage créé avec succès !', 'success');
             } else {
-                console.log('Données envoyées pour modification:', formData);
-                
                 try {
                     await sendFetchRequest(`${apiUrl}ride/update/${this.covoiturageId}`, getToken(), 'PUT', JSON.stringify(formData));
                     showMessage('Covoiturage modifié avec succès !', 'success');
                 } catch (error) {
                     // Gestion spéciale pour les erreurs JSON (réponse vide)
                     if (error?.message?.includes('Unexpected end of JSON input')) {
-                        console.log('Réponse vide de l\'API (probablement succès)');
                         showMessage('Covoiturage modifié avec succès !', 'success');
                     } else {
                         throw error; // Re-lancer l'erreur si ce n'est pas un problème de JSON
@@ -965,6 +1101,68 @@ class CovoiturageModal {
                 dateArrivee.value = dateDepart.value;
             }
         });
+    }
+
+    // Afficher la liste des passagers
+    displayPassengers() {
+        const passengersSection = document.getElementById('passengersSection');
+        const passengersList = document.getElementById('passengersList');
+
+        if (!passengersSection || !passengersList) return;
+
+        // Afficher la section seulement en mode edit et view (PAS en passenger-view)
+        if (this.currentMode === 'edit' || this.currentMode === 'view') {
+            passengersSection.style.display = 'block';
+
+            // Vérifier s'il y a des passagers
+            const passagers = this.covoiturageData?.passenger; // Propriété officielle API
+                             
+            if (passagers && Array.isArray(passagers) && passagers.length > 0) {
+                // Afficher la liste des passagers
+                const passengersHTML = passagers.map(passenger => `
+                    <div class="d-flex align-items-center mb-2 p-2 bg-white rounded border">
+                        <div class="me-3">
+                            <img src="${passenger.photo || '/images/default-avatar.png'}" 
+                                 alt="Photo de ${passenger.pseudo}" 
+                                 class="rounded-circle" 
+                                 style="width: 40px; height: 40px; object-fit: cover;">
+                        </div>
+                        <div>
+                            <strong class="text-primary">${passenger.pseudo}</strong>
+                            <div class="text-muted small">Passager inscrit</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                passengersList.innerHTML = `
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            ${passagers.length} passager(s) inscrit(s)
+                        </small>
+                    </div>
+                    ${passengersHTML}
+                `;
+            } else {
+                // Aucun passager inscrit
+                passengersList.innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-user-slash fs-3 mb-2 d-block"></i>
+                        <p class="mb-0">Aucun passager inscrit pour le moment</p>
+                        <small>Les places sont encore disponibles !</small>
+                    </div>
+                `;
+            }
+        } else {
+            // Masquer la section en mode création
+            passengersSection.style.display = 'none';
+        }
+    }
+
+    // Gérer l'inscription à un covoiturage
+    async handleJoin() {
+        // Fonctionnalité d'inscription en cours de développement
+        showMessage('Fonctionnalité d\'inscription en cours de développement', 'info');
     }
 }
 

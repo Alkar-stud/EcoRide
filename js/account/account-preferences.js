@@ -108,7 +108,7 @@ async function addPreferences() {
             prefsDescriptionInput.value = '';
             return response;
         } else {
-            console.log("Erreur lors de l'ajout de la préférence: ", response);
+            console.error("Erreur lors de l'ajout de la préférence: ", response);
         }
     } catch (error) {
         console.error("Erreur lors de l'ajout de la préférence", error);
@@ -156,7 +156,7 @@ async function savePreference(preferenceId, libelle, description, confirmationMe
             prefsDescriptionInput.value = '';
             return response;
         } else {
-            console.log("Erreur lors de la sauvegarde de la préférence: ", response);
+            console.error("Erreur lors de la sauvegarde de la préférence: ", response);
         }
     } catch (error) {
         console.error("Erreur lors de la sauvegarde de la préférence", error);
@@ -185,12 +185,10 @@ async function deletePreference(preferenceId) {
                 showMessage("preferenceDeleteMessage"); // Afficher un message de succès
                 return response;
             } else {
-                console.log("Erreur lors de la suppression de la préférence: ", response);
+                console.error("Erreur lors de la suppression de la préférence: ", response);
             }
         } catch (error) {
             console.error("Erreur lors de la suppression de la préférence", error);
         }
-    } else {
-        console.log("Suppression annulée par l'utilisateur.");
     }
 }

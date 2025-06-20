@@ -81,12 +81,25 @@ function isDatePassed(dateTimeString) {
 
 // Fonction pour calculer le nombre de places restantes
 function calculateRemainingPlaces(covoiturage) {
-    // Calcul: places disponibles - places réservées
+    // Calcul: places disponibles - nombre de passagers inscrits
     const totalAvailable = covoiturage.nbPlacesAvailable || 0;
-    const booked = covoiturage.bookedPlaces || 0;
-    const remaining = totalAvailable - booked;
+    const passengerCount = getPassengerCount(covoiturage);
+    const remaining = totalAvailable - passengerCount;
     
     return Math.max(0, remaining); // S'assurer que ce n'est jamais négatif
+}
+
+// Fonction helper pour compter les passagers de manière cohérente
+function getPassengerCount(covoiturage) {
+    // Compter les passagers en utilisant la propriété officielle de l'API
+    const passagers = covoiturage.passenger; // Propriété officielle selon la doc API
+    
+    if (passagers && Array.isArray(passagers)) {
+        return passagers.length;
+    }
+    
+    // Fallback sur bookedPlaces si disponible
+    return covoiturage.bookedPlaces || 0;
 }
 
 // Fonction pour afficher un indicateur de chargement
@@ -103,7 +116,7 @@ function showLoadingIndicator(container, type) {
 }
 
 // Fonction pour afficher un message d'encouragement quand il n'y a pas de covoiturages
-function showEmptyStateMessage(container, type) {
+function showEmptyStateMessage(container, type, state) {
     // Créer le message vide dans un div séparé pour ne pas écraser les boutons de filtrage
     const emptyStateDiv = document.createElement('div');
     
@@ -117,24 +130,28 @@ function showEmptyStateMessage(container, type) {
                 <p class="text-muted mb-4">
                     Essayez un autre filtre ou proposez un nouveau covoiturage !
                 </p>
+                ${state === 'coming' ? `
                 <button class="btn btn-primary btn-lg" id="creerPremierCovoiturage">
                     <i class="fas fa-plus me-2"></i>Proposer un covoiturage
                 </button>
+                ` : ''}
             </div>
         `;
         
         container.appendChild(emptyStateDiv);
         
-        // Ajouter l'événement pour ouvrir la modale
-        document.getElementById('creerPremierCovoiturage').addEventListener('click', () => {
-            covoiturageModal.show('create', null, {
-                showEncouragement: true,
-                onSuccess: () => {
-                    // Recharger les covoiturages chauffeur après création
-                    displayCovoiturages('driver', 1);
-                }
+        // Ajouter l'événement pour ouvrir la modale seulement si le bouton existe (filtre 'coming')
+        if (state === 'coming') {
+            document.getElementById('creerPremierCovoiturage').addEventListener('click', () => {
+                covoiturageModal.show('create', null, {
+                    showEncouragement: true,
+                    onSuccess: () => {
+                        // Recharger les covoiturages chauffeur après création
+                        displayCovoiturages('driver', 1);
+                    }
+                });
             });
-        });
+        }
     } else {
         emptyStateDiv.innerHTML = `
             <div class="text-center py-5">
@@ -175,9 +192,17 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null) {
     window.currentPageDriver = currentPageDriver;
     window.currentPagePassenger = currentPagePassenger;
     
+    // Mettre à jour la visibilité du bouton "Proposer un covoiturage"
+    updateCreateButtonVisibility();
+    
     // Sélectionner le bon conteneur selon le type
     const containerClass = type === 'driver' ? '.allcovoiturages-driver' : '.allcovoiturages-passenger';
     const container = document.querySelector(containerClass);
+    
+    if (!container) {
+        console.error(`Conteneur ${containerClass} non trouvé`);
+        return;
+    }
     
     // Afficher l'indicateur de chargement
     showLoadingIndicator(container, type);
@@ -197,7 +222,6 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null) {
         if (!result) {
             throw new Error("Aucun résultat retourné par l'API");
         }
-        
         const covoiturages = result.rides || [];
 
         // Vider le conteneur
@@ -209,7 +233,7 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null) {
         }
         
         if (covoiturages.length === 0) {
-            showEmptyStateMessage(container, type);
+            showEmptyStateMessage(container, type, actualStatus);
             return;
         }
         
@@ -248,7 +272,7 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null) {
                     </div>
                     <div>
                         <i class="fas fa-user me-1"></i> 
-                        Places réservées: ${covoiturage.bookedPlaces || 1}
+                        Places réservées: ${getPassengerCount(covoiturage)}
                     </div>`;
             } else {
                 // Pour un chauffeur, indiquer son rôle
@@ -265,7 +289,7 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null) {
                     </div>
                     <div>
                         <i class="fas fa-user me-1"></i> 
-                        ${calculateRemainingPlaces(covoiturage)} places restantes sur ${covoiturage.vehicle.maxNbPlacesAvailable}
+                        ${calculateRemainingPlaces(covoiturage)} places restantes sur ${covoiturage.nbPlacesAvailable}
                     </div>`;
             }
             
@@ -506,12 +530,17 @@ function initializeTabs() {
     
     if (driverTab) {
         driverTab.addEventListener('click', function() {
+            currentTab = 'driver';
+            currentStatusDriver = 'coming'; // Reset au filtre par défaut
+            updateCreateButtonVisibility();
             displayCovoiturages('driver', currentPageDriver);
         });
     }
     
     if (passengerTab) {
         passengerTab.addEventListener('click', function() {
+            currentTab = 'passenger';
+            updateCreateButtonVisibility();
             displayCovoiturages('passenger', currentPagePassenger);
         });
     }
@@ -589,6 +618,15 @@ function canModifyCovoiturage(covoiturage) {
     return covoiturage.status === 'COMING';
 }
 
+// Fonction pour gérer la visibilité du bouton "Proposer un covoiturage"
+function updateCreateButtonVisibility() {
+    const createBtn = document.getElementById('proposerCovoiturageBtn');
+    if (!createBtn) return;
+    
+    // Le bouton est toujours visible
+    createBtn.style.display = 'block';
+}
+
 // Ajouter un écouteur d'événement pour le rafraîchissement
 document.addEventListener('refreshCovoiturages', function(event) {
     // Utiliser les données de l'événement ou les valeurs par défaut
@@ -618,6 +656,8 @@ window.loadPassengerRides = () => displayCovoiturages('passenger', 1);
 function initialize() {
     initializeTabs();
     initializeCreateButton();
+    // Configurer la visibilité initiale du bouton
+    updateCreateButtonVisibility();
     // Charger les covoiturages chauffeur par défaut
     displayCovoiturages('driver', 1);
 }

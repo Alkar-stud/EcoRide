@@ -138,7 +138,7 @@ async function getUserInfo() {
             response.notices = responseNotices;
             return response;
         } else {
-            console.log("Impossible de récupérer les informations de l'utilisateur");
+            console.error("Impossible de récupérer les informations de l'utilisateur");
         }
     } catch (error) {
         console.error("Erreur lors de la récupération des informations de l'utilisateur", error);
@@ -221,6 +221,11 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFi
         }
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Gérer les réponses 204 (No Content) qui n'ont pas de body JSON
+        if (response.status === 204) {
+            return null; // Pas de contenu à parser
         }
 
         return response.json();
