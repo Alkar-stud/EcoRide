@@ -10,6 +10,10 @@
         </div>
         <div class="card-body">
             <form id="searchForm" class="row g-3">
+                <!-- Champs cachés pour les codes postaux -->
+                <input type="hidden" id="searchDepartPostCode" name="departPostCode">
+                <input type="hidden" id="searchDestinationPostCode" name="destinationPostCode">
+                
                 <div class="col-md-3">
                     <label for="searchDepart" class="form-label">Départ</label>
                     <div class="position-relative">
@@ -39,7 +43,7 @@
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
+                    <button type="submit" class="btn btn-primary w-100" id="searchButton">
                         <i class="fas fa-search me-2"></i>Rechercher
                     </button>
                 </div>
@@ -118,3 +122,6 @@
     <!-- Zone de pagination -->
     <div id="paginationContainer"></div>
 </div>
+
+<!-- Inclusion de la modale pour les détails des covoiturages -->
+<div id="covoiturageModalContainer"></div>

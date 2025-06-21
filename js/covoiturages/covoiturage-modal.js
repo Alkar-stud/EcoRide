@@ -555,11 +555,13 @@ class CovoiturageModal {
             // Définir le mode
             this.setMode(mode);
 
-            // Charger les données nécessaires
-            await Promise.all([
-                this.loadUserVehicles(),
-                this.loadUserPreferences()
-            ]);
+            // Charger les données nécessaires seulement si ce n'est pas la vue passager
+            if (mode !== 'passenger-view') {
+                await Promise.all([
+                    this.loadUserVehicles(),
+                    this.loadUserPreferences()
+                ]);
+            }
 
             // Traitement selon le mode
             if (mode === 'create') {

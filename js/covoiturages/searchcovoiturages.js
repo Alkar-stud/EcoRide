@@ -27,7 +27,10 @@ const searchDestinationSuggestions = document.getElementById('searchDestinationS
 /**
  * Initialisation de la page
  */
-function initialize() {
+async function initialize() {
+    // Initialiser la modale de covoiturage
+    await covoiturageModal.initialize();
+    
     // Configurer le formulaire de recherche
     setupSearchForm();
     
@@ -53,7 +56,52 @@ function setupSearchForm() {
     
     searchForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        performSearch(1); // Commencer à la page 1
+        
+        // Récupérer les données du formulaire
+        const formData = new FormData(searchForm);
+        const urlParams = new URLSearchParams();
+        
+        // Ajouter les paramètres de base
+        const depart = formData.get('depart');
+        const destination = formData.get('destination');
+        const date = formData.get('date');
+        const places = formData.get('places');
+        
+        if (depart) {
+            urlParams.set('depart', depart);
+            // Récupérer le code postal du départ si disponible
+            const departPostCode = document.getElementById('searchDepartPostCode')?.value;
+            if (departPostCode) {
+                urlParams.set('departPostCode', departPostCode);
+            }
+        }
+        
+        if (destination) {
+            urlParams.set('destination', destination);
+            // Récupérer le code postal de destination si disponible
+            const destinationPostCode = document.getElementById('searchDestinationPostCode')?.value;
+            if (destinationPostCode) {
+                urlParams.set('destinationPostCode', destinationPostCode);
+            }
+        }
+        
+        if (date) urlParams.set('date', date);
+        if (places) urlParams.set('places', places);
+        
+        // Ajouter les filtres avancés s'ils sont activés
+        const maxPrice = document.getElementById('maxPrice')?.value;
+        const smokingAllowed = document.getElementById('smokingAllowed')?.checked;
+        const petsAllowed = document.getElementById('petsAllowed')?.checked;
+        const sortBy = document.getElementById('sortBy')?.value;
+        
+        if (maxPrice) urlParams.set('maxPrice', maxPrice);
+        if (smokingAllowed) urlParams.set('smokingAllowed', 'true');
+        if (petsAllowed) urlParams.set('petsAllowed', 'true');
+        if (sortBy && sortBy !== 'date') urlParams.set('sortBy', sortBy);
+        
+        // Rediriger vers la même page avec les nouveaux paramètres
+        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+        window.location.href = newUrl;
     });
 }
 
@@ -76,6 +124,15 @@ function setupCityAutocomplete(inputId, suggestionsId) {
         // Effacer les données stockées si l'utilisateur modifie le champ
         input.removeAttribute('data-city-name');
         input.removeAttribute('data-postcode');
+        
+        // Nettoyer les champs cachés selon le champ d'input
+        if (input.id === 'searchDepart') {
+            const hiddenField = document.getElementById('searchDepartPostCode');
+            if (hiddenField) hiddenField.value = '';
+        } else if (input.id === 'searchDestination') {
+            const hiddenField = document.getElementById('searchDestinationPostCode');
+            if (hiddenField) hiddenField.value = '';
+        }
         
         // Annuler la recherche précédente
         if (searchTimeouts[inputId]) {
@@ -162,6 +219,15 @@ function displayCitySuggestions(features, suggestionsContainer, input) {
             // Stocker les données complètes dans des attributs data
             input.setAttribute('data-city-name', cityName);
             input.setAttribute('data-postcode', postcode);
+            
+            // Mettre à jour les champs cachés selon le champ d'input
+            if (input.id === 'searchDepart') {
+                const hiddenField = document.getElementById('searchDepartPostCode');
+                if (hiddenField) hiddenField.value = postcode;
+            } else if (input.id === 'searchDestination') {
+                const hiddenField = document.getElementById('searchDestinationPostCode');
+                if (hiddenField) hiddenField.value = postcode;
+            }
             
             hideSuggestions(suggestionsContainer);
             
@@ -318,12 +384,7 @@ async function performSearch(page = 1) {
         };
 
         // Ajouter les paramètres de pagination
-        if (page !== undefined) {
-            //requestBody.page = page;
-        }
-        if (limitPerPage !== undefined) {
-            //requestBody.limit = limitPerPage;
-        }
+        // Note: pagination non implémentée côté API pour le moment
 
         // Ajouter les paramètres optionnels s'ils sont définis
         if (searchParams.places) {
@@ -338,9 +399,7 @@ async function performSearch(page = 1) {
         if (searchParams.petsAllowed) {
             requestBody.petsAllowed = true;
         }
-        if (searchParams.sortBy) {
-            //requestBody.sortBy = searchParams.sortBy;
-        }
+        // Note: tri non implémenté côté API pour le moment
 
         const response = await sendFetchRequest(
             `${apiUrl}ride/search`,
@@ -401,27 +460,118 @@ function showLoadingState() {
  */
 function displaySearchResults(response) {
     
-    // L'API retourne directement un tableau d'objets avec des propriétés "ride"
+    // Vérifier la structure de la réponse avec message et rides
+    if (!response?.message) {
+        showErrorState('Réponse invalide de l\'API');
+        return;
+    }
+
+    // Extraire les trajets depuis la propriété rides
     let rides = [];
     
-    if (Array.isArray(response)) {
-        // Si c'est un tableau, extraire les objets "ride"
-        rides = response.map(item => ({
+    if (response.rides && Array.isArray(response.rides)) {
+        // Nouvelle structure : response.rides contient directement les trajets
+        rides = response.rides.map(item => ({
             ...item.ride,
             remainingSeats: item.remainingSeats
         }));
-    } else if (response.rides && Array.isArray(response.rides)) {
-        // Fallback pour l'ancien format
-        rides = response.rides;
     }
-    
+
+    // Vérifier le message de l'API
+    if (response.message !== "ok") {
+        // Vérifier si c'est le message "aucun covoiturage trouvé" avec des suggestions
+        if (response.message.includes("Aucun covoiturage trouvé à la date demandée")) {
+            if (rides.length > 0) {
+                // Il y a des trajets alternatifs à afficher avec un avertissement
+                showResultsWithDateWarning(rides, response.message);
+            } else {
+                // Aucun trajet trouvé du tout
+                showEmptyResultsWithDateWarning();
+            }
+        } else {
+            // Autre message d'erreur
+            showErrorState(response.message);
+        }
+        return;
+    }
+
+    // Message "ok" - affichage normal des résultats
     if (rides.length === 0) {
         showEmptyResults();
         return;
     }
 
     // Construire le HTML des résultats
+    displayRidesList(rides, null);
+}
+
+/**
+ * Afficher les résultats avec un avertissement de date
+ */
+function showResultsWithDateWarning(rides, warningMessage) {
+    const searchDate = document.getElementById('searchDate')?.value;
+    const formattedDate = searchDate ? new Date(searchDate).toLocaleDateString('fr-FR') : 'la date sélectionnée';
+    
+    // Avertissement en haut
     let resultsHtml = `
+        <div class="alert alert-warning mb-4">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-exclamation-triangle me-3 mt-1"></i>
+                <div>
+                    <h6 class="alert-heading mb-2">Aucun covoiturage pour le ${formattedDate}</h6>
+                    <p class="mb-2">Il n'y a pas de covoiturages disponibles pour cette date exacte.</p>
+                    <small class="text-muted">Voici les covoiturages disponibles aux dates les plus proches :</small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Ajouter les résultats suggérés
+    resultsHtml += `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5>
+                <i class="fas fa-lightbulb text-warning me-2"></i>
+                ${rides.length} suggestion(s) aux dates proches
+            </h5>
+        </div>
+        <div class="covoiturages-list">
+    `;
+
+    rides.forEach(ride => {
+        resultsHtml += generateRideCard(ride);
+    });
+
+    resultsHtml += '</div>';
+    
+    searchResults.innerHTML = resultsHtml;
+
+    // Ajouter les étoiles de notation pour chaque chauffeur
+    rides.forEach(ride => {
+        const gradeContainer = document.getElementById(`grade-${ride.id}`);
+        if (gradeContainer && ride.driver.grade !== undefined) {
+            // Utiliser la fonction existante du script.js
+            setGradeStyle(ride.driver.grade, gradeContainer);
+        }
+    });
+
+    // Ajouter les événements pour les boutons
+    addRideCardEvents();
+
+    paginationContainer.innerHTML = '';
+}
+
+/**
+ * Afficher la liste des trajets (fonction commune)
+ */
+function displayRidesList(rides, headerMessage = null) {
+    // Construire le HTML des résultats
+    let resultsHtml = '';
+    
+    if (headerMessage) {
+        resultsHtml += headerMessage;
+    }
+    
+    resultsHtml += `
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5>${rides.length} covoiturage(s) trouvé(s)</h5>
         </div>
@@ -506,11 +656,11 @@ function generateRideCard(ride) {
                             </strong>
                         </div>
                         <div class="d-flex flex-column gap-1">
-                            <button class="btn btn-sm btn-outline-primary view-ride-btn" data-ride-id="${ride.id}">
+                            <button type="button" class="btn btn-sm btn-outline-primary view-ride-btn" data-ride-id="${ride.id}">
                                 <i class="fas fa-eye me-1"></i>Voir détails
                             </button>
                             ${!isExpired && remainingPlaces > 0 ? `
-                                <button class="btn btn-sm btn-primary join-ride-btn" data-ride-id="${ride.id}">
+                                <button type="button" class="btn btn-sm btn-primary join-ride-btn" data-ride-id="${ride.id}">
                                     <i class="fas fa-plus me-1"></i>Je m'inscris
                                 </button>
                             ` : ''}
@@ -530,6 +680,7 @@ function addRideCardEvents() {
     document.querySelectorAll('.view-ride-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
+            e.stopPropagation();
             const rideId = btn.getAttribute('data-ride-id');
             
             try {
@@ -545,6 +696,7 @@ function addRideCardEvents() {
     document.querySelectorAll('.join-ride-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
+            e.stopPropagation();
             const rideId = btn.getAttribute('data-ride-id');
             
             // Confirmer l'inscription
@@ -599,6 +751,43 @@ function showEmptyResults() {
                 <br>
                 Essayez de modifier vos critères ou vos dates.
             </p>
+        </div>
+    `;
+    
+    paginationContainer.innerHTML = '';
+}
+
+/**
+ * Afficher l'avertissement pour aucun covoiturage à la date demandée (sans suggestions)
+ */
+function showEmptyResultsWithDateWarning() {
+    const searchDate = document.getElementById('searchDate')?.value;
+    const formattedDate = searchDate ? new Date(searchDate).toLocaleDateString('fr-FR') : 'la date sélectionnée';
+    
+    searchResults.innerHTML = `
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-calendar-times text-warning" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="text-warning mb-3">Aucun covoiturage disponible</h4>
+            <div class="alert alert-warning mx-auto" style="max-width: 500px;">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Aucun covoiturage trouvé pour le ${formattedDate}</strong>
+            </div>
+            <p class="text-muted mb-4">
+                Il n'y a pas de covoiturages disponibles pour cette date sur ce trajet,<br>
+                et aucune alternative n'a été trouvée aux dates proches.
+                <br><br>
+                Essayez de sélectionner une autre date ou modifiez vos critères de recherche.
+            </p>
+            <div class="d-flex justify-content-center gap-2">
+                <button class="btn btn-outline-primary" onclick="document.getElementById('searchDate').showPicker()">
+                    <i class="fas fa-calendar-alt me-2"></i>Choisir une autre date
+                </button>
+                <button class="btn btn-outline-secondary" onclick="location.reload()">
+                    <i class="fas fa-redo me-2"></i>Nouvelle recherche
+                </button>
+            </div>
         </div>
     `;
     
@@ -757,7 +946,7 @@ window.performSearch = performSearch;
 
 // Initialisation
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
+    document.addEventListener('DOMContentLoaded', () => initialize());
 } else {
     initialize();
 }
