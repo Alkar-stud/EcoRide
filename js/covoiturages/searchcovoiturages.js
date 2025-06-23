@@ -712,14 +712,19 @@ function addRideCardEvents() {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Inscription...';
             
             try {
-                await sendFetchRequest(
+                let response = await sendFetchRequest(
                     `${apiUrl}ride/${rideId}/addUser`,
                     getToken(),
-                    'POST'
+                    'PUT'
                 );
+                if (!response || response.error) {
+                    alert(response.message || 'Une erreur est survenue lors de l\'inscription.');
+                }
+                else {
                 
-                // Afficher un message de succès
-                alert('Inscription réussie ! Vous êtes maintenant inscrit à ce covoiturage.');
+                    // Afficher un message de succès
+                    alert('Inscription réussie ! Vous êtes maintenant inscrit à ce covoiturage.');
+                }
                 
                 // Relancer la recherche pour actualiser les résultats
                 performSearch(currentPage);
