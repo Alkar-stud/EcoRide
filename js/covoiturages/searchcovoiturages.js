@@ -488,12 +488,15 @@ function displaySearchResults(response) {
                 // Aucun trajet trouvé du tout
                 showEmptyResultsWithDateWarning();
             }
+        } else if (response.message.includes("Aucun covoiturage trouvé")) {
+            showEmptyResults();
         } else {
             // Autre message d'erreur
             showErrorState(response.message);
         }
         return;
     }
+    
 
     // Message "ok" - affichage normal des résultats
     if (rides.length === 0) {
@@ -710,7 +713,7 @@ function addRideCardEvents() {
             
             try {
                 await sendFetchRequest(
-                    `${apiUrl}ride/join/${rideId}`,
+                    `${apiUrl}ride/${rideId}/addUser`,
                     getToken(),
                     'POST'
                 );
