@@ -87,13 +87,30 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <label for="sortBy" class="form-label">Trier par</label>
-                        <select class="form-select" id="sortBy" name="sortBy">
-                            <option value="date">Date de départ</option>
-                            <option value="price">Prix croissant</option>
-                            <option value="price_desc">Prix décroissant</option>
-                            <option value="places">Nombre de places</option>
+                        <label for="ecoFilter" class="form-label">
+                            <i class="fas fa-leaf text-success me-1"></i>Véhicule écologique
+                        </label>
+                        <select class="form-select" id="ecoFilter" name="ecoFilter">
+                            <option value="">Tous les véhicules</option>
+                            <option value="eco">Véhicules écologiques uniquement</option>
                         </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="minDriverRating" class="form-label">
+                            <i class="fas fa-star text-warning me-1"></i>Note minimum du chauffeur
+                        </label>
+                        <select class="form-select" id="minDriverRating" name="minDriverRating">
+                            <option value="">Toutes les notes</option>
+                            <option value="3">3 étoiles et +</option>
+                            <option value="4">4 étoiles et +</option>
+                            <option value="4.5">4.5 étoiles et +</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="maxDuration" class="form-label">
+                            <i class="fas fa-clock me-1"></i>Durée maximum (minutes)
+                        </label>
+                        <input type="number" class="form-control" id="maxDuration" name="maxDuration" min="1" placeholder="Ex: 120">
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
                         <button type="button" class="btn btn-outline-secondary w-100" id="resetFilters">

@@ -784,7 +784,6 @@ class CovoiturageModal {
                         </div>
                         <div>
                             <div class="fw-semibold ${textColor} small">${text}</div>
-                            <small class="text-muted" style="font-size: 0.75rem;">Préférence tabac</small>
                         </div>
                     </div>
                 </div>
@@ -810,7 +809,6 @@ class CovoiturageModal {
                         </div>
                         <div>
                             <div class="fw-semibold ${textColor} small">${text}</div>
-                            <small class="text-muted" style="font-size: 0.75rem;">Préférence animaux</small>
                         </div>
                     </div>
                 </div>
@@ -835,9 +833,7 @@ class CovoiturageModal {
                                 </div>
                             </div>
                             <div class="flex-grow-1">
-                                <div class="fw-semibold text-primary small">${prefTitle}</div>
                                 ${prefDescription ? `<div class="text-muted" style="font-size: 0.75rem;">${prefDescription}</div>` : ''}
-                                <small class="text-muted" style="font-size: 0.7rem;">Préférence personnalisée</small>
                             </div>
                         </div>
                     </div>

@@ -7,7 +7,7 @@ import covoiturageModal from './covoiturage-modal.js'; // Import de la modale un
 let currentPageDriver = 1;
 let currentPagePassenger = 1;
 let limitPerPage = 5;
-let currentTab = 'driver'; // Onglet par défaut 'driver'
+let currentTab = 'driver'; // Onglet par défaut
 let currentStatusDriver = 'coming'; // Statut par défaut pour les covoiturages chauffeur
 
 // Fonction pour récupérer les covoiturages depuis l'API
@@ -15,29 +15,16 @@ async function fetchCovoiturages(type = 'driver', state = 'coming', page = 1) {
     try {
         let endpoint;
         
-        // Différencier l'endpoint selon le type
-        if (type === 'driver') {
-            // Endpoint pour les covoiturages où l'utilisateur est chauffeur
-            if (state === 'all') {
-                // Récupérer tous les covoiturages sans filtre de statut
-                endpoint = apiUrl + 'ride/list/all?page=' + page + '&limit=' + limitPerPage;
-            } else {
-                endpoint = apiUrl + 'ride/list/' + state + '?page=' + page + '&limit=' + limitPerPage;
-            }
+        if (state === 'all') {
+            // Récupérer tous les covoiturages sans filtre de statut
+            endpoint = apiUrl + 'ride/list/all?page=' + page + '&limit=' + limitPerPage;
         } else {
-            // Endpoint pour les covoiturages où l'utilisateur est passager
-            endpoint = apiUrl + 'ride/list/passenger/' + state + '?page=' + page + '&limit=' + limitPerPage;
+            endpoint = apiUrl + 'ride/list/' + state + '?page=' + page + '&limit=' + limitPerPage;
         }
         
         const data = await sendFetchRequest(endpoint, getToken(), 'GET', null, false, true);
         return data;
     } catch (error) {
-        // Gestion spécifique des erreurs 404 pour les filtres (aucun covoiturage trouvé)
-        if (error.status === 404) {
-            console.info(`Aucun covoiturage ${type} trouvé pour le filtre "${state}"`);
-            return { rides: [], pagination: {} };
-        }
-        
         // Pour toutes les autres erreurs, les afficher et retourner un résultat vide
         console.error(`Erreur lors de la récupération des covoiturages ${type}:`, error);
         return { rides: [], pagination: {} };
@@ -222,16 +209,19 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null) {
         if (!result) {
             throw new Error("Aucun résultat retourné par l'API");
         }
-        const covoiturages = result.rides || [];
+console.log(result);
+        let covoiturages = [];
+        // Ajouter les boutons de filtrage pour l'onglet chauffeur
+        if (type === 'driver') {
+            covoiturages = result.driverRides;
+            createStatusFilterButtons(container);
+        } else {
+            covoiturages = result.passengerRides;
+        }
 
         // Vider le conteneur
         container.innerHTML = '';
-        
-        // Ajouter les boutons de filtrage pour l'onglet chauffeur
-        if (type === 'driver') {
-            createStatusFilterButtons(container);
-        }
-        
+
         if (covoiturages.length === 0) {
             showEmptyStateMessage(container, type, actualStatus);
             return;
