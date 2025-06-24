@@ -3,9 +3,9 @@
 <div class="container">
     <!-- Onglets -->
     <ul class="nav nav-tabs" id="accountTabs" id="account">
-        <button class="nav-link active" id="personal-info-tab" data-bs-toggle="tab" data-bs-target="#personal-info" type="button" role="tab" aria-controls="personal-info" aria-selected="true">Mes informations</button>
-        <button class="nav-link d-none" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab" aria-controls="preferences" aria-selected="false" data-show="ROLE_USER">Mes préférences</button>
-        <button class="nav-link d-none" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab" aria-controls="vehicles" aria-selected="false" data-show="ROLE_USER">Mes véhicules</button>
+        <button class="nav-link active" data-bs-toggle="tab" type="button" role="tab" id="personal-info-tab" data-bs-target="#personal-info" aria-controls="personal-info" aria-selected="true">Mes informations</button>
+        <button class="nav-link d-none" data-bs-toggle="tab" type="button" role="tab" id="preferences-tab" data-bs-target="#preferences" aria-controls="preferences" aria-selected="false" data-show="ROLE_USER">Mes préférences</button>
+        <button class="nav-link d-none" data-bs-toggle="tab" type="button" role="tab" id="vehicles-tab" data-bs-target="#vehicles" aria-controls="vehicles" aria-selected="false" data-show="ROLE_USER">Mes véhicules</button>
     </ul>
 
     <!-- Contenu des onglets -->
@@ -63,7 +63,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="notices" class="form-label fw-bold">Vos avis</label><br>
-                        <span id="notices" class="ms-2">On affiche ici une petite liste des 2-3 derniers covoiturages du chauffeur</span>
+                        <span id="notices" class="ms-2">Aucun avis pour le moment</span>
                     </div>
                     <!-- bouton pour envoyer le formulaire -->
                     <div class="mb-3">
@@ -91,9 +91,9 @@
                             <label for="NoSmoke">Fumeur ?</label>
                             <div id="smokeConfirmationMessage" class="text-success" style="display: none;">Préférence sauvegardée avec succès !</div>
                             <div id="smokeConfirmationMessageLoading" style="display: none;">
-                                <div class="spinner-border text-secondary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                  </div>                                
+                                <div class="spinner-border text-secondary">
+                                    <output aria-live="polite">Chargement…</output>
+                                </div>                            
                             </div>
                             <div>
                                 <input type="radio" class="form-check-input" id="NoSmoke" name="SmokeAsk" value="no" data-id="smokingAllowedId">
@@ -106,9 +106,9 @@
                             <label for="NoPet">Acceptez-vous les animaux ?</label>
                             <div id="petConfirmationMessage" class="text-success" style="display: none;">Préférence sauvegardée avec succès !</div>
                             <div id="petConfirmationMessageLoading" style="display: none;">
-                                <div class="spinner-border text-secondary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                  </div>                                
+                                <div class="spinner-border text-secondary">
+                                    <output aria-live="polite">Chargement…</output>
+                                </div>                                     
                             </div>
                             <div>
                                 <input type="radio" class="form-check-input" id="NoPet" name="PetAsk" value="no" data-id="petsAllowedId">

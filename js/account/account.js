@@ -17,6 +17,44 @@ async function chargerInfosUtilisateur() {
     displayUserVehicles(user.userVehicles);
 }
 
+// Gère l'affichage des rôles et des onglets sans recharger la page
+export function handleRoleAndTabs(result) {
+    // Récupérer le bouton de soumission pour pouvoir y faire référence
+    const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
+    
+    //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
+    if (result.roles[0] != "ROLE_USER" && !result.isDriver && !result.isPassenger) {
+        submitFormInfoUser.disabled = false;
+    }
+    //Si le user est chauffeur uniquement, on affiche les onglets de préférences et véhicules
+    if (result.isDriver === true && result.isPassenger === false) {
+        document.getElementById("isDriver").checked = true;
+        document.getElementById("preferences-tab").classList.remove('d-none');
+        document.getElementById("vehicles-tab").classList.remove('d-none');
+    } else if (result.isDriver === false && result.isPassenger === true) {
+    //Si le user est passager uniquement, on masque les onglets de préférences et véhicules
+        document.getElementById("isPassenger").checked = true;
+        document.getElementById("preferences-tab").classList.add('d-none');
+        document.getElementById("vehicles-tab").classList.add('d-none');
+    } else if (result.isDriver === true && result.isPassenger === true) {
+    //Si le user est chauffeur/passager, on affiche les onglets de préférences et véhicules
+        document.getElementById("isBoth").checked = true;
+        document.getElementById("preferences-tab").classList.remove('d-none');
+        document.getElementById("vehicles-tab").classList.remove('d-none');
+    } else {
+    //Par défaut, on n'affiche que les infos personnelles
+        document.getElementById("preferences-tab").classList.add('d-none');
+        document.getElementById("vehicles-tab").classList.add('d-none');
+        if (getCookie('role') == "ROLE_USER") {
+            document.getElementById("roleNone").style.display = "block";
+            submitFormInfoUser.disabled = true;
+        } else {
+            submitFormInfoUser.setAttribute('title', "Vous devez choisir d'être chauffeur, passager ou les deux.");
+            submitFormInfoUser.disabled = false;
+        }
+    }
+}
+
 
 chargerInfosUtilisateur();
 
@@ -103,44 +141,10 @@ function setupEnterKeyListener() {
     }, true);
 }
 
-// S'assurer que les écouteurs sont configurés une fois que le DOM est chargé
+// S'assurer que les écouteurs sont configurés une fois que le DOM est chargé pour le fonctionnement de la touche Entrée
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', setupEnterKeyListener);
 } else {
     // Le DOM est déjà chargé
     setupEnterKeyListener();
-}
-
-// Gère l'affichage des rôles et des onglets sans recharger la page
-export function handleRoleAndTabs(result) {
-    // Récupérer le bouton de soumission pour pouvoir y faire référence
-    const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
-    
-    //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
-    if (result.roles[0] != "ROLE_USER" && !result.isDriver && !result.isPassenger) {
-        submitFormInfoUser.disabled = false;
-    }
-    if (result.isDriver === true && result.isPassenger === false) {
-        document.getElementById("isDriver").checked = true;
-        document.getElementById("preferences-tab").classList.remove('d-none');
-        document.getElementById("vehicles-tab").classList.remove('d-none');
-    } else if (result.isDriver === false && result.isPassenger === true) {
-        document.getElementById("isPassenger").checked = true;
-        document.getElementById("preferences-tab").classList.add('d-none');
-        document.getElementById("vehicles-tab").classList.add('d-none');
-    } else if (result.isDriver === true && result.isPassenger === true) {
-        document.getElementById("isBoth").checked = true;
-        document.getElementById("preferences-tab").classList.remove('d-none');
-        document.getElementById("vehicles-tab").classList.remove('d-none');
-    } else {
-        document.getElementById("preferences-tab").classList.add('d-none');
-        document.getElementById("vehicles-tab").classList.add('d-none');
-        if (getCookie('role') == "ROLE_USER") {
-            document.getElementById("roleNone").style.display = "block";
-            submitFormInfoUser.disabled = true;
-        } else {
-            submitFormInfoUser.setAttribute('title', "Vous devez choisir d'être chauffeur, passager ou les deux.");
-            submitFormInfoUser.disabled = false;
-        }
-    }
 }

@@ -5,6 +5,9 @@ import { handleRoleAndTabs } from './account.js';
 
 
 
+/*
+ * Récupération des éléments du DOM
+ */
 //Pour les infos perso du user
 const pseudoInput = document.getElementById("PseudoInput");
 const photo = document.getElementById("photo"); // Affichage de la photo
@@ -20,12 +23,11 @@ widrawCreditsBtn.addEventListener("click", function() {
   alert('[Mode démo renvoi vers le formulaire lié à la banque] Crédits retirés !');
 });
 
+const grade = document.getElementById("grade");
 
 const notices = document.getElementById("notices");
 
-
-const grade = document.getElementById("grade");
-
+//Boutons
 const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
 submitFormInfoUser.addEventListener("click", setUserInfo);
 
@@ -33,21 +35,24 @@ const btnDeleteAccount = document.getElementById("btnDelete");
 btnDeleteAccount.addEventListener("click", deleteAccount);
 
 
+
 // Fonction pour afficher les infos de l'utilisateur, si il est passager, chauffeur ou les deux, son pseudo et la photo s'il y en a une
 export async function displayUserInfo(user) {
     
-    // Vérification de la présence d'une photo
-    user.photo = user.photo ? url + "uploads/photos/" + user.photo : "/images/default-avatar.png";
-
+    //Gestion des onglets à afficher
     handleRoleAndTabs(user);
 
+    // Vérification de la présence d'une photo, sinon on met une photo par défaut
+    user.photo = user.photo ? url + "uploads/photos/" + user.photo : "/images/default-avatar.png";
+    photo.src = user.photo;
+    pseudoInput.value = user.pseudo;
+
+    //La note globale de l'utilisateur
     if (user.grade !== null && user.grade !== undefined) {
         setGradeStyle(user.grade);
     }
-    credits.innerHTML = user.credits;
-    pseudoInput.value = user.pseudo;
-    photo.src = user.photo;
 
+    credits.innerHTML = user.credits;
     // Afficher les avis récents
     displayRecentNotices(user);
 
@@ -110,33 +115,23 @@ async function deleteAccount() {
     const userConfirmed = confirm("Êtes-vous sûr de vouloir supprimer votre compte ?");
 
     if (userConfirmed) {
-        let myHeaders = new Headers();
-        myHeaders.append("X-AUTH-TOKEN", getToken());
-        let requestOptions = {
-            method: 'DELETE',
-            headers: myHeaders,
-            redirect: 'follow'
-        };
-        fetch(apiUrl + "account", requestOptions)
-            .then(response => {
-                if (response.ok) {
-                    //Suppression des cookies
-                    eraseCookie("accesstoken");
-                    eraseCookie("role");
-                    // Rediriger vers la page d'accueil ou afficher un message de succès
-                    window.location.href = "/";
-                } else {
-                    console.error("Impossible de supprimer le compte");
-                }
-            })
-            .catch(error => console.error("Erreur lors de la suppression du compte", error));
+        try {
+            await sendFetchRequest(apiUrl + "account", getToken(), 'DELETE');
+            //Suppression des cookies
+            eraseCookie("accesstoken");
+            eraseCookie("role");
+            // Rediriger vers la page d'accueil
+            window.location.href = "/";
+        } catch (error) {
+            console.error("Erreur lors de la suppression du compte", error);
+        }
     }
 }
 
 
 // Fonction pour afficher les 3 avis les plus récents
 function displayRecentNotices(user) {
-    if (!user.notices || !user.notices.ridesNotices || Object.keys(user.notices.ridesNotices).length === 0) {
+    if (!user.notices?.ridesNotices || Object.keys(user.notices.ridesNotices).length === 0) {
         notices.innerHTML = "<em>Aucun avis pour le moment</em>";
         return;
     }
@@ -194,7 +189,7 @@ function displayRecentNotices(user) {
     noticesHtml += '</div>';
     notices.innerHTML = noticesHtml;
     
-    // Maintenant que le HTML est en place, on ajoute les étoiles
+    // Maintenant que le HTML est en place, on ajoute les étoiles des avis
     recentNotices.forEach((ride, rideIndex) => {
         if (ride.notices && ride.notices.length > 0) {
             ride.notices.forEach((notice, noticeIndex) => {
