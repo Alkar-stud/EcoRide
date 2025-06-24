@@ -10,14 +10,14 @@
     </div>
 
     <!-- Onglets de navigation -->
-    <ul class="nav nav-tabs nav-fill mb-4" id="covoituragesTabs" role="tablist">
-        <li class="nav-item" role="presentation">
+    <ul class="nav nav-tabs nav-fill mb-4" id="covoituragesTabs">
+        <li class="nav-item">
             <button class="nav-link active" id="driver-tab" data-bs-toggle="tab" data-bs-target="#driver" 
                     type="button" role="tab" aria-controls="driver" aria-selected="true">
                 <i class="fas fa-car me-2"></i>Mes covoiturages chauffeur
             </button>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item">
             <button class="nav-link" id="passenger-tab" data-bs-toggle="tab" data-bs-target="#passenger" 
                     type="button" role="tab" aria-controls="passenger" aria-selected="false">
                 <i class="fas fa-users me-2"></i>Mes covoiturages passager
@@ -32,8 +32,8 @@
             <div class="allcovoiturages-driver">
                 <!-- Les covoiturages chauffeur seront affichés ici -->
                 <div class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Chargement...</span>
+                    <div class="spinner-border text-primary">
+                    <output aria-live="polite">Chargement…</output>
                     </div>
                     <p>Chargement des covoiturages chauffeur...</p>
                 </div>
@@ -45,8 +45,8 @@
             <div class="allcovoiturages-passenger">
                 <!-- Les covoiturages passager seront affichés ici -->
                 <div class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Chargement...</span>
+                    <div class="spinner-border text-primary">
+                        <output aria-live="polite">Chargement…</output>
                     </div>
                     <p>Chargement des covoiturages passager...</p>
                 </div>

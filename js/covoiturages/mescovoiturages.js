@@ -4,14 +4,39 @@ import { getToken, sendFetchRequest } from '../script.js';
 import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
 
 // Variables pour stocker les pages courantes
+export const DEFAULT_STATUS = 'COMING'; // Statut par défaut pour les covoiturages
 let currentPageDriver = 1;
 let currentPagePassenger = 1;
 let limitPerPage = 5;
 let currentTab = 'driver'; // Onglet par défaut
-let currentStatusDriver = 'coming'; // Statut par défaut pour les covoiturages chauffeur
+let currentStatusDriver = DEFAULT_STATUS; // Statut par défaut pour les covoiturages chauffeur
+let currentStatusPassenger = DEFAULT_STATUS;
+
+
+const STATUS_LABELS = {
+    COMING: 'À venir',
+    PROGRESSING: 'En cours',
+    VALIDATIONPROCESSING: 'En cous d\'examen',
+    CANCELED: 'Annulé',
+    FINISHED: 'Terminé',
+    BADEXP: 'En attente d\'examen',
+    all: 'Tous'
+};
+
+const STATUS_COLORS = {
+    COMING: 'btn-primary',
+    all: 'btn-secondary',
+    PROGRESSING: 'btn-info',
+    VALIDATIONPROCESSING: 'btn-warning',
+    BADEXP: 'btn-warning',
+    FINISHED: 'btn-success',
+    CANCELED: 'btn-danger'
+};
+
+
 
 // Fonction pour récupérer les covoiturages depuis l'API
-async function fetchCovoiturages(type = 'driver', state = 'coming', page = 1) {
+async function fetchCovoiturages(type = 'driver', state = DEFAULT_STATUS, page = 1) {
     try {
         let endpoint;
         
@@ -117,7 +142,7 @@ function showEmptyStateMessage(container, type, state) {
                 <p class="text-muted mb-4">
                     Essayez un autre filtre ou proposez un nouveau covoiturage !
                 </p>
-                ${state === 'coming' ? `
+                ${state === DEFAULT_STATUS ? `
                 <button class="btn btn-primary btn-lg" id="creerPremierCovoiturage">
                     <i class="fas fa-plus me-2"></i>Proposer un covoiturage
                 </button>
@@ -162,8 +187,9 @@ function showEmptyStateMessage(container, type, state) {
 // Fonction principale pour afficher les covoiturages
 async function displayCovoiturages(type = 'driver', page = 1, status = null) {
     // Mettre à jour le statut courant pour le chauffeur si fourni
-    if (status !== null && type === 'driver') {
-        currentStatusDriver = status;
+    if (status !== null) {
+        if (type === 'driver') currentStatusDriver = status;
+        else currentStatusPassenger = status;
     }
     
     // Mettre à jour la page courante selon le type
@@ -202,25 +228,32 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null) {
         } else if (type === 'driver') {
             actualStatus = currentStatusDriver;
         } else {
-            actualStatus = 'coming';
+            actualStatus = DEFAULT_STATUS;
         }
         
         const result = await fetchCovoiturages(type, actualStatus, page);
         if (!result) {
             throw new Error("Aucun résultat retourné par l'API");
         }
-console.log(result);
+
         let covoiturages = [];
-        // Ajouter les boutons de filtrage pour l'onglet chauffeur
         if (type === 'driver') {
             covoiturages = result.driverRides;
-            createStatusFilterButtons(container);
         } else {
             covoiturages = result.passengerRides;
         }
 
         // Vider le conteneur
         container.innerHTML = '';
+
+        // Ajouter les boutons de filtrage pour l'onglet chauffeur ou passager
+        createStatusFilterButtons(container, type);
+
+        // Si aucun covoiturage, afficher le message vide
+        if (covoiturages.length === 0) {
+            showEmptyStateMessage(container, type, actualStatus);
+            return;
+        }
 
         if (covoiturages.length === 0) {
             showEmptyStateMessage(container, type, actualStatus);
@@ -521,7 +554,6 @@ function initializeTabs() {
     if (driverTab) {
         driverTab.addEventListener('click', function() {
             currentTab = 'driver';
-            currentStatusDriver = 'coming'; // Reset au filtre par défaut
             updateCreateButtonVisibility();
             displayCovoiturages('driver', currentPageDriver);
         });
@@ -557,48 +589,54 @@ function initializeCreateButton() {
 }
 
 // Fonction pour créer et afficher les boutons de filtrage par statut
-function createStatusFilterButtons(container) {
+function createStatusFilterButtons(container, type) {
     const filterContainer = document.createElement('div');
     filterContainer.className = 'mb-3';
-    
-    const statusToShow = currentStatusDriver || 'coming';
-    
+
+    // Ordre des statuts à afficher
+    const statusOrder = [
+        'COMING',
+        'all',
+        'PROGRESSING',
+        'VALIDATIONPROCESSING',
+        'BADEXP',
+        'FINISHED',
+        'CANCELED'
+    ];
+
+    // Statut sélectionné actuellement
+    const statusToShow = (type === 'driver' ? currentStatusDriver : window.currentStatusPassenger) || DEFAULT_STATUS;
+
     filterContainer.innerHTML = `
         <div class="btn-group flex-wrap" role="group" aria-label="Filtrer par statut">
-            <button type="button" class="btn ${statusToShow === 'coming' ? 'btn-primary' : 'btn-outline-primary'} status-filter-btn" data-status="coming">
-                <i class="fas fa-clock me-1"></i>À venir
-            </button>
-            <button type="button" class="btn ${statusToShow === 'all' ? 'btn-secondary' : 'btn-outline-secondary'} status-filter-btn" data-status="all">
-                <i class="fas fa-list me-1"></i>Tous
-            </button>
-            <button type="button" class="btn ${statusToShow === 'finished' ? 'btn-success' : 'btn-outline-success'} status-filter-btn" data-status="finished">
-                <i class="fas fa-check me-1"></i>Terminés
-            </button>
-            <button type="button" class="btn ${statusToShow === 'canceled' ? 'btn-danger' : 'btn-outline-danger'} status-filter-btn" data-status="canceled">
-                <i class="fas fa-times me-1"></i>Annulés
-            </button>
-            <button type="button" class="btn ${statusToShow === 'awaitingvalidation' ? 'btn-warning' : 'btn-outline-warning'} status-filter-btn" data-status="awaitingvalidation">
-                <i class="fas fa-hourglass-half me-1"></i>En validation
-            </button>
-            <button type="button" class="btn ${statusToShow === 'badexp' ? 'btn-info' : 'btn-outline-info'} status-filter-btn" data-status="badexp">
-                <i class="fas fa-search me-1"></i>En examen
-            </button>
+            ${statusOrder.map(status => `
+                <button type="button"
+                    class="btn ${statusToShow === status ? STATUS_COLORS[status] : 'btn-outline-' + STATUS_COLORS[status].replace('btn-', '')} status-filter-btn"
+                    data-status="${status}">
+                    ${STATUS_LABELS[status] || status}
+                </button>
+            `).join('')}
         </div>
     `;
-    
+
     // Insérer les boutons au début du conteneur
     container.insertBefore(filterContainer, container.firstChild);
-    
+
     // Ajouter les événements de clic
     const filterButtons = filterContainer.querySelectorAll('.status-filter-btn');
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // Récupérer le statut et afficher les covoiturages
             const status = this.getAttribute('data-status');
-            displayCovoiturages('driver', 1, status);
+            if (type === 'driver') {
+                displayCovoiturages('driver', 1, status);
+            } else {
+                // Pour le passager, stocker le statut courant si besoin
+                window.currentStatusPassenger = status;
+                displayCovoiturages('passenger', 1, status);
+            }
         });
     });
-    
+
     return filterContainer;
 }
 
@@ -649,7 +687,7 @@ function initialize() {
     // Configurer la visibilité initiale du bouton
     updateCreateButtonVisibility();
     // Charger les covoiturages chauffeur par défaut
-    displayCovoiturages('driver', 1);
+    displayCovoiturages('driver', 1, DEFAULT_STATUS);
 }
 
 // Attendre que le DOM soit chargé
