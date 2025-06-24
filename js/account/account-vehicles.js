@@ -6,16 +6,6 @@ import { getToken, isValidDate, sendFetchRequest } from '../script.js';
 // Fonctions utilitaires
 // ======================
 
-function showElement(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.style.display = "block";
-        return true;
-    }
-    console.error(`Élément non trouvé: ${elementId}`);
-    return false;
-}
-
 function hideElement(elementId) {
     const element = document.getElementById(elementId);
     if (element) {
@@ -122,18 +112,18 @@ function displayUserVehicles(vehicles) {
 }
 
 async function addVehicle() {
-    const vehicleForm = document.getElementById("vehiclesForm");
+    const vehicleForm = document.getElementById("vehicleForm");
     if (!vehicleForm) return;
 
     try {
         const vehicleData = {
-            brand: document.getElementById("vehicleBrand").value,
-            model: document.getElementById("vehicleModel").value,
-            color: document.getElementById("vehicleColor").value,
-            licensePlate: document.getElementById("vehicleLicensePlate").value,
-            licenseFirstDate: document.getElementById("licenseFirstDate").value,
-            maxNbPlacesAvailable: parseInt(document.getElementById("nbPlace").value, 10),
-            energy: document.getElementById("VehicleEnergy").value
+            brand: document.getElementById("modalVehicleBrand").value,
+            model: document.getElementById("modalVehicleModel").value,
+            color: document.getElementById("modalVehicleColor").value,
+            licensePlate: document.getElementById("modalVehicleLicensePlate").value,
+            licenseFirstDate: document.getElementById("modalVehicleLicenseFirstDate").value,
+            maxNbPlacesAvailable: parseInt(document.getElementById("modalVehicleNbPlace").value, 10),
+            energy: document.getElementById("modalVehicleEnergy").value
         };
 
         if (!validateVehicleData(vehicleData)) {
@@ -141,45 +131,20 @@ async function addVehicle() {
             return;
         }
 
-        const url = `${apiUrl}vehicle/add`;
-        const apiToken = getToken();
-        await sendFetchRequest(url, apiToken, 'POST', JSON.stringify(vehicleData));
+        await sendFetchRequest(apiUrl + "vehicle/add", getToken(), 'POST', JSON.stringify(vehicleData));
 
         vehicleForm.reset();
         hideElement("vehiclesFormContainer");
         displayMessage("vehicleConfirmationMessage");
         refreshVehiclesTab();
+        //Puis fermeture de la modale
+        const modalElement = document.getElementById("vehicleModal");
+        const vehicleModal = bootstrap.Modal.getInstance(modalElement);
+        if (vehicleModal) vehicleModal.hide();
     } catch (error) {
         console.error("Erreur lors de l'ajout du véhicule", error);
         displayMessage("vehicleErrorMessage", "Erreur lors de l'ajout du véhicule.");
     }
-}
-
-function openVehicleModal(vehicle) {
-    // Remplir la liste déroulante des énergies
-    const energySelect = document.getElementById("modalVehicleEnergy");
-    if (energySelect) {
-        energySelect.innerHTML = generateEnergySelect(vehicle.energy);
-    }
-
-    // Remplir les champs de la modale
-    document.getElementById("modalVehicleBrand").value = vehicle.brand;
-    document.getElementById("modalVehicleModel").value = vehicle.model;
-    document.getElementById("modalVehicleColor").value = vehicle.color;
-    document.getElementById("modalVehicleLicensePlate").value = vehicle.licensePlate;
-
-    const date = new Date(vehicle.licenseFirstDate);
-    const formattedDate = date.toISOString().split('T')[0];
-    document.getElementById("modalVehicleLicenseFirstDate").value = formattedDate;
-    document.getElementById("modalVehicleNbPlace").value = vehicle.maxNbPlacesAvailable;
-
-    // Configurer les boutons de la modale
-    document.getElementById("saveVehicleBtn").onclick = () => editVehicle(vehicle.id);
-    document.getElementById("deleteVehicleBtn").onclick = () => deleteVehicle(vehicle.id);
-
-    // Afficher la modale
-    const vehicleModal = new bootstrap.Modal(document.getElementById("vehicleModal"));
-    vehicleModal.show();
 }
 
 async function editVehicle(vehicleId) {
@@ -249,30 +214,86 @@ async function refreshVehiclesTab() {
     }
 }
 
+
+function openVehicleModal(vehicle = null, add = false) {
+    // Remplir la liste déroulante des énergies
+    const energySelect = document.getElementById("modalVehicleEnergy");
+
+    if (add === false) {
+        // Cacher les boutons de modification/suppression si on n'est pas en mode ajout
+        document.getElementById("saveVehicleBtn").style.display = "inline-block";
+        document.getElementById("deleteVehicleBtn").style.display = "inline-block";
+        document.getElementById("addVehicleBtn").style.display = "none";
+        document.getElementById("cancelVehicleBtn").style.display = "none";
+
+        // Remplir les champs de la modale
+        document.getElementById("modalVehicleBrand").value = vehicle.brand;
+        document.getElementById("modalVehicleModel").value = vehicle.model;
+        document.getElementById("modalVehicleColor").value = vehicle.color;
+        document.getElementById("modalVehicleLicensePlate").value = vehicle.licensePlate;
+
+        const date = new Date(vehicle.licenseFirstDate);
+        const formattedDate = date.toISOString().split('T')[0];
+        document.getElementById("modalVehicleLicenseFirstDate").value = formattedDate;
+        document.getElementById("modalVehicleNbPlace").value = vehicle.maxNbPlacesAvailable;
+
+        //Ajout de la liste déroulante des énergies avec préselection de l'énergie du véhicule
+        energySelect.innerHTML = generateEnergySelect(vehicle.energy);
+
+        // Configurer les boutons de la modale
+        document.getElementById("saveVehicleBtn").onclick = () => editVehicle(vehicle.id);
+        document.getElementById("deleteVehicleBtn").onclick = () => deleteVehicle(vehicle.id);
+
+
+    } else {
+        // Afficher les boutons de Ajouter/annuler si on est en mode ajout
+        document.getElementById("saveVehicleBtn").style.display = "none";
+        document.getElementById("deleteVehicleBtn").style.display = "none";
+        document.getElementById("addVehicleBtn").style.display = "inline-block";
+        document.getElementById("cancelVehicleBtn").style.display = "inline-block";
+
+        // Réinitialiser les champs à l'ouverture en mode ajout
+        document.getElementById("modalVehicleBrand").value = "";
+        document.getElementById("modalVehicleModel").value = "";
+        document.getElementById("modalVehicleColor").value = "";
+        document.getElementById("modalVehicleLicensePlate").value = "";
+        document.getElementById("modalVehicleLicenseFirstDate").value = "";
+        document.getElementById("modalVehicleNbPlace").value = "";
+
+        //Ajout de la liste déroulante des énergies
+        energySelect.innerHTML = generateEnergySelect();
+
+        // Configurer les boutons de la modale
+        document.getElementById("addVehicleBtn").onclick = () => addVehicle();
+        document.getElementById("cancelVehicleBtn").onclick = () => {
+            const modalElement = document.getElementById("vehicleModal");
+            const vehicleModal = bootstrap.Modal.getInstance(modalElement);
+            if (vehicleModal) vehicleModal.hide();
+        };
+    }
+
+    // Afficher la modale
+    const modalElement = document.getElementById("vehicleModal");
+    let vehicleModal = bootstrap.Modal.getInstance(modalElement);
+    if (!vehicleModal) {
+        vehicleModal = new bootstrap.Modal(modalElement);
+    }
+    vehicleModal.show();
+}
+
 // ======================
 // Initialisation
 // ======================
 
-const showVehicleFormBtn = document.getElementById("showVehicleFormBtn");
-showVehicleFormBtn.addEventListener("click", function (event) {
+
+document.getElementById("showVehicleFormBtn").addEventListener("click", function (event) {
     // Empêcher le comportement par défaut du bouton
     event.preventDefault();
 
-    // Remplir la liste déroulante des énergies
-    const energySelect = document.getElementById("VehicleEnergy");
-    if (energySelect) {
-        energySelect.innerHTML = generateEnergySelect();
-    }
+    openVehicleModal(null, true);
 
-    // Afficher le formulaire pour ajouter un véhicule
-    document.getElementById("vehiclesFormContainer").style.display = "block";
 });
 
-//Listener pour ajouter un véhicule
-document.getElementById("addVehicleBtn").addEventListener("click", function (event) {
-    event.preventDefault(); // Empêcher le comportement par défaut du bouton
-    addVehicle(); // Appeler la fonction pour ajouter un véhicule
-});
 
 // ======================
 // Export des fonctions nécessaires

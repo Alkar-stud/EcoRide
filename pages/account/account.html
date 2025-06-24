@@ -212,6 +212,8 @@
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-primary" id="saveVehicleBtn"><i class="bi bi-pencil"></i> Modifier</button>
                                     <button type="button" class="btn btn-danger" id="deleteVehicleBtn"><i class="bi bi-trash"></i> Supprimer</button>
+                                    <button type="button" class="btn btn-primary" id="addVehicleBtn"><i class="bi bi-plus-circle"></i> Ajouter un véhicule</button>
+                                    <button type="button" class="btn btn-danger" id="cancelVehicleBtn"><i class="bi bi-trash"></i> Annuler</button>
                                 </div>
                             </div>
                         </div>
@@ -219,6 +221,8 @@
                 <div class="mb-3">
                     <button type="button" class="btn btn-primary" id="showVehicleFormBtn">Ajouter un véhicule</button>
                 </div>
+
+                
                 <fieldset class="border rounded-3 p-3" style="display: none;" id="vehiclesFormContainer">
                     <legend class="float-none w-auto px-2">Ajouter un véhicule</legend>
                     <form id="vehiclesForm">
@@ -251,9 +255,6 @@
                             <select class="form-select" id="VehicleEnergy">
                                 <option value="">--- Choisir une énergie ---</option>
                             </select>
-                        </div>
-                        <div class="mb-3">
-                            <button type="button" class="btn btn-outline-secondary mt-3" id="addVehicleBtn">Ajouter un véhicule</button>
                         </div>
                     </form>
                 </fieldset>
