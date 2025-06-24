@@ -266,6 +266,9 @@ function openVehicleModal(vehicle = null, add = false) {
         // Configurer les boutons de la modale
         document.getElementById("addVehicleBtn").onclick = () => addVehicle();
         document.getElementById("cancelVehicleBtn").onclick = () => {
+            if (!confirm("Êtes-vous sûr de vouloir annuler ?")) {
+                return;
+            }
             const modalElement = document.getElementById("vehicleModal");
             const vehicleModal = bootstrap.Modal.getInstance(modalElement);
             if (vehicleModal) vehicleModal.hide();
