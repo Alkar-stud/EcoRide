@@ -149,7 +149,7 @@ function showEmptyStateMessage(container, type, state) {
                 <p class="text-muted mb-4">
                     Recherchez des trajets disponibles et rejoignez la communauté EcoRide !
                 </p>
-                <a href="/covoiturages/recherche" class="btn btn-primary btn-lg">
+                <a href="/searchcovoiturages" class="btn btn-primary btn-lg">
                     <i class="fas fa-search me-2"></i>Rechercher un covoiturage
                 </a>
             </div>
