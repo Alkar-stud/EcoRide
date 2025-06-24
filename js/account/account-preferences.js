@@ -3,6 +3,9 @@ import { apiUrl } from '../config.js';
 import { getToken, showMessage, sendFetchRequest } from '../script.js';
 
 
+/*
+ * Récupération des éléments du DOM
+ */
 const prefsLibelleInput = document.getElementById("prefsLibelle");
 const prefsDescriptionInput = document.getElementById("prefsDescription");
 
@@ -32,6 +35,7 @@ document.querySelectorAll('input[name="PetAsk"]').forEach(radio => {
         savePreference(id, "petsAllowed", description, "petConfirmationMessage");
     });
 });
+
 
 
 let preferencesTab = []; // Liste des préférences
@@ -114,18 +118,6 @@ async function addPreferences() {
         console.error("Erreur lors de l'ajout de la préférence", error);
     }
 
-}
-
-
-// Fonction pour sauvegarder une préférence
-function updatePreferenceCheckboxes(libelle, description) {
-    if (libelle === 'smokingAllowed') {
-        document.getElementById("NoSmoke").checked = description === 'no';
-        document.getElementById("OkSmoke").checked = description === 'yes';
-    } else if (libelle === 'petsAllowed') {
-        document.getElementById("NoPet").checked = description === 'no';
-        document.getElementById("OkPet").checked = description === 'yes';
-    }
 }
 
 async function savePreference(preferenceId, libelle, description, confirmationMessageId) {
