@@ -1,25 +1,25 @@
 <h1 id="title-h1" class="text-center text-secondary mb-4">Mes covoiturages</h1>
 
 <div class="container">
-    <!-- Bouton d'ajout de covoiturage -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div></div> <!-- Espace vide pour centrer les onglets -->
-        <button type="button" class="btn btn-primary" id="proposerCovoiturageBtn">
-            <i class="fas fa-plus me-2"></i>Proposer un covoiturage
-        </button>
-    </div>
+<!-- Bouton d'ajout de covoiturage -->
+<div class="d-flex justify-content-between align-items-center mb-4" id="proposerCovoiturageContainer">
+    <div></div> <!-- Espace vide pour centrer les onglets -->
+    <button type="button" class="btn btn-primary" id="proposerCovoiturageBtn" style="display:none">
+        <i class="fas fa-plus me-2"></i>Proposer un covoiturage
+    </button>
+</div>
 
     <!-- Onglets de navigation -->
     <ul class="nav nav-tabs nav-fill mb-4" id="covoituragesTabs">
         <li class="nav-item">
             <button class="nav-link active" id="driver-tab" data-bs-toggle="tab" data-bs-target="#driver" 
-                    type="button" role="tab" aria-controls="driver" aria-selected="true">
+                    type="button" role="tab" aria-controls="driver" aria-selected="true" style="display:none">
                 <i class="fas fa-car me-2"></i>Mes covoiturages chauffeur
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link" id="passenger-tab" data-bs-toggle="tab" data-bs-target="#passenger" 
-                    type="button" role="tab" aria-controls="passenger" aria-selected="false">
+                    type="button" role="tab" aria-controls="passenger" aria-selected="false" style="display:none">
                 <i class="fas fa-users me-2"></i>Mes covoiturages passager
             </button>
         </li>
@@ -33,7 +33,6 @@
                 <!-- Les covoiturages chauffeur seront affichés ici -->
                 <div class="text-center">
                     <div class="spinner-border text-primary">
-                    <output aria-live="polite">Chargement…</output>
                     </div>
                     <p>Chargement des covoiturages chauffeur...</p>
                 </div>
@@ -46,11 +45,82 @@
                 <!-- Les covoiturages passager seront affichés ici -->
                 <div class="text-center">
                     <div class="spinner-border text-primary">
-                        <output aria-live="polite">Chargement…</output>
                     </div>
                     <p>Chargement des covoiturages passager...</p>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Modale pour la validation de covoiturage par les passagers -->
+<div class="modal fade" id="validationCovoiturageModal" tabindex="-1" aria-labelledby="validationCovoiturageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="validationCovoiturageModalLabel">Validation du covoiturage</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Étape 1 : Validation -->
+        <form id="validationStep1">
+          <div class="mb-3">
+            <label class="form-label" for="">Le trajet s'est-il bien passé&nbsp;?</label>
+            <div>
+              <button type="button" class="btn btn-success me-2" id="btnValiderTrajet">Oui</button>
+              <button type="button" class="btn btn-danger" id="btnProblemeTrajet">Non</button>
+            </div>
+          </div>
+          <div id="problemeForm" style="display:none;">
+            <div class="mb-3">
+              <label for="content" class="form-label">Expliquez ce qui n'a pas été&nbsp;:</label>
+              <textarea class="form-control" id="content" rows="3" placeholder="Décrivez le problème..." required></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary mt-2" id="btnEnvoyerValidation" style="display:none;">Envoyer</button>
+        </form>
+
+        <!-- Étape 2 : Note et avis, cachée au départ -->
+        <form id="noteStep" style="display:none;">
+          <hr>
+          <div class="mb-3" id="grade-group">
+            <label class="form-label" for="grade">Note</label>
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+              <input type="radio" class="btn-check" name="grade" id="grade0" value="0" required autocomplete="off">
+              <label class="btn btn-outline-secondary" for="grade0">0</label>
+              <input type="radio" class="btn-check" name="grade" id="grade1" value="1" autocomplete="off">
+              <label class="btn btn-outline-danger" for="grade1">1</label>
+              <input type="radio" class="btn-check" name="grade" id="grade2" value="2" autocomplete="off">
+              <label class="btn btn-outline-danger" for="grade2">2</label>
+              <input type="radio" class="btn-check" name="grade" id="grade3" value="3" autocomplete="off">
+              <label class="btn btn-outline-warning" for="grade3">3</label>
+              <input type="radio" class="btn-check" name="grade" id="grade4" value="4" autocomplete="off">
+              <label class="btn btn-outline-warning" for="grade4">4</label>
+              <input type="radio" class="btn-check" name="grade" id="grade5" value="5" autocomplete="off">
+              <label class="btn btn-outline-warning" for="grade5">5</label>
+              <input type="radio" class="btn-check" name="grade" id="grade6" value="6" autocomplete="off">
+              <label class="btn btn-outline-info" for="grade6">6</label>
+              <input type="radio" class="btn-check" name="grade" id="grade7" value="7" autocomplete="off">
+              <label class="btn btn-outline-info" for="grade7">7</label>
+              <input type="radio" class="btn-check" name="grade" id="grade8" value="8" autocomplete="off">
+              <label class="btn btn-outline-success" for="grade8">8</label>
+              <input type="radio" class="btn-check" name="grade" id="grade9" value="9" autocomplete="off">
+              <label class="btn btn-outline-success" for="grade9">9</label>
+              <input type="radio" class="btn-check" name="grade" id="grade10" value="10" autocomplete="off">
+              <label class="btn btn-outline-success" for="grade10">10</label>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="title" class="form-label">Titre de l'avis</label>
+            <input type="text" class="form-control" id="title" placeholder="Titre de votre avis" required />
+          </div>
+          <div class="mb-3">
+            <label for="avisContent" class="form-label">Votre avis</label>
+            <textarea class="form-control" id="avisContent" rows="3" placeholder="Laissez un commentaire..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-success">Envoyer la note</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>

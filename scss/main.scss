@@ -375,3 +375,17 @@ p {
         text-align: center !important;
     }
 }
+
+/* Remplit la case des notes au survol */
+#grade-group label.btn:hover,
+#grade-group input[type="radio"]:focus + label.btn {
+    color: #fff;
+    background-color: #0d6efd !important; /* Couleur de fond au survol */
+    border-color: #0d6efd !important;
+}
+/* Remplit la case quand sélectionnée */
+#grade-group input[type="radio"]:checked + label.btn {
+    color: #fff;
+    background-color: #198754 !important; /* Couleur de fond quand sélectionné */
+    border-color: #198754 !important;
+}
