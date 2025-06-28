@@ -13361,6 +13361,205 @@ footer.footer {
   font-size: 14px;
 }
 
+/* Modale personnalisée */
+/* Style pour la carte ticket */
+.ticket-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.2rem;
+  -webkit-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e0e0e0;
+  margin-bottom: 1rem;
+}
+
+.ticket-card .ticket-header {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-card .ticket-status {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-card .btn {
+  min-width: 120px;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.modal-header-custom {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  padding: 1rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid #eee;
+  min-height: 56px;
+  gap: 1rem;
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
+}
+
+#modal-title {
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+  font-size: 1.2rem;
+}
+
+#modal-ticket-id {
+  font-weight: bold;
+  color: #555;
+  margin-left: 0;
+  -webkit-box-flex: 0;
+      -ms-flex: 0 1 auto;
+          flex: 0 1 auto;
+  text-align: left;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-ordinal-group: 1;
+      -ms-flex-order: 0;
+          order: 0;
+}
+
+.modal-custom {
+  position: fixed;
+  z-index: 1050;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: start;
+      -ms-flex-align: start;
+          align-items: flex-start;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  padding-top: 5vh;
+}
+
+.modal-content-custom {
+  background: #fff;
+  padding: 0; /* plus de padding ici, on le mettra dans les enfants */
+  border-radius: 8px;
+  min-width: 350px;
+  max-width: 900px; /* plus large sur desktop */
+  width: 100%;
+  position: relative;
+  max-height: 90vh;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+}
+
+.modal-scrollable-content {
+  overflow-y: auto;
+  padding: 2rem 2rem 1rem 2rem;
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 auto;
+          flex: 1 1 auto;
+  min-height: 0;
+}
+
+#modal-details > * {
+  z-index: 1;
+  position: relative;
+  background: #fff;
+}
+
+@media (max-width: 900px) {
+  .modal-content-custom {
+    max-width: 98vw;
+  }
+}
+@media (max-width: 600px) {
+  .modal-content-custom {
+    min-width: unset;
+    max-width: 98vw;
+    padding: 1rem;
+  }
+}
+@media (max-width: 768px) {
+  #tickets-list {
+    overflow-x: auto;
+    width: 100%;
+  }
+  #tickets-list .table {
+    min-width: 700px;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 767.98px) {
+  #tickets-list .table {
+    display: none !important;
+  }
+  .ticket-card-mobile {
+    display: block;
+  }
+}
+@media (min-width: 768px) {
+  .ticket-card-mobile {
+    display: none !important;
+  }
+}
+@media (max-width: 600px) {
+  .modal-scrollable-content .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  .modal-scrollable-content .d-flex {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    gap: 0;
+  }
+}
+.close-modal {
+  position: static;
+  margin-left: 0;
+  margin-right: 0;
+  font-size: 1.5rem;
+  cursor: pointer;
+  -ms-flex-item-align: start;
+      align-self: flex-start;
+  -webkit-box-ordinal-group: 2;
+      -ms-flex-order: 1;
+          order: 1;
+}
+
+.d-none {
+  display: none !important;
+}
+
 html {
   position: relative;
 }

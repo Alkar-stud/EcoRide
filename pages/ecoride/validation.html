@@ -1,2 +1,33 @@
 <h1 id="title-h1" class="text-center text-secondary mb-4">Validation</h1>
 
+<!-- Liste des tickets à examiner -->
+<div class="container my-4">
+    <div id="tickets-list" class="row g-3">
+        <!-- Les tickets seront injectés ici en JS -->
+    </div>
+</div>
+
+<!-- Modale de prise en charge -->
+<div id="ticket-modal" class="modal-custom d-none">
+    <div class="modal-content-custom">
+        <div class="modal-header-custom">
+            <span id="close-modal" class="close-modal">&times;</span>
+            <span id="modal-ticket-id"></span>
+        </div>
+        <div class="modal-scrollable-content">
+            <h4 id="modal-title" class="mb-0">Prise en charge du ticket</h4>
+            <div id="modal-details">
+                <!-- Les détails du ticket seront injectés ici en JS -->
+            </div>
+            <div id="support-history" class="support-history mb-2"></div>
+            <div class="mb-3">
+                <label for="support-content" class="form-label">Commentaire de prise en charge :</label>
+                <textarea id="support-content" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="d-flex justify-content-between">
+                <button id="save-support" class="btn btn-primary">Enregistrer</button>
+                <button id="close-ticket" class="btn btn-danger">Clôturer</button>
+            </div>
+        </div>
+    </div>
+</div>
