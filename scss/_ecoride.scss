@@ -157,3 +157,40 @@
     order: 1;
 }
 .d-none { display: none !important; }
+
+
+// taille des onglets validations/avis
+#validationTabs .nav-link {
+  padding: 0.75rem 2rem;
+  min-width: 150px;
+}
+
+
+// TABLEAUX RESPONSIVE SUR MOBILE POUR AVIS
+@media (max-width: 768px) {
+  #notices-list {
+    overflow-x: auto;
+    width: 100%;
+  }
+  #notices-list .table {
+    min-width: 700px;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+// Affichage tableau/carte responsive pour avis
+@media (max-width: 767.98px) {
+  #notices-list .table {
+    display: none !important;
+  }
+  .notice-card-mobile {
+    display: block;
+  }
+}
+@media (min-width: 768px) {
+  .notice-card-mobile {
+    display: none !important;
+  }
+}

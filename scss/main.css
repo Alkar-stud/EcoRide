@@ -13560,6 +13560,36 @@ footer.footer {
   display: none !important;
 }
 
+#validationTabs .nav-link {
+  padding: 0.75rem 2rem;
+  min-width: 150px;
+}
+
+@media (max-width: 768px) {
+  #notices-list {
+    overflow-x: auto;
+    width: 100%;
+  }
+  #notices-list .table {
+    min-width: 700px;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 767.98px) {
+  #notices-list .table {
+    display: none !important;
+  }
+  .notice-card-mobile {
+    display: block;
+  }
+}
+@media (min-width: 768px) {
+  .notice-card-mobile {
+    display: none !important;
+  }
+}
 html {
   position: relative;
 }

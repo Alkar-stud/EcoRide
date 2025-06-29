@@ -56,40 +56,40 @@ function isConnected(){
     return !(getToken() == null || getToken == undefined);
 }
 
-function showAndHideElementsForRoles(){
+function showAndHideElementsForRoles() {
+    const allElementsToEdit = document.querySelectorAll('[data-show]');
     const userConnected = isConnected();
-    const role = getRole();
+    const role = getRole(); // Doit retourner par exemple "ROLE_EMPLOYEE", "ROLE_ADMIN", etc.
 
-    let allElementsToEdit = document.querySelectorAll('[data-show]');
-    allElementsToEdit.forEach(element =>{
-         switch(element.dataset.show){
-            case 'disconnected': 
-                if(userConnected){
-                    element.classList.add("d-none");
-                }
-                break;
-            case 'connected': 
-                if(!userConnected){
-                    element.classList.add("d-none");
-                }
-                break;
-            case 'admin': 
-                if(!userConnected || role != "admin"){
-                    element.classList.add("d-none");
-                }
-                break;
-                case 'employee': 
-                if(!userConnected || role != "employee"){
-                    element.classList.add("d-none");
-                }
-                break;
-                case 'client': 
-                if(!userConnected || role != "ROLE_USER"){
-                    element.classList.add("d-none");
-                }
-                break;
+    allElementsToEdit.forEach(element => {
+        const showAttr = element.dataset.show;
+        // Sépare les rôles multiples
+        const roles = showAttr.split(',').map(r => r.trim());
+
+        // Cas particuliers
+        if (roles.includes('connected')) {
+            if (!userConnected) element.classList.add('d-none');
+            else element.classList.remove('d-none');
+            return;
         }
-    })
+        if (roles.includes('disconnected')) {
+            if (userConnected) element.classList.add('d-none');
+            else element.classList.remove('d-none');
+            return;
+        }
+        if (roles.includes('client')) {
+            if (role !== "ROLE_USER") element.classList.add('d-none');
+            else element.classList.remove('d-none');
+            return;
+        }
+
+        // Gestion des rôles explicites
+        if (roles.some(r => r === role)) {
+            element.classList.remove('d-none');
+        } else {
+            element.classList.add('d-none');
+        }
+    });
 }
 
 function sanitizeHtml(text){
@@ -236,6 +236,12 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFi
     }
 }
 
+// Formatage de la date
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
 
 export {
     showAndHideElementsForRoles,
@@ -253,5 +259,6 @@ export {
     showMessage,
     getUserInfo,
     setGradeStyle,
-    sendFetchRequest
+    sendFetchRequest,
+    formatDate
 };
