@@ -13362,6 +13362,11 @@ footer.footer {
 }
 
 /* Modale personnalisée */
+:root {
+  --color-primary: #2ecc71;
+  --color-secondary: #2277B0;
+}
+
 /* Style pour la carte ticket */
 .ticket-card {
   background: #f8f9fa;

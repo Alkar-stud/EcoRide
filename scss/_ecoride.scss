@@ -1,5 +1,10 @@
 /* Modale personnalisée */
 
+:root {
+  --color-primary: #{$primary};
+  --color-secondary: #{$secondary};
+}
+
 /* Style pour la carte ticket */
 .ticket-card {
     background: #f8f9fa;

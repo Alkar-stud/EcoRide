@@ -1,9 +1,12 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+
 <h1 id="title-h1" class="text-center text-secondary mb-4">Administration</h1>
 
 <div class="container-fluid">
   <div class="row">
     <!-- Menu vertical -->
-    <nav id="admin-sidebar" class="col-12 col-md-3 col-lg-2 bg-light sidebar py-4 mb-3 mb-md-0">
+    <nav id="admin-sidebar" class="col-12 col-md-3 col-lg-2 bg-light sidebar py-4 mb-3 mb-md-0" aria-label="Menu d'administration">
       <div class="credits-info d-flex flex-column align-items-start mb-4 px-3">
         <div>
           <span id="credits-total" class="fw-bold fs-4">0</span>
@@ -32,9 +35,17 @@
     <main class="col-12 col-md-9 col-lg-10 px-4">
       <div id="admin-tabs-content">
         <div id="stats-pane" class="tab-pane active">
-          <h2>Statistiques</h2>
-          <!-- Contenu statistiques ici -->
-          <div class="text-muted">Aucune statistique à afficher pour le moment.</div>
+        <h2>Statistiques</h2>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+            <h5 class="text-center">Nombre de covoiturages par jour</h5>
+            <canvas id="rides-per-day-chart" height="200"></canvas>
+            </div>
+            <div class="col-md-6 mb-4">
+            <h5 class="text-center">Crédits gagnés par jour</h5>
+            <canvas id="credits-per-day-chart" height="200"></canvas>
+            </div>
+        </div>
         </div>
 
         <div id="accounts-pane" class="tab-pane d-none">

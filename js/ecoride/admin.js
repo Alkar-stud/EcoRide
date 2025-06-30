@@ -1,5 +1,7 @@
 import { apiUrl } from '../config.js';
 import { sendFetchRequest, getToken } from '../../js/script.js';
+import './admin-stats.js';
+import './admin-settings.js';
 
 // Récupère et affiche les crédits et la variation
 async function updateCredits() {
