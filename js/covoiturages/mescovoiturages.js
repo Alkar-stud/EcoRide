@@ -67,7 +67,6 @@ async function fetchCovoiturages(state = DEFAULT_STATE, page = 1) {
         }
         
         const data = await sendFetchRequest(endpoint, getToken(), 'GET', null, false, true);
-console.log(`Récupération des covoiturages - Statut ${state}`, data);
         return data;
     } catch (error) {
         // Pour toutes les autres erreurs, les afficher et retourner un résultat vide
@@ -432,7 +431,6 @@ function createStatusFilterButtons(container, type, userRoles) {
     if (type === 'passenger' && statusToShow === DEFAULT_STATE) {
         //Il faut boucler sur tout le contenu de covoiturages.driverRides et chercher un status == VALIDATIONPROCESSING
         const passengerRides = window.covoiturages?.passengerRides || [];
-console.log(passengerRides);
         if (passengerRides.some(ride => ride.status === 'VALIDATIONPROCESSING')) {
             statusToShow = 'VALIDATIONPROCESSING';
             currentStatusPassenger = statusToShow; // Mettre à jour le statut courant

@@ -243,6 +243,49 @@ function formatDate(dateStr) {
     return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
+
+
+/**
+ * Configurer la restriction de date pour empêcher la sélection de dates passées
+ */
+async function setupDateRestriction(dateInput) {
+    if (!dateInput) {
+        console.warn('Champ date non trouvé');
+        return;
+    }
+
+    // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
+    const today = new Date();
+    const todayString = today.getFullYear() + '-' + 
+        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+        String(today.getDate()).padStart(2, '0');
+
+    // Définir la date minimum
+    dateInput.setAttribute('min', todayString);
+
+    //Définir la date par défaut à aujourd'hui
+    dateInput.value = todayString;
+    
+    // Ajouter un écouteur pour valider la date en temps réel
+    dateInput.addEventListener('change', function() {
+        const selectedDate = new Date(this.value);
+        const today = new Date();
+        
+        // Réinitialiser l'heure pour comparer seulement les dates
+        today.setHours(0, 0, 0, 0);
+        selectedDate.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+            this.classList.add('is-invalid');
+            this.classList.remove('is-valid');
+        } else {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        }
+    });
+}
+
+
 export {
     showAndHideElementsForRoles,
     isConnected,
@@ -260,5 +303,6 @@ export {
     getUserInfo,
     setGradeStyle,
     sendFetchRequest,
-    formatDate
+    formatDate, 
+    setupDateRestriction
 };

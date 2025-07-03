@@ -1,6 +1,6 @@
 // Module pour la recherche de covoiturages
 import { apiUrl, url } from '../config.js';
-import { getToken, sendFetchRequest, setGradeStyle } from '../script.js';
+import { getToken, sendFetchRequest, setGradeStyle, setupDateRestriction } from '../script.js';
 import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
 
 // Variables globales
@@ -39,7 +39,7 @@ async function initialize() {
     setupCityAutocomplete('searchDestination', 'searchDestinationSuggestions');
     
     // Configurer la restriction de date
-    setupDateRestriction();
+    setupDateRestriction(searchDateInput);
     
     // Configurer les filtres avancés
     setupAdvancedFilters();
@@ -257,21 +257,6 @@ function hideSuggestions(suggestionsContainer) {
     suggestionsContainer.innerHTML = '';
 }
 
-/**
- * Configurer la restriction de date
- */
-function setupDateRestriction() {
-    if (!searchDateInput) return;
-
-    // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
-    const today = new Date();
-    const todayString = today.getFullYear() + '-' + 
-        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-        String(today.getDate()).padStart(2, '0');
-
-    // Définir la date minimum
-    searchDateInput.setAttribute('min', todayString);
-}
 
 /**
  * Configurer les filtres avancés

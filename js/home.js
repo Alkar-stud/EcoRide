@@ -1,6 +1,9 @@
+ import { setupDateRestriction } from './script.js';
+
+
 const departInput = document.getElementById("depart");
 const destinationInput = document.getElementById("destination");
-const dateInput = document.getElementById("date");
+const dateInput = document.getElementById("searchDate");
 const btnSearch = document.getElementById("btn-search");
 
 // Éléments pour l'autocomplétion
@@ -20,7 +23,7 @@ setupCityAutocomplete("depart", "departSuggestions");
 setupCityAutocomplete("destination", "destinationSuggestions");
 
 // Configurer la date minimum pour empêcher la sélection de dates passées
-setupDateRestriction();
+setupDateRestriction(dateInput);
 
 /**
  * Configurer l'autocomplétion pour un champ de ville
@@ -164,7 +167,7 @@ function searchCovoiturages(event) {
     // Récupérer les valeurs des champs du formulaire
     const depart = document.getElementById('depart').value.trim();
     const destination = document.getElementById('destination').value.trim();
-    const date = document.getElementById('date').value.trim();
+    const date = dateInput.value.trim();
 
     // Réinitialiser les classes de validation
     [departInput, destinationInput, dateInput].forEach(input => {
@@ -229,40 +232,3 @@ function searchCovoiturages(event) {
     // Rediriger vers la page de recherche
     window.location.href = url;
 };
-
-/**
- * Configurer la restriction de date pour empêcher la sélection de dates passées
- */
-function setupDateRestriction() {
-    if (!dateInput) {
-        console.warn('Champ date non trouvé');
-        return;
-    }
-
-    // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
-    const today = new Date();
-    const todayString = today.getFullYear() + '-' + 
-        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-        String(today.getDate()).padStart(2, '0');
-
-    // Définir la date minimum
-    dateInput.setAttribute('min', todayString);
-    
-    // Ajouter un écouteur pour valider la date en temps réel
-    dateInput.addEventListener('change', function() {
-        const selectedDate = new Date(this.value);
-        const today = new Date();
-        
-        // Réinitialiser l'heure pour comparer seulement les dates
-        today.setHours(0, 0, 0, 0);
-        selectedDate.setHours(0, 0, 0, 0);
-        
-        if (selectedDate < today) {
-            this.classList.add('is-invalid');
-            this.classList.remove('is-valid');
-        } else {
-            this.classList.remove('is-invalid');
-            this.classList.add('is-valid');
-        }
-    });
-}
