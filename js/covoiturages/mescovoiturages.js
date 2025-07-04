@@ -1,6 +1,6 @@
 // Module pour gérer les covoiturages de l'utilisateur
 import { apiUrl, url } from '../config.js';
-import { getToken, sendFetchRequest } from '../script.js';
+import { getToken, sendFetchRequest, getUserInfo } from '../script.js';
 import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
 import { 
     formatDateTime, 
@@ -33,12 +33,16 @@ let currentTab = 'driver'; // Onglet par défaut
 
 // Initialisation
 async function initialize() {
+    // Récupérer les rôles utilisateur AVANT de charger les covoiturages
+    const userInfo = await getUserInfo();
+    const userRoles = {
+        isDriver: userInfo?.isDriver,
+        isPassenger: userInfo?.isPassenger
+    };
+    // Charger les covoiturages
     const covoiturages = await fetchCovoiturages();
     window.covoiturages = covoiturages;
-    const userRoles = {
-        isDriver: covoiturages.isDriver,
-        isPassenger: covoiturages.isPassenger
-    };
+
 
     // Charger les covoiturages chauffeur par défaut
     if (userRoles.isDriver) {
@@ -423,9 +427,6 @@ function activateTabAfterAction(action, type) {
         displayCovoiturages('passenger', 1, currentStatusPassenger);
     }
 }
-
-
-
 
 
 
