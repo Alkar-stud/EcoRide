@@ -26,7 +26,6 @@ dist/
 build/
 
 # Fichiers CSS générés localement (seront regénérés dans le container)
-scss/*.css
 scss/*.css.map
 
 # Variables d'environnement (peuvent contenir des secrets)
