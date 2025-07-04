@@ -18,8 +18,7 @@ docs/
 # IDEs et éditeurs
 .idea/
 .vscode/
-*.swp
-*.swo
+
 
 # Fichiers de build locaux
 dist/
@@ -28,13 +27,6 @@ build/
 # Fichiers CSS générés localement (seront regénérés dans le container)
 scss/*.css.map
 
-# Variables d'environnement (peuvent contenir des secrets)
-.env
-.env.*
-
-# Logs locaux
-logs/
-*.log
 
 # Fichiers temporaires du système
 .DS_Store
