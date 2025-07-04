@@ -1,6 +1,7 @@
 // Module pour la recherche de covoiturages
 import { apiUrl, url } from '../config.js';
 import { getToken, sendFetchRequest, setGradeStyle, setupDateRestriction } from '../script.js';
+import { joinRide } from './mescovoiturages-utils.js';
 import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
 
 // Variables globales
@@ -686,45 +687,7 @@ function addRideCardEvents() {
             e.preventDefault();
             e.stopPropagation();
             const rideId = btn.getAttribute('data-ride-id');
-            
-            // Confirmer l'inscription
-            if (!confirm('Êtes-vous sûr de vouloir vous inscrire à ce covoiturage ?')) {
-                return;
-            }
-            
-            // Désactiver le bouton pendant le traitement
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Inscription...';
-            
-            try {
-                let response = await sendFetchRequest(
-                    `${apiUrl}ride/${rideId}/addUser`,
-                    getToken(),
-                    'PUT'
-                );
-                if (!response || response.error) {
-                    alert(response.message || 'Une erreur est survenue lors de l\'inscription.');
-                }
-                else {
-                
-                    // Afficher un message de succès
-                    alert('Inscription réussie ! Vous êtes maintenant inscrit à ce covoiturage.');
-                }
-                
-                // Relancer la recherche pour actualiser les résultats
-                performSearch(currentPage);
-                
-            } catch (error) {
-                console.error('Erreur lors de l\'inscription:', error);
-                
-                // Réactiver le bouton
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-plus me-1"></i>Je m\'inscris';
-                
-                // Afficher l'erreur
-                const errorMessage = error.message || 'Une erreur est survenue lors de l\'inscription.';
-                alert(`Erreur: ${errorMessage}`);
-            }
+            await joinRide(rideId, btn);
         });
     });
 }

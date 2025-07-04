@@ -101,8 +101,18 @@ async function inscrireUtilisateur(){
 
     try {
         let result = await sendFetchRequest(apiUrl + "registration", null, 'POST', raw);
-        alert("Vous êtes maintenant inscrit, vous devez cliquer sur le lien dans le mail reçu afin de pouvoir vous connecter.");
-        window.location.href = "/signin";
+        alert("Vous êtes maintenant inscrit, vous pouvez vous connecter.");
+        
+        // Récupérer le paramètre returnTo s'il existe
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnTo = urlParams.get("returnTo");
+        
+        // Rediriger vers la page de connexion avec le paramètre returnTo si disponible
+        if (returnTo) {
+            window.location.href = `/signin?returnTo=${encodeURIComponent(returnTo)}`;
+        } else {
+            window.location.href = "/signin";
+        }
     } catch (error) {
         alert("Erreur lors de l'inscription");
         console.error(error);

@@ -1,4 +1,6 @@
 //Module pour les fonctions utilitaires et les constantes des covoiturages
+import { apiUrl } from '../config.js'; // Import direct depuis config.js
+import { getToken, sendFetchRequest } from '../script.js'; // Import des fonctions utilitaires
 import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
 
 const DEFAULT_STATE = 'COMING'; // Statut par défaut pour les covoiturages
@@ -268,6 +270,145 @@ function showEmptyStateMessage(container, type, state) {
 }
 
 
+/**
+ * Fonction pour rejoindre un covoiturage
+ * Utilisée à la fois par le bouton "Je m'inscris" des cartes et "Rejoindre ce covoiturage" de la modale
+ */
+async function joinRide(rideId, button = null, fromModal = false) {
+    // Vérifier si l'utilisateur est connecté
+    if (!getToken()) {
+        // Afficher la modale de connexion au lieu de l'alerte
+        showLoginRequiredModal(rideId, fromModal);
+        return false;
+    }
+
+    // Confirmer l'inscription
+    if (!confirm('Êtes-vous sûr de vouloir vous inscrire à ce covoiturage ?')) {
+        return false;
+    }
+    
+    // État de chargement sur le bouton si fourni
+    let originalButtonHtml = '';
+    if (button) {
+        originalButtonHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Inscription...';
+    }
+
+    try {
+        const response = await sendFetchRequest(
+            `${apiUrl}ride/${rideId}/addUser`,
+            getToken(),
+            'PUT'
+        );
+        
+        if (!response || response.error) {
+            alert(response?.message || 'Une erreur est survenue lors de l\'inscription.');
+            return false;
+        }
+        
+        // Afficher un message de succès
+        alert('Inscription réussie ! Vous êtes maintenant inscrit à ce covoiturage.');
+        
+        // Optionnellement relancer la recherche pour actualiser les résultats
+        if (typeof performSearch === 'function') {
+            // Vérifier si currentPage est définie avant de l'utiliser
+            const page = typeof currentPage !== 'undefined' ? currentPage : 1;
+            performSearch(page);
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Erreur lors de l\'inscription:', error);
+        
+        // Afficher l'erreur
+        const errorMessage = error.message || 'Une erreur est survenue lors de l\'inscription.';
+        alert(`Erreur: ${errorMessage}`);
+        return false;
+    } finally {
+        // Restaurer l'état du bouton si fourni
+        if (button && originalButtonHtml) {
+            button.disabled = false;
+            button.innerHTML = originalButtonHtml;
+        }
+    }
+}
+
+// Rendre la fonction disponible globalement pour la modale
+window.joinRide = joinRide;
+
+/**
+ * Affiche une modale de connexion lorsque l'utilisateur tente de s'inscrire à un covoiturage sans être connecté
+ * @param {string} rideId - L'identifiant du covoiturage
+ * @param {boolean} fromModal - Indique si l'appel vient de la modale de détails de covoiturage
+ */
+function showLoginRequiredModal(rideId, fromModal = false) {
+    // Sauvegarder l'intention de l'utilisateur dans le localStorage
+    localStorage.setItem('pendingRideJoin', JSON.stringify({
+        rideId: rideId,
+        fromModal: fromModal,
+        timestamp: new Date().getTime()
+    }));
+    
+    // Vérifier si une modale existante est déjà présente
+    let existingModal = document.getElementById('loginRequiredModal');
+    if (existingModal) {
+        // Si la modale existe déjà, on la supprime pour éviter les doublons
+        existingModal.remove();
+    }
+    
+    // Créer la modale de connexion
+    const modalHTML = `
+    <div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="loginRequiredModalLabel">Connexion requise</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-lock fa-3x text-primary mb-3"></i>
+                        <p class="lead">Vous devez être connecté pour vous inscrire à ce covoiturage.</p>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="/signin?returnTo=${encodeURIComponent(window.location.href)}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                        </a>
+                        <a href="/signup?returnTo=${encodeURIComponent(window.location.href)}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus me-2"></i>Créer un compte
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    
+    // Ajouter la modale au DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Récupérer la référence à la modale
+    const loginModal = document.getElementById('loginRequiredModal');
+    
+    // Initialiser la modale Bootstrap
+    const modal = new bootstrap.Modal(loginModal);
+    
+    // Afficher la modale
+    modal.show();
+    
+    // Supprimer la modale du DOM lorsqu'elle est fermée
+    loginModal.addEventListener('hidden.bs.modal', function() {
+        loginModal.remove();
+    });
+}
+
+// Ajouter la fonction à l'export
+export { 
+    // ...autres exports
+    showLoginRequiredModal,
+};
+
 // Initialiser le bouton de création principal
 function initializeButton(NomBouton) {
     const createBtns = document.querySelectorAll(`#${NomBouton}`);
@@ -297,6 +438,7 @@ export {
     getPassengerCount,
     renderPagination,
     showEmptyStateMessage,
+    joinRide,
     initializeButton,
     STATES_LABELS,
     STATES_COLORS,

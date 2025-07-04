@@ -302,12 +302,12 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null, use
                             <div class="d-flex flex-column gap-1">
                                 ${type === 'driver' && covoiturage.status === 'COMING' && isToday(covoiturage.startingAt) ? `
                                     <button class="btn btn-sm btn-outline-secondary start-covoiturage-btn" data-covoiturage-id="${covoiturage.id}">
-                                        <i class="fas fa-eye me-1"></i>Démarrer
+                                        <i class="fas fa-play me-1"></i>Démarrer
                                     </button>
                                 ` : ''}
                                 ${covoiturage.status === 'PROGRESSING' ? `
                                     <button class="btn btn-sm btn-outline-danger stop-covoiturage-btn" data-covoiturage-id="${covoiturage.id}">
-                                        <i class="fas fa-eye me-1"></i>Bien arrivé
+                                        <i class="fas fa-stop me-1"></i>Bien arrivé
                                     </button>
                                 ` : ''}
                                 ${type === 'driver' && covoiturage.status === 'COMING' ? `
@@ -315,9 +315,14 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null, use
                                         <i class="fas fa-edit me-1"></i>Modifier
                                     </button>
                                 ` : ''}
-                                ${type === 'passenger' && covoiturage.status == 'VALIDATIONPROCESSING' ? `
-                                    <button class="btn btn-sm btn-outline-primary validate-covoiturage-btn" data-covoiturage-id="${covoiturage.id}">
-                                        <i class="fas fa-edit me-1"></i>Valider
+                                ${type === 'passenger' ? `
+                                    <button class="btn btn-sm btn-outline-primary view-covoiturage-btn" data-covoiturage-id="${covoiturage.id}">
+                                        <i class="fas fa-eye me-1"></i>Voir détails
+                                    </button>
+                                ` : ''}
+                                ${type === 'passenger' && covoiturage.status === 'VALIDATIONPROCESSING' ? `
+                                    <button class="btn btn-sm btn-outline-success validate-covoiturage-btn" data-covoiturage-id="${covoiturage.id}">
+                                        <i class="fas fa-check me-1"></i>Valider
                                     </button>
                                 ` : ''}
                             </div>
@@ -368,6 +373,21 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null, use
 
         const stopCovoiturageBtns = container.querySelectorAll('.stop-covoiturage-btn');
         stopCovoiturageBtns.forEach(btn => handleCovoiturageAction(btn, 'stop', type));
+
+        const viewBtns = container.querySelectorAll('.view-covoiturage-btn');
+        viewBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const covoiturageId = btn.getAttribute('data-covoiturage-id');
+                
+                try {
+                    const covoiturageData = await fetchCovoiturageData(covoiturageId);
+                    covoiturageModal.show('passenger-view', covoiturageData);
+                } catch (error) {
+                    console.error('Erreur lors de l\'ouverture de la modale de détails:', error);
+                }
+            });
+        });
 
         // Ajouter la pagination si nécessaire
         if (resultRecupCovoiturages.pagination && resultRecupCovoiturages.pagination.pages_totales > 1) {
@@ -647,6 +667,50 @@ window.currentTab = currentTab;
 window.currentPageDriver = currentPageDriver;
 window.currentPagePassenger = currentPagePassenger;
 
+
+/**
+ * Vérifie s'il y a une intention d'inscription à un covoiturage en attente
+ * et propose à l'utilisateur de terminer l'action s'il est maintenant connecté
+ */
+function checkPendingRideJoin() {
+    // Vérifier si l'utilisateur est connecté
+    if (!getToken()) return;
+    
+    // Vérifier s'il y a une intention d'inscription en attente
+    const pendingJoinStr = localStorage.getItem('pendingRideJoin');
+    if (!pendingJoinStr) return;
+    
+    try {
+        // Récupérer et supprimer l'intention d'inscription
+        const pendingJoin = JSON.parse(pendingJoinStr);
+        localStorage.removeItem('pendingRideJoin');
+        
+        // Vérifier si l'intention n'est pas trop ancienne (30 minutes max)
+        const now = new Date().getTime();
+        const thirtyMinutesInMs = 30 * 60 * 1000;
+        if (now - pendingJoin.timestamp > thirtyMinutesInMs) return;
+        
+        // Afficher une boîte de dialogue pour proposer de terminer l'inscription
+        if (confirm('Vous êtes maintenant connecté. Souhaitez-vous vous inscrire au covoiturage ?')) {
+            if (pendingJoin.fromModal) {
+                // Si l'intention venait de la modale, ouvrir la modale de détails
+                covoiturageModal.show('passenger-view', { id: pendingJoin.rideId });
+            } else {
+                // Sinon, appeler directement la fonction d'inscription
+                joinRide(pendingJoin.rideId);
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors de la vérification de l\'intention d\'inscription:', error);
+        localStorage.removeItem('pendingRideJoin');
+    }
+}
+
+// Ajouter la vérification à l'initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier s'il y a une intention d'inscription en attente
+    checkPendingRideJoin();
+});
 
 
 // Attendre que le DOM soit chargé

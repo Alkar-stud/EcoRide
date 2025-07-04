@@ -47,15 +47,22 @@ async function checkCredentials(){
         setToken(token);
         //placer ce token en cookie
         setCookie(RoleCookieName, result.roles[0], 1);
-        //On cherche si on n'essaie pas d'atteindre une autre page, sinon page accueil
-        //On récupère les paramètres de la page courante
+        
+        // Vérifier s'il y a un paramètre returnTo dans l'URL
         const urlParams = new URLSearchParams(window.location.search);
-        //Si le paramètre page existe, on redirige vers cette page
-        const redirectPage = urlParams.get("page");
-        if (redirectPage) {
-            window.location.replace(redirectPage);
+        const returnTo = urlParams.get("returnTo");
+        
+        if (returnTo) {
+            // Rediriger vers la page d'origine
+            window.location.replace(returnTo);
         } else {
-            window.location.replace("/");
+            // Vérifier s'il y a un paramètre page dans l'URL (pour la compatibilité)
+            const redirectPage = urlParams.get("page");
+            if (redirectPage) {
+                window.location.replace(redirectPage);
+            } else {
+                window.location.replace("/");
+            }
         }
     } catch (error) {
         // Gestion des erreurs de requête

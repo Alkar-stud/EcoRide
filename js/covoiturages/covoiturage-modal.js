@@ -861,7 +861,7 @@ class CovoiturageModal {
                 const passengersHTML = passagers.map(passenger => `
                     <div class="d-flex align-items-center mb-2 p-2 bg-white rounded border">
                         <div class="me-3">
-                            <img src="${passenger.photo || '/images/default-avatar.png'}" 
+                            <img src="${url}uploads/photos/${passenger.photo || '/images/default-avatar.png'}" 
                                  alt="Photo de ${passenger.pseudo}" 
                                  class="rounded-circle" 
                                  style="width: 40px; height: 40px; object-fit: cover;">
@@ -1218,26 +1218,115 @@ class CovoiturageModal {
             editModeButtons.style.display = 'none';
         }
 
-        // Ajouter un bouton "Rejoindre" dans le footer
+        // Ajouter un bouton "Rejoindre" ou "Quitter" dans le footer
         const footer = document.getElementById('covoiturageModalFooter');
         const closeBtn = document.getElementById('closeBtn');
         
-        // Supprimer l'ancien bouton rejoindre s'il existe
+        // Supprimer les anciens boutons s'ils existent
         const existingJoinBtn = document.getElementById('joinCovoiturageBtn');
         if (existingJoinBtn) {
             existingJoinBtn.remove();
         }
-
-        // Créer le nouveau bouton rejoindre
-        const joinBtn = document.createElement('button');
-        joinBtn.id = 'joinCovoiturageBtn';
-        joinBtn.className = 'btn btn-success me-2';
-        joinBtn.innerHTML = '<i class="fas fa-plus me-2"></i>Rejoindre ce covoiturage';
-        joinBtn.addEventListener('click', () => this.handleJoin());
-
-        // Insérer le bouton avant le bouton fermer
-        footer.insertBefore(joinBtn, closeBtn);
+        
+        const existingLeaveBtn = document.getElementById('leaveCovoiturageBtn');
+        if (existingLeaveBtn) {
+            existingLeaveBtn.remove();
+        }
+        
+        // Vérifier si l'utilisateur est déjà inscrit à ce covoiturage
+        const isUserAlreadyRegistered = this.isUserRegistered();
+        
+        // Créer le bouton approprié selon l'état d'inscription
+        if (isUserAlreadyRegistered) {
+            // Bouton "Quitter ce covoiturage"
+            const leaveBtn = document.createElement('button');
+            leaveBtn.id = 'leaveCovoiturageBtn';
+            leaveBtn.className = 'btn btn-outline-danger me-2';
+            leaveBtn.innerHTML = '<i class="fas fa-sign-out-alt me-2"></i>Quitter ce covoiturage';
+            leaveBtn.addEventListener('click', () => this.handleLeave());
+            
+            // Insérer le bouton avant le bouton fermer
+            footer.insertBefore(leaveBtn, closeBtn);
+        } else {
+            // Bouton "Rejoindre ce covoiturage"
+            const joinBtn = document.createElement('button');
+            joinBtn.id = 'joinCovoiturageBtn';
+            joinBtn.className = 'btn btn-success me-2';
+            joinBtn.innerHTML = '<i class="fas fa-plus me-2"></i>Rejoindre ce covoiturage';
+            joinBtn.addEventListener('click', () => this.handleJoin());
+            
+            // Insérer le bouton avant le bouton fermer
+            footer.insertBefore(joinBtn, closeBtn);
+        }
     }
+
+// Vérifier si l'utilisateur est déjà inscrit au covoiturage
+isUserRegistered() {
+    // Si la modale est appelée depuis mescovoiturages, l'utilisateur est forcément inscrit
+    if (window.location.pathname.includes('/mescovoiturages')) {
+        return true;
+    }
+    
+    // Sinon, on vérifie dans les données du covoiturage
+    if (!this.covoiturageData?.passenger) {
+        return false;
+    }
+    
+    // Récupérer l'ID de l'utilisateur connecté
+    try {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        if (!userInfo?.id) {
+            return false;
+        }
+        
+        // Vérifier si l'utilisateur est dans la liste des passagers
+        return this.covoiturageData.passenger.some(passenger => 
+            passenger.id === userInfo.id
+        );
+    } catch (error) {
+        console.error('Erreur lors de la vérification de l\'inscription:', error);
+        return false;
+    }
+}
+
+// Gérer la désinscription d'un covoiturage
+async handleLeave() {
+    if (!this.covoiturageId) {
+        showMessage('Identifiant du covoiturage non trouvé', 'error');
+        return;
+    }
+    
+    if (!confirm('Êtes-vous sûr de vouloir vous désinscrire de ce covoiturage ?')) {
+        return;
+    }
+    
+    const leaveBtn = document.getElementById('leaveCovoiturageBtn');
+    const originalHTML = leaveBtn.innerHTML;
+    leaveBtn.disabled = true;
+    leaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Désinscription...';
+    
+    try {
+        await sendFetchRequest(`${apiUrl}ride/${this.covoiturageId}/removeUser`, getToken(), 'PUT');
+        showMessage('Vous avez quitté ce covoiturage avec succès !', 'success');
+        
+        // Fermer la modale
+        this.modal.hide();
+        
+        // Rafraîchir la liste des covoiturages si nécessaire
+        if (this.onSuccessCallback) {
+            this.onSuccessCallback();
+        } else if (typeof window.displayCovoiturages === 'function') {
+            // Rafraîchir la liste des covoiturages passager
+            window.displayCovoiturages('passenger', window.currentStatusPassenger, window.currentPagePassenger);
+        }
+    } catch (error) {
+        console.error('Erreur lors de la désinscription:', error);
+        showMessage('Erreur lors de la désinscription.', 'error');
+    } finally {
+        leaveBtn.disabled = false;
+        leaveBtn.innerHTML = originalHTML;
+    }
+}
 
     // Réinitialiser la modale
     resetModal() {
@@ -1555,8 +1644,21 @@ class CovoiturageModal {
 
     // Gérer l'inscription à un covoiturage
     async handleJoin() {
-        // Fonctionnalité d'inscription en cours de développement
-        showMessage('Fonctionnalité d\'inscription en cours de développement', 'info');
+        if (!this.covoiturageId) {
+            showMessage('Identifiant du covoiturage non trouvé', 'error');
+            return;
+        }
+        
+        const joinBtn = document.getElementById('joinCovoiturageBtn');
+        
+        // Utiliser la fonction globale joinRide définie dans searchcovoiturages.js
+        // Passer true comme troisième paramètre pour indiquer que l'appel vient de la modale
+        const success = await window.joinRide(this.covoiturageId, joinBtn, true);
+        
+        // Si l'inscription a réussi, fermer la modale
+        if (success) {
+            this.modal.hide();
+        }
     }
 }
 
