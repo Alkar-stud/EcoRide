@@ -1,4 +1,6 @@
 // File: js/script.js
+import { apiUrl } from './config.js';
+
 // This file contains utility functions for handling cookies, user authentication, and UI interactions.
 // It includes functions to set, get, and erase cookies, check user connection status, and manage UI elements based on user roles.
 const tokenCookieName = "accesstoken";
@@ -54,40 +56,40 @@ function isConnected(){
     return !(getToken() == null || getToken == undefined);
 }
 
-function showAndHideElementsForRoles(){
+function showAndHideElementsForRoles() {
+    const allElementsToEdit = document.querySelectorAll('[data-show]');
     const userConnected = isConnected();
-    const role = getRole();
+    const role = getRole(); // Doit retourner par exemple "ROLE_EMPLOYEE", "ROLE_ADMIN", etc.
 
-    let allElementsToEdit = document.querySelectorAll('[data-show]');
-    allElementsToEdit.forEach(element =>{
-         switch(element.dataset.show){
-            case 'disconnected': 
-                if(userConnected){
-                    element.classList.add("d-none");
-                }
-                break;
-            case 'connected': 
-                if(!userConnected){
-                    element.classList.add("d-none");
-                }
-                break;
-            case 'admin': 
-                if(!userConnected || role != "admin"){
-                    element.classList.add("d-none");
-                }
-                break;
-                case 'employee': 
-                if(!userConnected || role != "employee"){
-                    element.classList.add("d-none");
-                }
-                break;
-                case 'client': 
-                if(!userConnected || role != "ROLE_USER"){
-                    element.classList.add("d-none");
-                }
-                break;
+    allElementsToEdit.forEach(element => {
+        const showAttr = element.dataset.show;
+        // Sépare les rôles multiples
+        const roles = showAttr.split(',').map(r => r.trim());
+
+        // Cas particuliers
+        if (roles.includes('connected')) {
+            if (!userConnected) element.classList.add('d-none');
+            else element.classList.remove('d-none');
+            return;
         }
-    })
+        if (roles.includes('disconnected')) {
+            if (userConnected) element.classList.add('d-none');
+            else element.classList.remove('d-none');
+            return;
+        }
+        if (roles.includes('client')) {
+            if (role !== "ROLE_USER") element.classList.add('d-none');
+            else element.classList.remove('d-none');
+            return;
+        }
+
+        // Gestion des rôles explicites
+        if (roles.some(r => r === role)) {
+            element.classList.remove('d-none');
+        } else {
+            element.classList.add('d-none');
+        }
+    });
 }
 
 function sanitizeHtml(text){
@@ -111,27 +113,178 @@ function isValidDate(dateString) {
 }
 
 
-function showMessage(messageId) {
+async function showMessage(messageId) {
     const messageElement = document.getElementById(messageId);
     if (messageElement) {
         messageElement.style.display = "block";
-        setTimeout(() => {
-            messageElement.style.display = "none";
-        }, 5000); // Masquer le message après 5 secondes
+        
+        // Retourne une promesse qui se résout après la durée d'affichage
+        return new Promise(resolve => {
+            setTimeout(() => {
+                messageElement.style.display = "none";
+                resolve(true);
+            }, 5000); // Masquer le message après 5 secondes
+        });
+    }
+    return true;
+}
+
+async function getUserInfo() {
+    try {
+        let response = await sendFetchRequest(apiUrl + "account/me", getToken(), 'GET', null);
+        if (response.id) {
+            //Récupération des avis associés à l'utilisateur
+            let responseNotices = await sendFetchRequest(apiUrl + "notices/" + response.id, getToken(), 'GET', null);
+            response.notices = responseNotices;
+            return response;
+        } else {
+            console.error("Impossible de récupérer les informations de l'utilisateur");
+        }
+    } catch (error) {
+        console.error("Erreur lors de la récupération des informations de l'utilisateur", error);
     }
 }
 
-// Ajout d'un gestionnaire global pour détecter l'appui sur la touche Entrée
-document.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-        const activeElement = document.activeElement;
-        // Vérifie si l'élément actif est un bouton ou un champ de formulaire
-        if (activeElement.tagName === "BUTTON" || (activeElement.tagName === "INPUT" && activeElement.type !== "submit")) {
-            event.preventDefault(); // Empêche le comportement par défaut
-            activeElement.click(); // Simule un clic sur l'élément actif
-        }
+function setGradeStyle(gradeValue, container = document.getElementById("starsContainer")) {
+    // Vérifie si le conteneur existe
+    if (!container) return;
+    
+    // Nettoie le conteneur
+    container.innerHTML = "";
+
+    // La note est un nombre entre 0 et 10, on la ramène sur 5
+    gradeValue = gradeValue / 2;
+
+    // Détermine la couleur selon la note
+    let colorClass = "";
+    if (gradeValue >= 3) {
+        colorClass = "text-success";
+    } else if (gradeValue >= 1.5 && gradeValue < 3) {
+        colorClass = "text-warning";
+    } else {
+        colorClass = "text-danger";
     }
-});
+
+    // Génère les 5 étoiles avec la bonne couleur
+    for (let i = 1; i <= 5; i++) {
+        const star = document.createElement("i");
+        star.classList.add("bi", colorClass);
+
+        if (gradeValue >= i) {
+            star.classList.add("bi-star-fill");
+        } else if (gradeValue >= i - 0.5) {
+            star.classList.add("bi-star-half");
+        } else {
+            star.classList.add("bi-star");
+        }
+        container.appendChild(star);
+    }
+}
+
+
+async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFile = false, silent404 = false) {
+    let myHeaders = new Headers();
+    if (apiToken) {
+        myHeaders.append("X-AUTH-TOKEN", apiToken);
+    }
+
+    let requestOptions = {
+        method: method,
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    if (body) {
+        requestOptions.body = body;
+        if (!isFile) {
+            myHeaders.append("Content-Type", "application/json");
+        } 
+        //Si body contient un fichier, on ne met pas de Content-Type
+        // car le navigateur va gérer le multipart/form-data automatiquement
+        // myHeaders.append("Content-Type", "multipart/form-data");
+    }
+
+    try {
+        const response = await fetch(url, requestOptions);
+
+        if (response.status === 401) {
+            signout();
+            throw new Error("Unauthorized");
+        }
+        if (response.status === 404) {
+            if (!silent404) {
+                console.error("Resource not found:", url);
+            }
+            const error = new Error("Ressource non trouvée");
+            error.status = 404;
+            throw error;
+        }
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Gérer les réponses 204 (No Content) qui n'ont pas de body JSON
+        if (response.status === 204) {
+            return null; // Pas de contenu à parser
+        }
+
+        return response.json();
+
+    } catch (error) {
+        console.error('Fetch error:', error);
+        throw error; // Rejeter la promesse pour que l'appelant puisse gérer l'erreur
+    }
+}
+
+// Formatage de la date
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+
+
+
+/**
+ * Configurer la restriction de date pour empêcher la sélection de dates passées
+ */
+async function setupDateRestriction(dateInput) {
+    if (!dateInput) {
+        console.warn('Champ date non trouvé');
+        return;
+    }
+
+    // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
+    const today = new Date();
+    const todayString = today.getFullYear() + '-' + 
+        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+        String(today.getDate()).padStart(2, '0');
+
+    // Définir la date minimum
+    dateInput.setAttribute('min', todayString);
+
+    //Définir la date par défaut à aujourd'hui
+    dateInput.value = todayString;
+    
+    // Ajouter un écouteur pour valider la date en temps réel
+    dateInput.addEventListener('change', function() {
+        const selectedDate = new Date(this.value);
+        const today = new Date();
+        
+        // Réinitialiser l'heure pour comparer seulement les dates
+        today.setHours(0, 0, 0, 0);
+        selectedDate.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+            this.classList.add('is-invalid');
+            this.classList.remove('is-valid');
+        } else {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        }
+    });
+}
+
 
 export {
     showAndHideElementsForRoles,
@@ -146,5 +299,10 @@ export {
     signout,
     sanitizeHtml,
     isValidDate,
-    showMessage
+    showMessage,
+    getUserInfo,
+    setGradeStyle,
+    sendFetchRequest,
+    formatDate, 
+    setupDateRestriction
 };

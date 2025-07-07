@@ -1,6 +1,6 @@
 //Fichier JS de la page de connexion
 import { apiUrl } from '../config.js';
-import { setToken, setCookie, RoleCookieName } from '../script.js';
+import { setToken, setCookie, RoleCookieName, sendFetchRequest } from '../script.js';
 
 const mailInput = document.getElementById("EmailInput");
 const passwordInput = document.getElementById("PasswordInput");
@@ -18,49 +18,58 @@ signinForm.addEventListener("keydown", function(event) {
 });
 
 //Function permettant de valider tout le formulaire
-function checkCredentials(){
+async function checkCredentials(){
     let dataForm = new FormData(signinForm);
-    
-    let myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
 
     let raw = JSON.stringify({
         "email": dataForm.get("email"),
         "password": dataForm.get("mdp")
     });
 
-    let requestOptions = {
-        method: 'POST',
-        headers: myHeaders,
-        body: raw,
-        redirect: 'follow'
-    };
-    fetch(apiUrl+"login", requestOptions)
-    .then(response => {
-        console.log(response);
-        if(response.ok){
-            return response.json();
-        }
-        else{
+    try {
+        let result = await sendFetchRequest(apiUrl+"login", null, 'POST', raw);
+        
+        // Vérification si l'authentification a échoué
+        if (!result || !result.apiToken || result.error) {
+            // Afficher l'erreur d'authentification
             mailInput.classList.add("is-invalid");
             passwordInput.classList.add("is-invalid");
+            // Vider le champ de mot de passe
+            passwordInput.value = "";
+            return;
         }
-    })
-    .then(result => {
+
+        // Authentification réussie
+        mailInput.classList.remove("is-invalid");
+        passwordInput.classList.remove("is-invalid");
+        
         const token = result.apiToken;
         setToken(token);
         //placer ce token en cookie
         setCookie(RoleCookieName, result.roles[0], 1);
-        //On cherche si on n'essaie pas d'atteindre une autre page, sinon page accueil
-        //On récupère les paramètres de la page courante
+        
+        // Vérifier s'il y a un paramètre returnTo dans l'URL
         const urlParams = new URLSearchParams(window.location.search);
-        //Si le paramètre page existe, on redirige vers cette page
-        const redirectPage = urlParams.get("page");
-        if (redirectPage) {
-            window.location.replace(redirectPage);
+        const returnTo = urlParams.get("returnTo");
+        
+        if (returnTo) {
+            // Rediriger vers la page d'origine
+            window.location.replace(returnTo);
         } else {
-            window.location.replace("/");
+            // Vérifier s'il y a un paramètre page dans l'URL (pour la compatibilité)
+            const redirectPage = urlParams.get("page");
+            if (redirectPage) {
+                window.location.replace(redirectPage);
+            } else {
+                window.location.replace("/");
+            }
         }
-    })
-    .catch(error => console.log('error : ', error));
+    } catch (error) {
+        // Gestion des erreurs de requête
+        console.error("Erreur lors de la connexion:", error);
+        mailInput.classList.add("is-invalid");
+        passwordInput.classList.add("is-invalid");
+        // Vider le champ de mot de passe
+        passwordInput.value = "";
+    }
 }

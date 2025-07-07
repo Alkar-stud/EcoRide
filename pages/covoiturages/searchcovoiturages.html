@@ -1,0 +1,134 @@
+<h1 id="title-h1" class="text-center text-secondary mb-4">Recherche de covoiturages</h1>
+
+<div class="container">
+    <!-- Formulaire de recherche -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-search me-2"></i>Rechercher un covoiturage
+            </h5>
+        </div>
+        <div class="card-body">
+            <form id="searchForm" class="row g-3">
+                <!-- Champs cachés pour les codes postaux -->
+                <input type="hidden" id="searchDepartPostCode" name="departPostCode">
+                <input type="hidden" id="searchDestinationPostCode" name="destinationPostCode">
+                
+                <div class="col-md-3">
+                    <label for="searchDepart" class="form-label">Départ</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="searchDepart" name="depart" placeholder="Ville de départ" required>
+                        <div id="searchDepartSuggestions" class="suggestions-container position-absolute w-100 bg-white border rounded-bottom shadow-sm" style="display: none; z-index: 1050;"></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="searchDestination" class="form-label">Destination</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="searchDestination" name="destination" placeholder="Ville d'arrivée" required>
+                        <div id="searchDestinationSuggestions" class="suggestions-container position-absolute w-100 bg-white border rounded-bottom shadow-sm" style="display: none; z-index: 1050;"></div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label for="searchDate" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="searchDate" name="date" required>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100" id="searchButton">
+                        <i class="fas fa-search me-2"></i>Rechercher
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filtres avancés (repliable) -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="false" aria-controls="advancedFilters">
+                <i class="fas fa-filter me-2"></i>Filtres avancés
+                <i class="fas fa-chevron-down ms-2"></i>
+            </button>
+        </div>
+        <div class="collapse" id="advancedFilters">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="maxPrice" class="form-label">Prix maximum</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="maxPrice" name="maxPrice" min="0" step="0.5" placeholder="Ex: 20">
+                            <span class="input-group-text">
+                                <img src="/images/logo_credit_light.png" alt="Crédit" class="img-fluid" style="width: 20px; height: 20px;">
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="preferences" class="form-label">Préférences</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="smokingAllowed" name="smokingAllowed">
+                            <label class="form-check-label" for="smokingAllowed">
+                                <i class="fas fa-smoking me-1"></i>Fumeur accepté
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="petsAllowed" name="petsAllowed">
+                            <label class="form-check-label" for="petsAllowed">
+                                <i class="fas fa-paw me-1"></i>Animaux acceptés
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="ecoFilter" class="form-label">
+                            <i class="fas fa-leaf text-success me-1"></i>Véhicule écologique
+                        </label>
+                        <select class="form-select" id="ecoFilter" name="ecoFilter">
+                            <option value="">Tous les véhicules</option>
+                            <option value="eco">Véhicules écologiques uniquement</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="minDriverRating" class="form-label">
+                            <i class="fas fa-star text-warning me-1"></i>Note minimum du chauffeur
+                        </label>
+                        <select class="form-select" id="minDriverRating" name="minDriverRating">
+                            <option value="">Toutes les notes</option>
+                            <option value="3">3 étoiles et +</option>
+                            <option value="4">4 étoiles et +</option>
+                            <option value="4.5">4.5 étoiles et +</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="maxDuration" class="form-label">
+                            <i class="fas fa-clock me-1"></i>Durée maximum (minutes)
+                        </label>
+                        <input type="number" class="form-control" id="maxDuration" name="maxDuration" min="1" placeholder="Ex: 120">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-secondary w-100" id="resetFilters">
+                            <i class="fas fa-undo me-2"></i>Réinitialiser
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zone d'affichage des résultats -->
+    <div id="searchResults">
+        <!-- Les résultats seront affichés ici -->
+        <div class="text-center py-5" id="initialMessage">
+            <div class="mb-4">
+                <i class="fas fa-search text-muted" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="text-muted mb-3">Recherchez un covoiturage</h4>
+            <p class="text-muted">
+                Utilisez le formulaire ci-dessus pour trouver des covoiturages disponibles.
+            </p>
+        </div>
+    </div>
+
+    <!-- Zone de pagination -->
+    <div id="paginationContainer"></div>
+</div>
+
+<!-- Inclusion de la modale pour les détails des covoiturages -->
+<div id="covoiturageModalContainer"></div>

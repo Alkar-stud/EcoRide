@@ -1,6 +1,7 @@
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css");
 @import 'custom';
-@import '_footer';
+@import 'footer';
+@import 'ecoride';
 
 html {
   position: relative;
@@ -52,6 +53,7 @@ p {
 
 .hero-scene{
   position: relative;
+  min-height: 400px; /* Hauteur fixe pour couvrir la zone 100px-400px */
   &::before{
       content:"";
       position: absolute;
@@ -61,7 +63,8 @@ p {
       height:100%;
       background-image: url(../images/FondHeroScene.jpg);
       background-size: cover;
-      filter: brightness(0.3);
+      background-position: center;
+      filter: brightness(0.4); /* Légèrement plus sombre pour améliorer la lisibilité du texte */
   }
 
   *{
@@ -70,12 +73,55 @@ p {
   }
 
   .hero-scene-content{
-      height: 300px;
+      min-height: 400px; /* Correspond à la zone 100px-400px */
+      padding: 2rem 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
   }
+}
+
+/* Styles pour le formulaire de recherche en superposition */
+.search-form-overlay {
+    background-color: rgba(255, 255, 255, 0.95); /* Fond blanc semi-transparent */
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px); /* Effet de flou pour un look moderne */
+    margin-top: 1rem;
+}
+
+/* Améliorer la lisibilité des titres sur l'image de fond */
+.hero-scene h1,
+.hero-scene h2 {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    margin-bottom: 1rem;
+}
+
+/* Responsive : ajuster sur mobile et tablette */
+@media (max-width: 768px) {
+    .hero-scene {
+        min-height: 350px; /* Légèrement plus petit sur mobile */
+    }
+    
+    .hero-scene-content {
+        min-height: 350px;
+        padding: 1rem;
+    }
+    
+    .search-form-overlay {
+        padding: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .hero-scene h1 {
+        font-size: 1.75rem;
+    }
+    
+    .hero-scene h2 {
+        font-size: 1.25rem;
+    }
 }
 
 .container {
@@ -137,4 +183,210 @@ p {
 
 .autocomplete-item:hover {
     background-color: #f0f0f0;
+}
+
+/* Styles pour les covoiturages expirés */
+/* Styles pour les onglets */
+.nav-tabs .nav-link {
+    border-radius: 0.5rem 0.5rem 0 0;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    background-color: #f8f9fa;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* Styles pour les covoiturages expirés */
+.covoiturage-expired {
+    position: relative;
+    opacity: 0.6;
+    filter: grayscale(20%);
+    background-color: #f8f9fa !important;
+}
+
+.covoiturage-expired .card-body {
+    color: #6c757d !important;
+}
+
+.covoiturage-expired .text-primary {
+    color: #6c757d !important;
+}
+
+.covoiturage-expired .text-success {
+    color: #6c757d !important;
+}
+
+.covoiturage-expired .text-danger {
+    color: #6c757d !important;
+}
+
+.covoiturage-expired .btn-outline-primary {
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.covoiturage-expired .btn-outline-primary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.covoiturage-expired::before {
+    content: "Dépassé";
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    background-color: #dc3545;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.covoiturages-list {
+    margin-bottom: 2rem;
+}
+
+/* Styles pour l'autocomplétion d'adresses */
+.address-suggestion {
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    color: #212529 !important; /* Texte sombre pour la lisibilité */
+}
+
+.address-suggestion:hover {
+    background-color: #f8f9fa !important;
+}
+
+.address-suggestion .fw-bold {
+    color: #212529 !important; /* Nom de ville en noir */
+}
+
+.address-suggestion .text-muted {
+    color: #6c757d !important; /* Contexte en gris */
+}
+
+.suggestions-container {
+    border-top: none !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    color: #212529; /* Couleur de base du texte */
+}
+
+/* Améliorer le z-index pour les suggestions */
+#departSuggestions,
+#arriveeSuggestions {
+    z-index: 1050 !important; /* Plus élevé que la modale Bootstrap */
+}
+
+/* Styles spécifiques pour les suggestions de la page d'accueil */
+.hero-scene .suggestions-container {
+    color: #212529 !important; /* Forcer le texte en noir */
+}
+
+.hero-scene .suggestion-item {
+    color: #212529 !important; /* Forcer le texte des suggestions en noir */
+}
+
+.hero-scene .suggestion-item .fw-bold {
+    color: #212529 !important; /* Nom de ville en noir */
+}
+
+.hero-scene .suggestion-item .text-muted {
+    color: #6c757d !important; /* Contexte en gris */
+}
+
+.hero-scene .suggestion-item:hover {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+}
+
+/* Styles pour la page de recherche de covoiturages */
+.search-page .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.search-page .btn-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.search-page .btn-link:hover {
+    color: #0056b3;
+}
+
+.search-page .collapse .card-body {
+    background-color: #fbfbfb;
+}
+
+.search-page .form-check {
+    margin-bottom: 0.5rem;
+}
+
+.search-page .form-check-label {
+    font-size: 0.9rem;
+}
+
+/* Améliorer l'affichage des cartes de covoiturage dans la recherche */
+.search-results .card {
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.search-results .card:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+.search-results .driver-info img {
+    object-fit: cover;
+}
+
+.search-results .btn-sm {
+    font-size: 0.8rem;
+}
+
+/* Responsive pour la page de recherche */
+@media (max-width: 768px) {
+    .search-page .card-body .row.g-3 > .col-md-3,
+    .search-page .card-body .row.g-3 > .col-md-2 {
+        margin-bottom: 1rem;
+    }
+    
+    .search-results .card .row .col-md-3,
+    .search-results .card .row .col-md-5,
+    .search-results .card .row .col-md-2 {
+        margin-bottom: 1rem;
+    }
+    
+    .search-results .card .text-md-end {
+        text-align: center !important;
+    }
+}
+
+/* Remplit la case des notes au survol */
+#grade-group label.btn:hover,
+#grade-group input[type="radio"]:focus + label.btn {
+    color: #fff;
+    background-color: #0d6efd !important; /* Couleur de fond au survol */
+    border-color: #0d6efd !important;
+}
+/* Remplit la case quand sélectionnée */
+#grade-group input[type="radio"]:checked + label.btn {
+    color: #fff;
+    background-color: #198754 !important; /* Couleur de fond quand sélectionné */
+    border-color: #198754 !important;
 }

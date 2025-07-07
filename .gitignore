@@ -1,2 +1,25 @@
-.idea
-node_modules
+# IDEs et éditeurs
+.idea/
+.vscode/
+
+
+# Dépendances
+node_modules/
+package-lock.json
+
+
+# Logs
+logs/
+*.log
+
+# Fichiers temporaires du système
+.DS_Store
+Thumbs.db
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+
+# Fichiers temporaires
+*.tmp
+*.temp

@@ -1,0 +1,94 @@
+<h1 id="title-h1" class="text-center text-secondary mb-4">Validation</h1>
+
+<!-- Onglets -->
+<ul class="nav nav-tabs mb-3" id="validationTabs">
+  <li class="nav-item">
+    <button class="nav-link active" id="tab-notices" data-bs-toggle="tab" data-bs-target="#tab-notices-pane" type="button" role="tab" aria-controls="tab-notices-pane" aria-selected="false">
+      Avis
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" id="tab-validations" data-bs-toggle="tab" data-bs-target="#tab-validations-pane" type="button" role="tab" aria-controls="tab-validations-pane" aria-selected="true">
+      Validations
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <div class="tab-pane fade show active" id="tab-notices-pane" role="tabpanel" aria-labelledby="tab-notices">
+  <!-- Sous-onglets -->
+  <ul class="nav nav-pills mb-3" id="subNoticesTabs">
+    <li class="nav-item">
+      <button class="nav-link active" id="tab-notices-todo" type="button">À voir</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tab-notices-closed" type="button">Clos</button>
+    </li>
+  </ul>
+    <!-- Liste des avis à examiner -->
+    <div class="container my-4">
+      <div id="notices-list" class="text-center text-muted">
+        <!-- Les avis seront injectés ici en JS -->
+        Aucun avis à valider pour le moment.
+      </div>
+    </div>
+  </div>
+  <div class="tab-pane fade" id="tab-validations-pane" role="tabpanel" aria-labelledby="tab-validations">
+  <!-- Sous-onglets -->
+  <ul class="nav nav-pills mb-3" id="subValidationTabs">
+    <li class="nav-item">
+      <button class="nav-link active" id="tab-validations-todo" type="button">À voir</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tab-validations-closed" type="button">Clos</button>
+    </li>
+  </ul>
+    <!-- Liste des tickets à examiner -->
+    <div class="container my-4">
+      <div id="tickets-list" class="text-center text-muted">
+        <!-- Les tickets seront injectés ici en JS -->
+        Aucun ticket à valider pour le moment, tout se passe bien !
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modale de prise en charge des avis -->
+<div id="notice-modal" class="modal-custom d-none">
+    <div class="modal-content-custom">
+        <div class="modal-header-custom">
+            <span id="close-notice-modal" class="close-modal">&times;</span>
+            Avis ID : <span id="modal-notice-id"></span>
+        </div>
+        <div class="modal-scrollable-content">
+            <div id="modal-notice-details">
+                <!-- Les détails de l'avis seront injectés ici en JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale de prise en charge des validations -->
+<div id="ticket-modal" class="modal-custom d-none">
+    <div class="modal-content-custom">
+        <div class="modal-header-custom">
+            <span id="close-ticket-modal" class="close-modal">&times;</span>
+            <span id="modal-ticket-id"></span>
+        </div>
+        <div class="modal-scrollable-content">
+            <h4 id="modal-ticket-title" class="mb-0">Prise en charge du ticket</h4>
+            <div id="modal-ticket-details">
+                <!-- Les détails du ticket seront injectés ici en JS -->
+            </div>
+            <div id="support-history" class="support-history mb-2"></div>
+            <div class="mb-3">
+                <label for="support-content" class="form-label">Commentaire de prise en charge :</label>
+                <textarea id="support-content" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="d-flex justify-content-between">
+                <button id="save-support" class="btn btn-primary">Enregistrer</button>
+                <button id="close-ticket" class="btn btn-danger">Clôturer</button>
+            </div>
+        </div>
+    </div>
+</div>
