@@ -861,7 +861,7 @@ class CovoiturageModal {
                 const passengersHTML = passagers.map(passenger => `
                     <div class="d-flex align-items-center mb-2 p-2 bg-white rounded border">
                         <div class="me-3">
-                            <img src="${url}uploads/photos/${passenger.photo || '/images/default-avatar.png'}" 
+                            <img src="${passenger.photo ? url + 'uploads/photos/' + passenger.photo : '/images/default-avatar.png'}" 
                                  alt="Photo de ${passenger.pseudo}" 
                                  class="rounded-circle" 
                                  style="width: 40px; height: 40px; object-fit: cover;">
