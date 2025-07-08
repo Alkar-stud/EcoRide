@@ -1,5 +1,5 @@
 // Module unifié pour gérer la modale de covoiturage (création, modification, lecture seule)
-import { apiUrl, url } from '../config.js';
+import { apiUrl, photoUrl } from '../config.js';
 import { getToken, sendFetchRequest, showMessage, getUserInfo } from '../script.js';
 
 class CovoiturageModal {
@@ -861,7 +861,7 @@ class CovoiturageModal {
                 const passengersHTML = passagers.map(passenger => `
                     <div class="d-flex align-items-center mb-2 p-2 bg-white rounded border">
                         <div class="me-3">
-                            <img src="${passenger.photo ? url + 'uploads/photos/' + passenger.photo : '/images/default-avatar.png'}" 
+                            <img src="${passenger.photo ? photoUrl + passenger.photo : '/images/default-avatar.png'}" 
                                  alt="Photo de ${passenger.pseudo}" 
                                  class="rounded-circle" 
                                  style="width: 40px; height: 40px; object-fit: cover;">
@@ -1036,7 +1036,7 @@ class CovoiturageModal {
         // Informations du chauffeur
         const driver = data.driver || {};
         const driverName = driver.pseudo || 'Chauffeur';
-        const driverPhoto = driver.photo ? `${url}uploads/photos/${driver.photo}` : '/images/default-avatar.png';
+        const driverPhoto = driver.photo ? `${photoUrl}${driver.photo}` : '/images/default-avatar.png';
 
         // Formatage des adresses selon la vraie structure de l'API
         const startAddress = this.formatRealAddress(data.startingStreet, data.startingPostCode, data.startingCity);

@@ -1,5 +1,5 @@
 // Module pour la recherche de covoiturages
-import { apiUrl, url } from '../config.js';
+import { apiUrl, photoUrl } from '../config.js';
 import { getToken, sendFetchRequest, setGradeStyle, setupDateRestriction } from '../script.js';
 import { joinRide } from './mescovoiturages-utils.js';
 import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
@@ -605,7 +605,7 @@ function generateRideCard(ride) {
                 <div class="row align-items-center">
                     <div class="col-md-3">
                         <div class="driver-info d-flex align-items-center mb-2">
-                            <img src="${url}uploads/photos/${ride.driver.photo}" alt="${ride.driver.pseudo}" 
+                            <img src="${photoUrl}${ride.driver.photo}" alt="${ride.driver.pseudo}" 
                                  class="rounded-circle me-2" width="40" height="40">
                             <div>
                                 <div>Chauffeur: ${ride.driver.pseudo}</div>
