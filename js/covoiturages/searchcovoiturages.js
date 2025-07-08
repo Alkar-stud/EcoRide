@@ -1,7 +1,7 @@
 // Module pour la recherche de covoiturages
 import { apiUrl, photoUrl } from '../config.js';
-import { getToken, sendFetchRequest, setGradeStyle, setupDateRestriction } from '../script.js';
-import { joinRide } from './mescovoiturages-utils.js';
+import { getToken, sendFetchRequest, setGradeStyle } from '../script.js';
+import { joinRide, setupDateRestriction } from './mescovoiturages-utils.js';
 import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
 
 // Variables globales

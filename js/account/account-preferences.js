@@ -98,7 +98,10 @@ async function addPreferences() {
     });
     
     try {
-        let response = await sendFetchRequest(apiUrl + "account/preferences/add", getToken(), 'POST', rawData)
+        let rawResponse = await sendFetchRequest(apiUrl + "account/preferences/add", getToken(), 'POST', rawData);
+        
+        let response = await rawResponse.json();
+
         if (response.id) {
             // Ajouter la nouvelle préférence à la liste locale
             preferencesTab.push(response);

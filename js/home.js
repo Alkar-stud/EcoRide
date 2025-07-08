@@ -1,4 +1,5 @@
- import { setupDateRestriction } from './script.js';
+ import { setupDateRestriction } from './covoiturages/mescovoiturages-utils.js';
+
 
 
 const departInput = document.getElementById("depart");
