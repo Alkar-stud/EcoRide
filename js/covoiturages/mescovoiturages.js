@@ -1,5 +1,5 @@
 // Module pour gérer les covoiturages de l'utilisateur
-import { apiUrl, url } from '../config.js';
+import { apiUrl, photoUrl } from '../config.js';
 import { getToken, sendFetchRequest, getUserInfo } from '../script.js';
 import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
 import { 
@@ -239,7 +239,7 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null, use
                 // Pour un passager, afficher les infos du chauffeur
                 driverInfo = `
                     <div class="driver-info d-flex align-items-center mb-2">
-                        <img src="${url}/uploads/photos/${covoiturage.driver.photo}" alt="${covoiturage.driver.pseudo}" 
+                        <img src="${photoUrl}${covoiturage.driver.photo}" alt="${covoiturage.driver.pseudo}" 
                              class="rounded-circle me-2" width="40" height="40">
                         <span>Chauffeur: ${covoiturage.driver.pseudo}</span>
                     </div>`;

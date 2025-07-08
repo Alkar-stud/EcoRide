@@ -1,5 +1,5 @@
 //Module pour gérer les infos de l'utilisateur
-import { apiUrl, url } from '../config.js';
+import { apiUrl, photoUrl } from '../config.js';
 import { getToken, eraseCookie, setGradeStyle, sendFetchRequest } from '../script.js';
 import { handleRoleAndTabs } from './account.js';
 
@@ -43,7 +43,7 @@ export async function displayUserInfo(user) {
     handleRoleAndTabs(user);
 
     // Vérification de la présence d'une photo, sinon on met une photo par défaut
-    user.photo = user.photo ? url + "uploads/photos/" + user.photo : "/images/default-avatar.png";
+    user.photo = user.photo ? photoUrl + user.photo : "/images/default-avatar.png";
     photo.src = user.photo;
     pseudoInput.value = user.pseudo;
 
@@ -79,7 +79,7 @@ async function setUserInfo() {
 
         let response = await sendFetchRequest(apiUrl + "account/upload", getToken(), 'POST', formData, true)
         if (response?.success) {
-            photo.src = url + "uploads/photos/" + response.fileName; // Met à jour la source de l'image
+            photo.src = photoUrl + response.fileName; // Met à jour la source de l'image
         } else {
             console.error("Erreur lors de l'envoi de la photo");
         }
