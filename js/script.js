@@ -56,6 +56,10 @@ function isConnected(){
     return !(getToken() == null || getToken == undefined);
 }
 
+/*
+ * Affiche ou masque les éléments en fonction des rôles de l'utilisateur
+ * Les éléments doivent avoir un attribut data-show avec les rôles requis, séparés par des virgules.
+ */
 function showAndHideElementsForRoles() {
     const allElementsToEdit = document.querySelectorAll('[data-show]');
     const userConnected = isConnected();
@@ -92,6 +96,10 @@ function showAndHideElementsForRoles() {
     });
 }
 
+
+/*
+ * Fonction pour neutraliser le code HTML potentiellement malveillant
+ */
 function sanitizeHtml(text){
     // Créez un élément HTML temporaire de type "div"
     const tempHtml = document.createElement('div');
@@ -105,11 +113,34 @@ function sanitizeHtml(text){
 }
 
 
-
+/*
+ * Vérifie si une chaîne de caractères est une date valide
+ */
 function isValidDate(dateString) {
     if (!dateString) return false;
     const date = new Date(dateString);
     return !isNaN(date.getTime());
+}
+
+
+/*
+ * Formate une date au format français (jj/mm/aaaa hh:mm)
+ */
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+
+/*
+ * Formate un objet date pour input type="date" au format aaaa-mm-dd
+ */
+function formatDateForInput(dateString) {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Mois commence à 0
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 
@@ -129,9 +160,20 @@ async function showMessage(messageId) {
     return true;
 }
 
+/*
+ * Fonction pour récupérer les informations de l'utilisateur connecté
+ */
 async function getUserInfo() {
     try {
-        let response = await sendFetchRequest(apiUrl + "account/me", getToken(), 'GET', null);
+        let rawResponse = await sendFetchRequest(apiUrl + "account/me", getToken(), 'GET', null);
+
+        if (!rawResponse.ok) {
+            console.error("Erreur lors de la récupération des informations de l'utilisateur : ", rawResponse.status, rawResponse.statusText);
+            return null;
+        }
+        let data = await rawResponse.json();
+console.log("Récupération des data brutes de l'utilisateur", data);
+        let response = data.data;
         if (response.id) {
             //Récupération des avis associés à l'utilisateur
             let responseNotices = await sendFetchRequest(apiUrl + "notices/" + response.id, getToken(), 'GET', null);
@@ -145,12 +187,26 @@ async function getUserInfo() {
     }
 }
 
+/*
+ * Fonction pour afficher les étoiles en fonction de la note
+ * La note doit être un nombre entre 0 et 10.
+ */
 function setGradeStyle(gradeValue, container = document.getElementById("starsContainer")) {
     // Vérifie si le conteneur existe
     if (!container) return;
     
     // Nettoie le conteneur
     container.innerHTML = "";
+
+    if (!gradeValue || isNaN(gradeValue)) {
+        // Si la note n'est pas valide, on affiche 5 étoiles vides
+        for (let i = 1; i <= 5; i++) {
+            const star = document.createElement("i");
+            star.classList.add("bi", "bi-star");
+            container.appendChild(star);
+        }
+        return;
+    }
 
     // La note est un nombre entre 0 et 10, on la ramène sur 5
     gradeValue = gradeValue / 2;
@@ -181,8 +237,16 @@ function setGradeStyle(gradeValue, container = document.getElementById("starsCon
     }
 }
 
-
-async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFile = false, silent404 = false) {
+/*
+ * Fonction pour envoyer une requête fetch avec des options personnalisées
+ * @param {string} url - L'URL de la requête
+ * @param {string} apiToken - Le token d'authentification (optionnel)
+ * @param {string} method - La méthode HTTP (GET, POST, PUT, DELETE)
+ * @param {Object} body - Le corps de la requête (optionnel)
+ * @param {boolean} isFile - Indique si le corps contient un fichier (pour gérer le multipart/form-data)
+  * @returns {Promise<Object>} - La réponse JSON
+ */
+async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFile = false) {
     let myHeaders = new Headers();
     if (apiToken) {
         myHeaders.append("X-AUTH-TOKEN", apiToken);
@@ -207,82 +271,32 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFi
     try {
         const response = await fetch(url, requestOptions);
 
-        if (response.status === 401) {
+        //On gère les erreurs HTTP 5xx ici, sinon c'est l'appelant qui gère les erreurs
+        if (response.status >= 500 && response.status < 600) {
+            const error = new Error("Erreur serveur, veuillez réessayer plus tard.");
+            error.status = response.status;
+            throw error;
+        }
+        // Gérer les erreurs HTTP 401 (Unauthorized)
+        // Si l'utilisateur n'est pas authentifié et que la page n'est pas la page de connexion, cela évite le rechargement de la page à cause de signout();
+        if (response.status === 401 && window.location.pathname !== "/signin") {
             signout();
             throw new Error("Unauthorized");
         }
-        if (response.status === 404) {
-            if (!silent404) {
-                console.error("Resource not found:", url);
-            }
-            const error = new Error("Ressource non trouvée");
-            error.status = 404;
+
+        //Sinon, on retourne la réponse brute
+        if (!response.ok) {
+            const error = new Error(`Erreur lors de la requête: ${response.statusText}`);
+            error.status = response.status;
             throw error;
         }
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        // Gérer les réponses 204 (No Content) qui n'ont pas de body JSON
-        if (response.status === 204) {
-            return null; // Pas de contenu à parser
-        }
-
-        return response.json();
+console.log("Récupération des informations brutes", response);
+        return response;
 
     } catch (error) {
         console.error('Fetch error:', error);
         throw error; // Rejeter la promesse pour que l'appelant puisse gérer l'erreur
     }
-}
-
-// Formatage de la date
-function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-}
-
-
-
-/**
- * Configurer la restriction de date pour empêcher la sélection de dates passées
- */
-async function setupDateRestriction(dateInput) {
-    if (!dateInput) {
-        console.warn('Champ date non trouvé');
-        return;
-    }
-
-    // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
-    const today = new Date();
-    const todayString = today.getFullYear() + '-' + 
-        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-        String(today.getDate()).padStart(2, '0');
-
-    // Définir la date minimum
-    dateInput.setAttribute('min', todayString);
-
-    //Définir la date par défaut à aujourd'hui
-    dateInput.value = todayString;
-    
-    // Ajouter un écouteur pour valider la date en temps réel
-    dateInput.addEventListener('change', function() {
-        const selectedDate = new Date(this.value);
-        const today = new Date();
-        
-        // Réinitialiser l'heure pour comparer seulement les dates
-        today.setHours(0, 0, 0, 0);
-        selectedDate.setHours(0, 0, 0, 0);
-        
-        if (selectedDate < today) {
-            this.classList.add('is-invalid');
-            this.classList.remove('is-valid');
-        } else {
-            this.classList.remove('is-invalid');
-            this.classList.add('is-valid');
-        }
-    });
 }
 
 
@@ -303,6 +317,6 @@ export {
     getUserInfo,
     setGradeStyle,
     sendFetchRequest,
-    formatDate, 
-    setupDateRestriction
+    formatDate,
+    formatDateForInput
 };

@@ -1,31 +1,16 @@
-import { getUserInfo, getCookie } from '../script.js';
+import { getUserInfo } from '../script.js';
 import { displayUserInfo } from './account-profile.js';
 import { displayUserPreferences } from './account-preferences.js';
 import { displayUserVehicles } from './account-vehicles.js';
 
 
+// Récupérer le bouton 'Enregistrer' pour pouvoir y faire référence
+const submitFormInfoUser = document.getElementById("btnFormInfoUser");
 
-async function chargerInfosUtilisateur() {
-    const user = await getUserInfo();
-    //Affichage des infos de l'utilisateur
-    if (!user) {
-        console.error("Aucun utilisateur trouvé");
-        return;
-    }
-    displayUserInfo(user);
-    displayUserPreferences(user.userPreferences);
-    displayUserVehicles(user.userVehicles);
-}
 
-// Gère l'affichage des rôles et des onglets sans recharger la page
+
+// Gère l'affichage des rôles et des onglets selon si le user est chauffeur, passager ou les deux
 export function handleRoleAndTabs(result) {
-    // Récupérer le bouton de soumission pour pouvoir y faire référence
-    const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
-    
-    //Si le role est différente de "ROLE_USER", on ne bloque pas le bouton Enregistrer si ni chauffeur ni passager
-    if (result.roles[0] != "ROLE_USER" && !result.isDriver && !result.isPassenger) {
-        submitFormInfoUser.disabled = false;
-    }
     //Si le user est chauffeur uniquement, on affiche les onglets de préférences et véhicules
     if (result.isDriver === true && result.isPassenger === false) {
         document.getElementById("isDriver").checked = true;
@@ -45,54 +30,39 @@ export function handleRoleAndTabs(result) {
     //Par défaut, on n'affiche que les infos personnelles
         document.getElementById("preferences-tab").classList.add('d-none');
         document.getElementById("vehicles-tab").classList.add('d-none');
-        if (getCookie('role') == "ROLE_USER") {
-            document.getElementById("roleNone").style.display = "block";
-            submitFormInfoUser.disabled = true;
-        } else {
-            submitFormInfoUser.setAttribute('title', "Vous devez choisir d'être chauffeur, passager ou les deux.");
-            submitFormInfoUser.disabled = false;
-        }
     }
 }
 
 
+/*
+ * Fonction pour charger les informations de l'utilisateur et gérer l'affichage des catégories
+ */
+async function chargerInfosUtilisateur() {
+    // Récupération des informations de l'utilisateur
+    const user = await getUserInfo();
+
+    //Affichage des infos de l'utilisateur
+    if (!user) {
+        console.error("Aucun utilisateur trouvé");
+        return;
+    }
+    //Affichage des informations de l'utilisateur
+    displayUserInfo(user);
+    //Affichage des préférences de l'utilisateur
+    displayUserPreferences(user.userPreferences);
+    //Affichage des véhicules de l'utilisateur
+    displayUserVehicles(user.userVehicles);
+}
+
+// Appel de la fonction pour charger les informations de l'utilisateur
 chargerInfosUtilisateur();
 
-// Fonction pour gérer la touche Entrée sur les champs de formulaire
+
+/*
+ * Fonction pour gérer la touche Entrée sur les champs de formulaire
+ */
 function setupEnterKeyListener() {
-    // Désactiver la soumission par défaut pour tous les formulaires
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Déterminer quel bouton doit être cliqué en fonction du formulaire
-            if (form.id === 'preferencesForm') {
-                const addPreferenceBtn = document.getElementById('addPreferenceBtn');
-                if (addPreferenceBtn && !addPreferenceBtn.disabled) {
-                    addPreferenceBtn.click();
-                }
-            } else if (form.id === 'vehiclesForm') {
-                const addVehicleBtn = document.getElementById('addVehicleBtn');
-                if (addVehicleBtn && !addVehicleBtn.disabled) {
-                    addVehicleBtn.click();
-                }
-            } else if (form.id === 'vehicleForm') {
-                const saveVehicleBtn = document.getElementById('saveVehicleBtn');
-                if (saveVehicleBtn && !saveVehicleBtn.disabled) {
-                    saveVehicleBtn.click();
-                }
-            } else {
-                // Formulaire d'informations personnelles par défaut
-                const submitButton = document.getElementById('btnSubmitFormInfoUser');
-                if (submitButton && !submitButton.disabled) {
-                    submitButton.click();
-                }
-            }
-        });
-    });
-    
-    // Utilisons aussi la délégation d'événements pour la touche Entrée
+    // Écouteur d'événement pour la touche Entrée
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Enter' && 
             (event.target.tagName === 'INPUT' || 
@@ -129,22 +99,15 @@ function setupEnterKeyListener() {
                     return false;
                 }
             } 
-            else {
-                // Par défaut, cliquer sur le bouton d'enregistrement des informations personnelles
-                const submitButton = document.getElementById('btnSubmitFormInfoUser');
-                if (submitButton && !submitButton.disabled) {
-                    submitButton.click();
-                    return false;
-                }
+            // Par défaut, cliquer sur le bouton d'enregistrement des informations personnelles
+            if (submitFormInfoUser && !submitFormInfoUser.disabled) {
+                submitFormInfoUser.click();
+                return false;
             }
         }
     }, true);
 }
 
-// S'assurer que les écouteurs sont configurés une fois que le DOM est chargé pour le fonctionnement de la touche Entrée
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupEnterKeyListener);
-} else {
-    // Le DOM est déjà chargé
-    setupEnterKeyListener();
-}
+//Les écouteurs pour le fonctionnement de la touche Entrée
+setupEnterKeyListener();
+

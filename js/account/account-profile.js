@@ -4,15 +4,12 @@ import { getToken, eraseCookie, setGradeStyle, sendFetchRequest } from '../scrip
 import { handleRoleAndTabs } from './account.js';
 
 
-
-/*
- * Récupération des éléments du DOM
- */
 //Pour les infos perso du user
 const pseudoInput = document.getElementById("PseudoInput");
 const photo = document.getElementById("photo"); // Affichage de la photo
 const photoInput = document.getElementById("PhotoInput"); //form pour changer la photo
 
+//Boutons pour action démo pour créditer ou retirer des crédits
 const credits = document.getElementById("credits");
 const AddCreditsBtn = document.getElementById("AddCreditsBtn");
 AddCreditsBtn.addEventListener("click", function() {
@@ -28,12 +25,11 @@ const grade = document.getElementById("grade");
 const notices = document.getElementById("notices");
 
 //Boutons
-const submitFormInfoUser = document.getElementById("btnSubmitFormInfoUser");
+const submitFormInfoUser = document.getElementById("btnFormInfoUser");
 submitFormInfoUser.addEventListener("click", setUserInfo);
 
 const btnDeleteAccount = document.getElementById("btnDelete");
 btnDeleteAccount.addEventListener("click", deleteAccount);
-
 
 
 // Fonction pour afficher les infos de l'utilisateur, si il est passager, chauffeur ou les deux, son pseudo et la photo s'il y en a une
@@ -47,12 +43,14 @@ export async function displayUserInfo(user) {
     photo.src = user.photo;
     pseudoInput.value = user.pseudo;
 
+    credits.innerHTML = user.credits;
+
+
     //La note globale de l'utilisateur
     if (user.grade !== null && user.grade !== undefined) {
         setGradeStyle(user.grade);
     }
-
-    credits.innerHTML = user.credits;
+    
     // Afficher les avis récents
     displayRecentNotices(user);
 
@@ -106,26 +104,6 @@ async function setUserInfo() {
         console.error("Erreur lors de l'envoi du fichier'", error);
     }
 
-}
-
-
-// Fonction pour supprimer le compte utilisateur
-async function deleteAccount() {
-    // Afficher une boîte de dialogue de confirmation
-    const userConfirmed = confirm("Êtes-vous sûr de vouloir supprimer votre compte ?");
-
-    if (userConfirmed) {
-        try {
-            await sendFetchRequest(apiUrl + "account", getToken(), 'DELETE');
-            //Suppression des cookies
-            eraseCookie("accesstoken");
-            eraseCookie("role");
-            // Rediriger vers la page d'accueil
-            window.location.href = "/";
-        } catch (error) {
-            console.error("Erreur lors de la suppression du compte", error);
-        }
-    }
 }
 
 
@@ -200,4 +178,25 @@ function displayRecentNotices(user) {
             });
         }
     });
+}
+
+
+
+// Fonction pour supprimer le compte utilisateur
+async function deleteAccount() {
+    // Afficher une boîte de dialogue de confirmation
+    const userConfirmed = confirm("Êtes-vous sûr de vouloir supprimer votre compte ?");
+
+    if (userConfirmed) {
+        try {
+            await sendFetchRequest(apiUrl + "account", getToken(), 'DELETE');
+            //Suppression des cookies
+            eraseCookie("accesstoken");
+            eraseCookie("role");
+            // Rediriger vers la page d'accueil
+            window.location.href = "/";
+        } catch (error) {
+            console.error("Erreur lors de la suppression du compte", error);
+        }
+    }
 }

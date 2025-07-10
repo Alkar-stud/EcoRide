@@ -1,7 +1,7 @@
 // Module pour la recherche de covoiturages
 import { apiUrl, photoUrl } from '../config.js';
-import { getToken, sendFetchRequest, setGradeStyle, setupDateRestriction } from '../script.js';
-import { joinRide } from './mescovoiturages-utils.js';
+import { getToken, sendFetchRequest, setGradeStyle } from '../script.js';
+import { joinRide, setupDateRestriction } from './mescovoiturages-utils.js';
 import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
 
 // Variables globales
@@ -555,7 +555,7 @@ function showResultsWithDateWarning(rides, warningMessage) {
 function displayRidesList(rides, headerMessage = null) {
     // Construire le HTML des résultats
     let resultsHtml = '';
-    
+console.log('Affichage des résultats de recherche:', rides);
     if (headerMessage) {
         resultsHtml += headerMessage;
     }
@@ -630,6 +630,7 @@ function generateRideCard(ride) {
                     <div class="col-md-2">
                         <div class="mb-2">
                             <i class="fas fa-car me-2"></i>${ride.vehicle.brand} ${ride.vehicle.model}
+                            <img src="/images/logo-voiture-${ride.vehicle.energy.toLowerCase()}.png" alt="${ride.vehicle.energy}">
                         </div>
                         <div>
                             <i class="fas fa-user me-1"></i> 

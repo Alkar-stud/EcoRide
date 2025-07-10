@@ -248,6 +248,7 @@ async function displayCovoiturages(type = 'driver', page = 1, status = null, use
                 vehicleInfo = `
                     <div class="mb-2">
                         <i class="fas fa-car me-2"></i>${covoiturage.vehicle.brand} ${covoiturage.vehicle.model}
+                        <img src="/images/logo-voiture-${covoiturage.vehicle.energy.toLowerCase()}.png" alt="${covoiturage.vehicle.energy}">
                     </div>
                     <div>
                         <i class="fas fa-user me-1"></i> 

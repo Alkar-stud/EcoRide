@@ -124,8 +124,21 @@ p {
     }
 }
 
+
 .container {
   min-width: 100%;
+}
+
+// Masquer par défaut (mobile)
+.d-none {
+  display: none !important;
+}
+
+// Afficher uniquement à partir de 768px (md)
+@media (min-width: 768px) {
+  .d-md-table-cell {
+    display: table-cell !important;
+  }
 }
 
 .img-introduction {
@@ -153,7 +166,7 @@ p {
 .allcovoiturages{
   a{
       display: block;
-      color: $black;
+      color: #000000;
       padding:10px;
   }
 }
