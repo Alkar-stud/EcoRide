@@ -5,5 +5,7 @@ $body: #FFFFFF;
 $font-family-sans-serif: "Montserrat", sans-serif !default;
 $font-family-serif: "Roboto", serif !default;
 
+$enable-responsive-utilities: true !default;
+
 // Import Bootstrap
 @import "../node_modules/bootstrap/scss/bootstrap";

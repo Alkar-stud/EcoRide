@@ -132,6 +132,17 @@ function formatDate(dateStr) {
     return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
+/*
+ * Formate un objet date pour input type="date" au format aaaa-mm-dd
+ */
+function formatDateForInput(dateString) {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Mois commence à 0
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 
 async function showMessage(messageId) {
     const messageElement = document.getElementById(messageId);
@@ -306,5 +317,6 @@ export {
     getUserInfo,
     setGradeStyle,
     sendFetchRequest,
-    formatDate
+    formatDate,
+    formatDateForInput
 };

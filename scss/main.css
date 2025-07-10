@@ -13808,10 +13808,20 @@ p {
     font-size: 1.25rem;
   }
 }
+/*
 .container {
   min-width: 100%;
 }
+*/
+.d-none {
+  display: none !important;
+}
 
+@media (min-width: 768px) {
+  .d-md-table-cell {
+    display: table-cell !important;
+  }
+}
 .img-introduction {
   padding: 4px;
   text-align: center;
@@ -13831,7 +13841,7 @@ p {
 
 .allcovoiturages a {
   display: block;
-  color: #000;
+  color: #000000;
   padding: 10px;
 }
 

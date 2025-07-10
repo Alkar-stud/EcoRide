@@ -3,44 +3,9 @@ import { apiUrl } from '../config.js';
 import { getToken, showMessage, sendFetchRequest } from '../script.js';
 
 
-/*
- * Récupération des éléments du DOM
- */
-const prefsLibelleInput = document.getElementById("prefsLibelle");
-const prefsDescriptionInput = document.getElementById("prefsDescription");
+let preferencesTab = []; // Liste locale des préférences
 
-const addPreferenceBtn = document.getElementById("addPreferenceBtn");
-
-addPreferenceBtn.addEventListener("click", function (event) {
-    // Empêcher le comportement par défaut du bouton
-    event.preventDefault();
-
-    // Appeler la fonction pour ajouter une préférence
-    addPreferences();
-});
-
-// Ajouter des listeners pour les boutons radio
-document.querySelectorAll('input[name="SmokeAsk"]').forEach(radio => {
-    radio.addEventListener("change", (event) => {
-        const description = event.target.value;
-        const id = event.target.dataset.id; // Récupérer l'ID de la préférence
-        savePreference(id, "smokingAllowed", description, "smokeConfirmationMessage");
-    });
-});
-
-document.querySelectorAll('input[name="PetAsk"]').forEach(radio => {
-    radio.addEventListener("change", (event) => {
-        const description = event.target.value;
-        const id = event.target.dataset.id; // Récupérer l'ID de la préférence
-        savePreference(id, "petsAllowed", description, "petConfirmationMessage");
-    });
-});
-
-
-
-let preferencesTab = []; // Liste des préférences
-
-//Fonction pour afficher les préférences
+//Afficher les préférences
 export function displayUserPreferences(preferences) {
     preferencesTab = preferences; // Pour ajouter et supprimer des préférences sans recharger la page
     // Vider le conteneur des préférences avant de les afficher
@@ -86,7 +51,37 @@ export function displayUserPreferences(preferences) {
     });
 }
 
-//Fonction pour ajouter une préférence
+
+/*
+ * Récupération des éléments du DOM
+ */
+const prefsLibelleInput = document.getElementById("prefsLibelle");
+const prefsDescriptionInput = document.getElementById("prefsDescription");
+
+const addPreferenceBtn = document.getElementById("addPreferenceBtn");
+
+addPreferenceBtn.addEventListener("click", function (event) {
+    // Appeler la fonction pour ajouter une préférence
+    addPreferences();
+});
+
+// Ajouter des listeners pour les boutons radio
+document.querySelectorAll('input[name="SmokeAsk"]').forEach(radio => {
+    radio.addEventListener("change", (event) => {
+        const description = event.target.value;
+        const id = event.target.dataset.id; // Récupérer l'ID de la préférence
+        savePreference(id, "smokingAllowed", description, "smokeConfirmationMessage");
+    });
+});
+document.querySelectorAll('input[name="PetAsk"]').forEach(radio => {
+    radio.addEventListener("change", (event) => {
+        const description = event.target.value;
+        const id = event.target.dataset.id; // Récupérer l'ID de la préférence
+        savePreference(id, "petsAllowed", description, "petConfirmationMessage");
+    });
+});
+
+//Pour ajouter une préférence
 async function addPreferences() {
     let libelle = prefsLibelleInput.value;
     let description = prefsDescriptionInput.value;
@@ -99,10 +94,13 @@ async function addPreferences() {
     
     try {
         let rawResponse = await sendFetchRequest(apiUrl + "account/preferences/add", getToken(), 'POST', rawData);
-        
-        let response = await rawResponse.json();
 
-        if (response.id) {
+        let dataResponse = await rawResponse.json();
+
+        if (dataResponse.success) {
+			let response = dataResponse.data;
+
+
             // Ajouter la nouvelle préférence à la liste locale
             preferencesTab.push(response);
 
@@ -115,7 +113,7 @@ async function addPreferences() {
             prefsDescriptionInput.value = '';
             return response;
         } else {
-            console.error("Erreur lors de l'ajout de la préférence: ", response);
+            console.error("Erreur lors de l'ajout de la préférence : ", dataResponse);
         }
     } catch (error) {
         console.error("Erreur lors de l'ajout de la préférence", error);
@@ -133,14 +131,22 @@ async function savePreference(preferenceId, libelle, description, confirmationMe
             description: description
         });
 
-        let response = await sendFetchRequest(apiUrl + "account/preferences/" + preferenceId, getToken(), 'PUT', rawData)
-        if (response.success) {
+        let rawResponse = await sendFetchRequest(apiUrl + "account/preferences/" + preferenceId, getToken(), 'PUT', rawData);
+        let dataResponse = await rawResponse.json();
+
+        if (dataResponse.success) {
+
             confirmationMessageLoading.style.display = "none";
             if (libelle === 'smokingAllowed' || libelle === 'petsAllowed') {
                 await showMessage(confirmationMessageId); // Afficher un message de succès
             } else {
                 // Ajouter la nouvelle préférence à la liste locale
-                preferencesTab.push(response);
+                let newPreference = {
+                    id: dataResponse.data?.id, // ou undefined si pas d'id retourné
+                    libelle: libelle,
+                    description: description
+                };
+                preferencesTab.push(newPreference);
 
                 displayUserPreferences(preferencesTab); // Réafficher la liste mise à jour
             }
@@ -149,9 +155,9 @@ async function savePreference(preferenceId, libelle, description, confirmationMe
             // Réinitialiser les champs du formulaire
             prefsLibelleInput.value = '';
             prefsDescriptionInput.value = '';
-            return response;
+            return dataResponse.success;
         } else {
-            console.error("Erreur lors de la sauvegarde de la préférence: ", response);
+            console.error("Erreur lors de la sauvegarde de la préférence : ", dataResponse);
         }
     } catch (error) {
         console.error("Erreur lors de la sauvegarde de la préférence", error);

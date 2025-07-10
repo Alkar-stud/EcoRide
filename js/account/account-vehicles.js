@@ -1,6 +1,6 @@
 // Module pour gérer les véhicules de l'utilisateur
 import { apiUrl } from '../config.js';
-import { getToken, isValidDate, sendFetchRequest } from '../script.js';
+import { getToken, isValidDate, formatDateForInput, sendFetchRequest } from '../script.js';
 
 // ======================
 // Fonctions utilitaires
@@ -93,6 +93,7 @@ function displayUserVehicles(vehicles) {
     vehicles.forEach(vehicle => {
         const vehicleRow = document.createElement("tr");
         vehicleRow.className = "vehicle";
+
         vehicleRow.innerHTML = `
             <td>${vehicle.brand} ${vehicle.model}</td>
             <td class="d-none d-md-table-cell">${vehicle.color}</td>
@@ -203,7 +204,9 @@ async function refreshVehiclesTab() {
     try {
         const url = `${apiUrl}vehicle/list`;
         const apiToken = getToken();
-        const vehicles = await sendFetchRequest(url, apiToken, 'GET');
+        const rawResponse = await sendFetchRequest(url, apiToken, 'GET');
+        const vehicles = await rawResponse.json();
+
         if (vehicles) {
             displayUserVehicles(vehicles);
             scrollToTop();
@@ -232,8 +235,10 @@ function openVehicleModal(vehicle = null, add = false) {
         document.getElementById("modalVehicleColor").value = vehicle.color;
         document.getElementById("modalVehicleLicensePlate").value = vehicle.licensePlate;
 
+		//const date = new Date(vehicle.licenseFirstDate).toLocaleDateString('fr-FR');
         const date = new Date(vehicle.licenseFirstDate);
-        const formattedDate = date.toISOString().split('T')[0];
+        const formattedDate = formatDateForInput(date);
+
         document.getElementById("modalVehicleLicenseFirstDate").value = formattedDate;
         document.getElementById("modalVehicleNbPlace").value = vehicle.maxNbPlacesAvailable;
 
