@@ -2,6 +2,7 @@
 import { apiUrl } from '../config.js'; // Import direct depuis config.js
 import { getToken, sendFetchRequest } from '../script.js'; // Import des fonctions utilitaires
 import covoiturageModal from './covoiturage-modal.js'; // Import de la modale unifiée
+import { displayCovoiturages } from './mescovoiturages.js';
 
 const DEFAULT_STATE = 'COMING'; // Statut par défaut pour les covoiturages
 

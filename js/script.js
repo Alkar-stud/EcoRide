@@ -126,7 +126,7 @@ function isValidDate(dateString) {
 /*
  * Formate une date au format français (jj/mm/aaaa hh:mm)
  */
-function formatDate(dateStr) {
+function formatDateTime(dateStr) {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -172,7 +172,7 @@ async function getUserInfo() {
             return null;
         }
         let data = await rawResponse.json();
-console.log("Récupération des data brutes de l'utilisateur", data);
+
         let response = data.data;
         if (response.id) {
             //Récupération des avis associés à l'utilisateur
@@ -286,11 +286,12 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFi
 
         //Sinon, on retourne la réponse brute
         if (!response.ok) {
-            const error = new Error(`Erreur lors de la requête: ${response.statusText}`);
-            error.status = response.status;
-            throw error;
+            // Au lieu de lancer une exception, on ajoute juste un warning en console
+            console.warn(`Attention: La requête a retourné une erreur: ${response.status} ${response.statusText}`);
+            // On retourne quand même la réponse pour que l'appelant puisse la traiter
+            return response;
         }
-console.log("Récupération des informations brutes", response);
+console.log("Récupération des informations brutes sendFetchRequest : ", response);
         return response;
 
     } catch (error) {
@@ -317,6 +318,6 @@ export {
     getUserInfo,
     setGradeStyle,
     sendFetchRequest,
-    formatDate,
+    formatDateTime,
     formatDateForInput
 };

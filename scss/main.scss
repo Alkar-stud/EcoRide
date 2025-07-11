@@ -403,3 +403,22 @@ p {
     background-color: #198754 !important; /* Couleur de fond quand sélectionné */
     border-color: #198754 !important;
 }
+
+// Personnalisation des onglets actifs avec la couleur secondary
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+  color: #fff;
+  background-color: var(--bs-secondary);
+  border-color: var(--bs-secondary);
+}
+
+// Pour le hover sur les onglets
+.nav-tabs .nav-link:hover:not(.active) {
+  border-color: var(--bs-secondary-bg-subtle);
+  color: var(--bs-secondary);
+}
+
+// Effet au focus
+.nav-tabs .nav-link:focus {
+  border-color: var(--bs-secondary);
+}
