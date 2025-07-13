@@ -362,7 +362,9 @@ class CovoiturageModal {
     // Charger les véhicules de l'utilisateur
     async loadUserVehicles() {
         try {
-            const response = await sendFetchRequest(`${apiUrl}vehicle/list`, getToken(), 'GET');
+            const rawResponse = await sendFetchRequest(`${apiUrl}vehicle/list`, getToken(), 'GET');
+            const response = await rawResponse.json();
+
             const vehicleSelect = document.getElementById('vehicle');
             
             if (!vehicleSelect) {
@@ -1047,7 +1049,7 @@ class CovoiturageModal {
         const vehicleInfo = vehicle.brand && vehicle.model ? 
             `${vehicle.brand} ${vehicle.model}` : 'Véhicule non spécifié';
 
-        // Places restantes - calcul basé sur la vraie structure
+        // Places restantes
         const totalPlaces = data.nbPlacesAvailable || 0;
         const passengersCount = (data.passenger && Array.isArray(data.passenger)) ? data.passenger.length : 0;
         const remainingSeats = totalPlaces - passengersCount;
@@ -1499,12 +1501,26 @@ async handleLeave() {
             const formData = this.collectFormData();
             
             if (this.currentMode === 'create') {
+
                 await sendFetchRequest(`${apiUrl}ride/add`, getToken(), 'POST', JSON.stringify(formData));
                 showMessage('Covoiturage créé avec succès !', 'success');
             } else {
+                //Si ce n'est pas création c'est que c'est modification
                 try {
                     await sendFetchRequest(`${apiUrl}ride/update/${this.covoiturageId}`, getToken(), 'PUT', JSON.stringify(formData));
                     showMessage('Covoiturage modifié avec succès !', 'success');
+
+                    // Ajouter un délai pour laisser le temps au serveur de mettre à jour
+                    setTimeout(() => {
+                        this.modal.hide();
+                        
+                        if (this.onSuccessCallback) {
+                            //Forcer l'affichage de l'onglet
+                            this.onSuccessCallback();
+                        }
+                    }, 500); // Délai de 500ms
+                    
+                    return;
                 } catch (error) {
                     // Gestion spéciale pour les erreurs JSON (réponse vide)
                     if (error?.message?.includes('Unexpected end of JSON input')) {

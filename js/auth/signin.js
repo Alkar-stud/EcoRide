@@ -1,6 +1,9 @@
 //Fichier JS de la page de connexion
-import { apiUrl } from '../config.js';
+//import { apiUrl } from '../config.js';
+import { apiService } from '../core/ApiService.js'; // Service API pour les requêtes
 import { setToken, setCookie, RoleCookieName, sendFetchRequest } from '../script.js';
+
+import { AuthService } from '../core/AuthService.js'; // Service d'authentification
 
 const mailInput = document.getElementById("EmailInput");
 const passwordInput = document.getElementById("PasswordInput");
@@ -13,61 +16,55 @@ btnSignin.addEventListener("click", function(event) {
     checkCredentials();
 });
 
-
 //Function permettant de valider tout le formulaire
 async function checkCredentials(){
     let dataForm = new FormData(signinForm);
 
-    let raw = JSON.stringify({
-        "email": dataForm.get("email"),
-        "password": dataForm.get("mdp")
-    });
+	let authService = new AuthService();
 
-    try {
-        let response = await sendFetchRequest(apiUrl+"login", null, 'POST', raw);
+	authService.login(dataForm.get("email"), dataForm.get("mdp"))
+		.then(response => {
+			console.log('Structure complète de la réponse:', response);
+			
+			// Adapter selon la structure réelle
+			const apiToken = response?.apiToken || response?.data?.apiToken;
+			
+			if (apiToken) {
+				mailInput.classList.remove("is-invalid");
+				passwordInput.classList.remove("is-invalid");
+				
+				// Utiliser le token et rediriger
+				setToken(apiToken);
+				
+				const roles = response?.roles || response?.data?.roles || [];
+				if (roles.length > 0) {
+					setCookie(RoleCookieName, roles[0], 1);
+				}
+				
+				// Redirection
+				const urlParams = new URLSearchParams(window.location.search);
+				const returnTo = urlParams.get("returnTo");
+				if (returnTo) {
+					window.location.replace(returnTo);
+				} else {
+					const redirectPage = urlParams.get("page");
+					if (redirectPage) {
+						window.location.replace(redirectPage);
+					} else {
+						window.location.replace("/");
+					}
+				}
+			} else {
+				mailInput.classList.add("is-invalid");
+				passwordInput.classList.add("is-invalid");
+				passwordInput.value = "";
+			}
+		})
+		.catch(error => {
+			console.error("Erreur lors de la connexion:", error);
+			mailInput.classList.add("is-invalid");
+			passwordInput.classList.add("is-invalid");
+			passwordInput.value = "";
+		});
 
-        // Vérifie si la réponse est OK
-        if (!response.ok) {
-            mailInput.classList.add("is-invalid");
-            passwordInput.classList.add("is-invalid");
-            passwordInput.value = "";
-            return;
-        }
-        let result = await response.json();
-        
-        // Vérification si l'authentification a échoué côté API
-        if (!result?.apiToken || result.error) {
-            mailInput.classList.add("is-invalid");
-            passwordInput.classList.add("is-invalid");
-            passwordInput.value = "";
-            return;
-        }
-
-        // Authentification réussie
-        mailInput.classList.remove("is-invalid");
-        passwordInput.classList.remove("is-invalid");
-        
-        const token = result.apiToken;
-        setToken(token);
-        setCookie(RoleCookieName, result.roles[0], 1);
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const returnTo = urlParams.get("returnTo");
-        
-        if (returnTo) {
-            window.location.replace(returnTo);
-        } else {
-            const redirectPage = urlParams.get("page");
-            if (redirectPage) {
-                window.location.replace(redirectPage);
-            } else {
-                window.location.replace("/");
-            }
-        }
-    } catch (error) {
-        console.error("Erreur lors de la connexion:", error);
-        mailInput.classList.add("is-invalid");
-        passwordInput.classList.add("is-invalid");
-        passwordInput.value = "";
-    }
 }

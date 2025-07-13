@@ -1,5 +1,7 @@
 // File: js/script.js
 import { apiUrl } from './config.js';
+import { authService } from './core/AuthService.js';
+
 
 // This file contains utility functions for handling cookies, user authentication, and UI interactions.
 // It includes functions to set, get, and erase cookies, check user connection status, and manage UI elements based on user roles.
@@ -7,16 +9,12 @@ const tokenCookieName = "accesstoken";
 const RoleCookieName = "role";
 const signoutBtn = document.getElementById("signout-btn");
 
-signoutBtn.addEventListener("click", signout);
+if (signoutBtn) {
+    signoutBtn.addEventListener("click", () => authService.logout());
+}
 
 function getRole(){
     return getCookie(RoleCookieName);
-}
-
-function signout(){
-    eraseCookie(tokenCookieName);
-    eraseCookie(RoleCookieName);
-    window.location.reload();
 }
 
 function setToken(token){
@@ -126,7 +124,7 @@ function isValidDate(dateString) {
 /*
  * Formate une date au format français (jj/mm/aaaa hh:mm)
  */
-function formatDate(dateStr) {
+function formatDateTime(dateStr) {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -172,7 +170,7 @@ async function getUserInfo() {
             return null;
         }
         let data = await rawResponse.json();
-console.log("Récupération des data brutes de l'utilisateur", data);
+
         let response = data.data;
         if (response.id) {
             //Récupération des avis associés à l'utilisateur
@@ -286,11 +284,12 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFi
 
         //Sinon, on retourne la réponse brute
         if (!response.ok) {
-            const error = new Error(`Erreur lors de la requête: ${response.statusText}`);
-            error.status = response.status;
-            throw error;
+            // Au lieu de lancer une exception, on ajoute juste un warning en console
+            console.warn(`Attention: La requête a retourné une erreur: ${response.status} ${response.statusText}`);
+            // On retourne quand même la réponse pour que l'appelant puisse la traiter
+            return response;
         }
-console.log("Récupération des informations brutes", response);
+console.log("Récupération des informations brutes sendFetchRequest : ", response);
         return response;
 
     } catch (error) {
@@ -310,13 +309,12 @@ export {
     eraseCookie,
     getToken,
     getCookie,
-    signout,
     sanitizeHtml,
     isValidDate,
     showMessage,
     getUserInfo,
     setGradeStyle,
     sendFetchRequest,
-    formatDate,
+    formatDateTime,
     formatDateForInput
 };

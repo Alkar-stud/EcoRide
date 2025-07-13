@@ -1,6 +1,4 @@
- import { setupDateRestriction } from './covoiturages/mescovoiturages-utils.js';
-
-
+//import { setupDateRestriction } from './covoiturages/mescovoiturages-utils.js';
 
 const departInput = document.getElementById("depart");
 const destinationInput = document.getElementById("destination");
@@ -233,3 +231,4 @@ function searchCovoiturages(event) {
     // Rediriger vers la page de recherche
     window.location.href = url;
 };
+
