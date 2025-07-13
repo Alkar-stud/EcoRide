@@ -11,15 +11,9 @@ import {
     getPassengerCount,
     renderPagination,
     showEmptyStateMessage,
-    initializeButton,
-    // Import des constantes
-    STATES_LABELS,
-    STATES_COLORS,
-    STATES_TRANSITIONS,
-    DEFAULT_STATE,
-    STATES_ORDER
+    initializeButton
 } from './mescovoiturages-utils.js'; // Import des fonctions utilitaires et des constantes pour alléger ce fichier
-
+import { DEFAULT_STATE, STATES_LABELS, STATES_COLORS, STATES_TRANSITIONS, STATES_ORDER } from './mescovoiturages-const.js';
 
 // Variables pour stocker les pages courantes
 let currentPageDriver = 1;
@@ -669,12 +663,48 @@ window.openValidationModal = function(id) {
 
 
 
+/**
+ * Vérifie s'il y a une intention d'inscription à un covoiturage en attente
+ * et propose à l'utilisateur de terminer l'action s'il est maintenant connecté
+ */
+function checkPendingRideJoin() {
+    // Vérifier si l'utilisateur est connecté
+    if (!getToken()) return;
+    
+    // Vérifier s'il y a une intention d'inscription en attente
+    const pendingJoinStr = localStorage.getItem('pendingRideJoin');
+    if (!pendingJoinStr) return;
+    
+    try {
+        // Récupérer et supprimer l'intention d'inscription
+        const pendingJoin = JSON.parse(pendingJoinStr);
+        localStorage.removeItem('pendingRideJoin');
+        
+        // Vérifier si l'intention n'est pas trop ancienne (30 minutes max)
+        const now = new Date().getTime();
+        const thirtyMinutesInMs = 30 * 60 * 1000;
+        if (now - pendingJoin.timestamp > thirtyMinutesInMs) return;
+        
+        // Afficher une boîte de dialogue pour proposer de terminer l'inscription
+        if (confirm('Vous êtes maintenant connecté. Souhaitez-vous vous inscrire au covoiturage ?')) {
+            if (pendingJoin.fromModal) {
+                // Si l'intention venait de la modale, ouvrir la modale de détails
+                covoiturageModal.show('passenger-view', { id: pendingJoin.rideId });
+            } else {
+                // Sinon, appeler directement la fonction d'inscription
+                joinRide(pendingJoin.rideId);
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors de la vérification de l\'intention d\'inscription:', error);
+        localStorage.removeItem('pendingRideJoin');
+    }
+}
 
 
-
+// Vérifier s'il y a une intention d'inscription en attente
+checkPendingRideJoin();
 
 //Initialisisation de la page
 initialize();
-
-
 

@@ -2,7 +2,7 @@ import Route from "./Route.js";
 
 //Définir ici vos routes
 export const allRoutes = [
-    new Route("/", "Accueil", "/pages/home.html", [], "/js/home.js"), 
+    new Route("/", "Accueil", "/pages/home.html", [], "/js/pages/home.js"), 
     new Route("/mentionslegales", "Mentions légales", "/pages/mentionslegales.html", []),
     new Route("/contact", "Contactez-nous", "/pages/contact.html", []),
     new Route("/signin", "Connexion", "/pages/auth/signin.html", ["disconnected"], "/js/auth/signin.js"),
@@ -14,8 +14,6 @@ export const allRoutes = [
     new Route("/ecoride/validation", "Validation des avis", "/pages/ecoride/validation.html", ["ROLE_EMPLOYEE", "ROLE_ADMIN"], "/js/ecoride/validations.js"),
     new Route("/ecoride/admin", "Administration", "/pages/ecoride/admin.html", ["ROLE_ADMIN"], "/js/ecoride/admin.js"),
 
-
-    
 ];
 
 //Le titre s'affiche comme ceci : Route.titre - websitename
