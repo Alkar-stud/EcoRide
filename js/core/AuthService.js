@@ -19,7 +19,6 @@ export class AuthService {
         
         try {
             const response = await apiService.post('login', loginData);
-console.log('AuthService response : ', response);
             if (!response.ok) {
                 // Gérer les erreurs HTTP (400, 401, etc.)
                 if (response.status === 401) {
@@ -92,7 +91,6 @@ console.log('AuthService response : ', response);
      * Déconnecte l'utilisateur
      */
     logout() {
-alert('ok');
         // Supprimer le token du localStorage
 		localStorage.removeItem(this.tokenKey);
 		
