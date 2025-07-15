@@ -111,35 +111,8 @@ function sanitizeHtml(text){
 }
 
 
-/*
- * Vérifie si une chaîne de caractères est une date valide
- */
-function isValidDate(dateString) {
-    if (!dateString) return false;
-    const date = new Date(dateString);
-    return !isNaN(date.getTime());
-}
 
 
-/*
- * Formate une date au format français (jj/mm/aaaa hh:mm)
- */
-function formatDateTime(dateStr) {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-}
-
-/*
- * Formate un objet date pour input type="date" au format aaaa-mm-dd
- */
-function formatDateForInput(dateString) {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Mois commence à 0
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 
 async function showMessage(messageId) {
@@ -278,7 +251,7 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFi
         // Gérer les erreurs HTTP 401 (Unauthorized)
         // Si l'utilisateur n'est pas authentifié et que la page n'est pas la page de connexion, cela évite le rechargement de la page à cause de signout();
         if (response.status === 401 && window.location.pathname !== "/signin") {
-            signout();
+            authService.logout();
             throw new Error("Unauthorized");
         }
 
@@ -310,11 +283,8 @@ export {
     getToken,
     getCookie,
     sanitizeHtml,
-    isValidDate,
     showMessage,
     getUserInfo,
     setGradeStyle,
-    sendFetchRequest,
-    formatDateTime,
-    formatDateForInput
+    sendFetchRequest
 };

@@ -1,4 +1,4 @@
-//import { setupDateRestriction } from './covoiturages/mescovoiturages-utils.js';
+alert('ok');
 
 const departInput = document.getElementById("depart");
 const destinationInput = document.getElementById("destination");
@@ -20,6 +20,8 @@ btnSearch.addEventListener("click", searchCovoiturages);
 // Configurer l'autocomplétion pour les champs de ville
 setupCityAutocomplete("depart", "departSuggestions");
 setupCityAutocomplete("destination", "destinationSuggestions");
+
+
 
 // Configurer la date minimum pour empêcher la sélection de dates passées
 setupDateRestriction(dateInput);
