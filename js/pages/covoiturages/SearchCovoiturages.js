@@ -433,7 +433,7 @@ export class SearchCovoiturages {
 								<p class="mb-1">
 									<i class="fas fa-car me-1"></i>${covoiturage.vehicle.brand} ${covoiturage.vehicle.model}
 									<span class="ms-1 badge bg-secondary">${covoiturage.vehicle.color}</span>
-									${isEco ? '<span class="ms-1 badge bg-success"><i class="fas fa-leaf me-1"></i>Écologique</span>' : ''}
+									<img src="/images/logo-voiture-${covoiturage.vehicle.energy.toLowerCase()}.png" alt="${covoiturage.vehicle.brand} ${covoiturage.vehicle.model}" class="rounded-circle">
 								</p>
 								<p class="mb-0">
 									<i class="fas fa-users me-1"></i>${remainingSeats} place${remainingSeats > 1 ? 's' : ''} disponible${remainingSeats > 1 ? 's' : ''}

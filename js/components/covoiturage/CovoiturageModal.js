@@ -322,7 +322,7 @@ console.log('Détails du covoiturage:', ride);
                     
                     <div class="col-md-6">
                         <div class="card h-100">
-                            <div class="card-header bg-secondary text-white">
+                            <div class="card-header ${isEco ? 'bg-primary' : 'bg-secondary'} text-white">
                                 <i class="fas fa-car me-2"></i>Véhicule
                             </div>
                             <div class="card-body">
@@ -351,9 +351,9 @@ console.log('Détails du covoiturage:', ride);
                                 <i class="fas fa-money-bill-wave me-2"></i>Tarif
                             </div>
                             <div class="card-body text-center">
-                                <h3 class="display-4 text-primary mb-3">
+                                <h4 class="display-5 text-primary mb-3">
                                     ${ride.price} <img src="/images/logo_credit_light.png" alt="Crédit" style="width: 32px; height: 32px;">
-                                </h3>
+                                </h4>
                                 <p class="mb-0">Prix par personne pour ce trajet</p>
                             </div>
                         </div>
