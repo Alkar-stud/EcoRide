@@ -4,8 +4,6 @@
 export class AddressAutocomplete {
     constructor() {
         this.searchTimeouts = {};
-        console.log("AddressAutocomplete: Initialisation...");
-
     }
 
     /**

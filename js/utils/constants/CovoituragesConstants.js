@@ -1,3 +1,9 @@
+const ENERGIES = {
+    ECO: 'Électrique',
+    ALMOSTECO: 'Hybride',
+    NOTECO: 'Carburant inflammable'
+};
+
 const DEFAULT_STATE = 'COMING'; // Statut par défaut pour les covoiturages
 
 const STATES_LABELS = {
@@ -42,7 +48,8 @@ cancel: { initial: ['COMING'], become: 'CANCELED' }
 };
 
 
-export {    
+export {
+    ENERGIES,
     STATES_LABELS,
     STATES_COLORS,
     STATES_TRANSITIONS,

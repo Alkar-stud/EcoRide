@@ -2,10 +2,11 @@ import { photoUrl } from '../../config.js';
 import { CovoiturageSearch } from '../../components/covoiturage/CovoiturageSearch.js';
 import { apiService } from '../../core/ApiService.js';
 import { DateUtils } from '../../utils/helpers/DateHelper.js'; // Ajouter cette importation
+import { covoiturageModal } from '../../components/covoiturage/CovoiturageModal.js';
+import { setGradeStyle } from '../../utils/RatingUtils.js';
 
 export class SearchCovoiturages {
     constructor() {
-        console.log("SearchCovoiturages: Initialisation...");
         
         // Éléments DOM spécifiques à cette page
         this.resultsContainer = document.getElementById('searchResults');
@@ -125,7 +126,6 @@ export class SearchCovoiturages {
 			
 			// Extraire les données JSON de la réponse
 			const responseData = await response.json();
-console.log('Données JSON reçues de l\'API:', responseData);
 			
 			// Mettre à jour l'URL avec les paramètres de recherche sans recharger la page
 			//l'opérateur spread (symbole composé de trois points) "..." permet de scinder un objet itérable, donc aussi les tableaux, en ses valeurs individuelles.
@@ -214,16 +214,7 @@ console.log('Données JSON reçues de l\'API:', responseData);
             `;
         }
     }
-    
-    
-    /**
-     * Affiche les détails d'un covoiturage
-     */
-    viewCovoiturageDetails(covoiturageId) {
-        // Ouvrir la modale avec les détails du covoiturage
-        console.log(`Afficher détails du covoiturage ${covoiturageId}`);
-        // Logique pour charger et afficher les détails...
-    }
+
     
 	/**
 	 * Affiche les résultats de recherche
@@ -402,7 +393,7 @@ console.log('Données JSON reçues de l\'API:', responseData);
 				const arrivalFormattedTime = arrivalDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 				
 				const isEco = covoiturage.vehicle?.energy === 'ECO';
-				
+
 				html += `
 					<div class="list-group-item list-group-item-action p-3 ${isEco ? 'border-success' : ''} mb-2">
 						<div class="row align-items-center">
@@ -430,10 +421,11 @@ console.log('Données JSON reçues de l\'API:', responseData);
 									</div>
 									<div>
 										<strong>${covoiturage.driver.pseudo}</strong>
-										<div>
-											<i class="fas fa-star text-warning me-1"></i>
-											${(covoiturage.driver.grade / 2).toFixed(1)}/5
-										</div>
+                                        <div class="d-flex align-items-center">
+                                            <div id="grade-${covoiturage.id}" class="me-2">
+                                                <span>${(covoiturage.driver.grade / 2).toFixed(1)}/5</span>
+                                            </div>
+                                        </div>
 									</div>
 								</div>
 							</div>
@@ -455,15 +447,23 @@ console.log('Données JSON reçues de l\'API:', responseData);
 							</div>
 						</div>
 					</div>`;
-			});
+            });
 			
 			html += '</div></div>'; // Fermeture de la vue desktop
 			
 			html += '</div>'; // Fermeture du conteneur principal
-			
+
 			// Afficher le HTML dans le conteneur
 			this.resultsContainer.innerHTML = html;
 			
+            // Ajouter les étoiles de notation pour chaque chauffeur
+            response.rides.forEach(ride => {
+                const gradeContainer = document.getElementById(`grade-${ride.ride.id}`);
+                if (gradeContainer && ride.ride.driver.grade !== undefined) {
+                    setGradeStyle(ride.ride.driver.grade, gradeContainer);
+                }
+            });
+
 			// Attacher les écouteurs d'événements aux boutons "Voir détails"
 			document.querySelectorAll('.view-covoiturage').forEach(button => {
 				button.addEventListener('click', (e) => {
@@ -531,15 +531,66 @@ console.log('Données JSON reçues de l\'API:', responseData);
 		}
 	}
 
-	/**
-	 * Affiche les détails d'un covoiturage
-	 * @param {number} covoiturageId - ID du covoiturage
-	 */
-	viewCovoiturageDetails(covoiturageId) {
-		console.log(`Afficher détails du covoiturage ${covoiturageId}`);
-		// Vous pouvez implémenter ici la logique pour afficher les détails du covoiturage
-		// Par exemple, ouvrir une modale avec les détails
-	}
+    /**
+     * Affiche les détails d'un covoiturage
+     * @param {number} covoiturageId - ID du covoiturage
+     */
+    async viewCovoiturageDetails(covoiturageId) {
+        if (!covoiturageId) {
+            console.error("ID de covoiturage manquant");
+            return;
+        }
+        
+        try {
+            // Afficher un indicateur de chargement
+            this.showLoading(true);
+            
+            // Récupérer les données du covoiturage depuis l'API
+            const response = await apiService.get(`ride/show/${covoiturageId}`);
+
+            if (!response.ok) {
+                throw new Error(`Erreur lors de la récupération des détails du covoiturage: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            // Déterminer le mode d'affichage en fonction du rôle de l'utilisateur
+            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            const userId = userInfo.id;
+console.log('userInfo : ', userInfo);
+            let mode = 'view'; // Mode par défaut (visiteur ou utilisateur non inscrit)
+            
+            if (userId) {
+                if (data.ride.driver && data.ride.driver.id === userId) {
+                    mode = 'edit'; // L'utilisateur est le conducteur
+                } else if (data.passenger && Array.isArray(data.passenger)) {
+                    // Vérifier si l'utilisateur est un passager
+                    const isPassenger = data.passenger.some(p => p.id === userId);
+                    if (isPassenger) {
+                        mode = 'passenger-view'; // L'utilisateur est un passager
+                    }
+                }
+            }
+            
+            // Afficher la modale avec les données du covoiturage
+            covoiturageModal.show(mode, data, {
+                onSuccess: () => {
+                    // Rafraîchir les résultats après une action
+                    this.performSearch();
+                }
+            });
+            
+        } catch (error) {
+            console.error("Erreur lors de l'affichage des détails:", error);
+            this.resultsContainer.innerHTML = `
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">Erreur</h4>
+                    <p>Impossible de charger les détails du covoiturage.</p>
+                </div>
+            `;
+        } finally {
+            this.showLoading(false);
+        }
+    }
     
 }
 

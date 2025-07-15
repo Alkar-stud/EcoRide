@@ -1,6 +1,7 @@
 // Module pour gérer les véhicules de l'utilisateur
 import { apiUrl } from '../config.js';
-import { getToken, isValidDate, formatDateForInput, sendFetchRequest } from '../script.js';
+import { getToken, sendFetchRequest } from '../script.js';
+import { DateUtils } from '../utils/helpers/DateHelper.js';
 
 // ======================
 // Fonctions utilitaires
@@ -48,7 +49,7 @@ function validateVehicleData(vehicleData) {
         }
     }
 
-    return isValidDate(vehicleData.licenseFirstDate);
+    return DateUtils.isValidDate(vehicleData.licenseFirstDate);
 }
 
 // ======================
@@ -237,7 +238,7 @@ function openVehicleModal(vehicle = null, add = false) {
 
 		//const date = new Date(vehicle.licenseFirstDate).toLocaleDateString('fr-FR');
         const date = new Date(vehicle.licenseFirstDate);
-        const formattedDate = formatDateForInput(date);
+        const formattedDate = DateUtils.formatDateForInput(date);
 
         document.getElementById("modalVehicleLicenseFirstDate").value = formattedDate;
         document.getElementById("modalVehicleNbPlace").value = vehicle.maxNbPlacesAvailable;

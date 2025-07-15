@@ -50,7 +50,6 @@ export class CovoiturageSearch {
      * Initialise le composant
      */
     initialize() {
-        console.log("CovoiturageSearch: Initialisation...");
         
         // Initialiser l'autocomplétion
         this.setupAutocomplete();
