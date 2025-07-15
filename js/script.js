@@ -262,7 +262,7 @@ async function sendFetchRequest(url, apiToken, method = 'GET', body = null, isFi
             // On retourne quand même la réponse pour que l'appelant puisse la traiter
             return response;
         }
-console.log("Récupération des informations brutes sendFetchRequest : ", response);
+//console.log("Récupération des informations brutes sendFetchRequest : ", response);
         return response;
 
     } catch (error) {
