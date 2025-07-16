@@ -4,6 +4,7 @@ import { apiService } from '../../core/ApiService.js';
 import { DateUtils } from '../../utils/helpers/DateHelper.js'; // Ajouter cette importation
 import { covoiturageModal } from '../../components/covoiturage/CovoiturageModal.js';
 import { setGradeStyle } from '../../utils/RatingUtils.js';
+import { getUserInfo, getToken } from '../../script.js';
 
 export class SearchCovoiturages {
     constructor() {
@@ -40,8 +41,30 @@ export class SearchCovoiturages {
         
         // Initialiser les fonctionnalités spécifiques à la page de recherche
         this.initializePageSpecificFeatures();
+        
+        // Vérifier s'il faut rouvrir une modale après connexion
+        this.checkForRideToReopen();
     }
     
+    /**
+     * Vérifie s'il faut rouvrir une modale après connexion
+     */
+    checkForRideToReopen() {
+        // Récupérer l'ID du covoiturage stocké (si disponible)
+        const rideId = localStorage.getItem('returnToRideId');
+        
+        if (rideId) {
+            // Supprimer les informations stockées
+            localStorage.removeItem('returnToRideId');
+            localStorage.removeItem('returnToUrl');
+            
+            // Rouvrir la modale avec l'ID récupéré
+            setTimeout(() => {
+                this.viewCovoiturageDetails(rideId);
+            }, 500); // Délai court pour s'assurer que la page est chargée
+        }
+    }
+
     initializePageSpecificFeatures() {
         // Initialiser le bouton de réinitialisation des filtres
         if (this.resetFiltersBtn) {
@@ -433,7 +456,7 @@ export class SearchCovoiturages {
 								<p class="mb-1">
 									<i class="fas fa-car me-1"></i>${covoiturage.vehicle.brand} ${covoiturage.vehicle.model}
 									<span class="ms-1 badge bg-secondary">${covoiturage.vehicle.color}</span>
-									${isEco ? '<span class="ms-1 badge bg-success"><i class="fas fa-leaf me-1"></i>Écologique</span>' : ''}
+									<img src="/images/logo-voiture-${covoiturage.vehicle.energy.toLowerCase()}.png" alt="${covoiturage.vehicle.brand} ${covoiturage.vehicle.model}" class="rounded-circle">
 								</p>
 								<p class="mb-0">
 									<i class="fas fa-users me-1"></i>${remainingSeats} place${remainingSeats > 1 ? 's' : ''} disponible${remainingSeats > 1 ? 's' : ''}
@@ -546,21 +569,31 @@ export class SearchCovoiturages {
             this.showLoading(true);
             
             // Récupérer les données du covoiturage depuis l'API
-            const response = await apiService.get(`ride/show/${covoiturageId}`);
+            const response = await apiService.get(`ride/show/${covoiturageId}`, getToken() ? getToken():'');
 
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération des détails du covoiturage: ${response.status}`);
             }
             
             const data = await response.json();
-            // Déterminer le mode d'affichage en fonction du rôle de l'utilisateur
-            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-            const userId = userInfo.id;
-console.log('userInfo : ', userInfo);
+
+        // Déterminer le mode d'affichage en fonction du rôle de l'utilisateur
+        // Vérifier d'abord si le token existe
+        let userInfo = null;
+        let userId = null;
+
+        if (getToken()) {
+            // Récupérer les informations de l'utilisateur seulement si le token existe
+            userInfo = await getUserInfo();
+            userId = userInfo ? userInfo.id : null;
+        }
+
             let mode = 'view'; // Mode par défaut (visiteur ou utilisateur non inscrit)
-            
+
             if (userId) {
-                if (data.ride.driver && data.ride.driver.id === userId) {
+				let dataRide = data.data;
+
+                if (dataRide.driver && dataRide.driver.id === userId) {
                     mode = 'edit'; // L'utilisateur est le conducteur
                 } else if (data.passenger && Array.isArray(data.passenger)) {
                     // Vérifier si l'utilisateur est un passager
@@ -570,7 +603,6 @@ console.log('userInfo : ', userInfo);
                     }
                 }
             }
-            
             // Afficher la modale avec les données du covoiturage
             covoiturageModal.show(mode, data, {
                 onSuccess: () => {

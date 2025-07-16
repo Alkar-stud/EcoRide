@@ -11,21 +11,21 @@
         </div>
         <div class="mb-3">
           <label for="EmailInput" class="form-label">Email</label>
-          <input type="email" class="form-control" id="EmailInput" placeholder="test@mail.fr" name="email"> 
+          <input type="email" class="form-control" id="EmailInput" placeholder="test@mail.fr" name="email" required autocomplete="email"> 
           <div class="invalid-feedback">
             Le mail n'est pas au bon format
         </div>
         </div>
         <div class="mb-3">
           <label for="PasswordInput" class="form-label">Mot de passe</label>
-          <input type="password" class="form-control" id="PasswordInput" name="mdp">
+          <input type="password" class="form-control" id="PasswordInput" name="mdp" autocomplete="current-password">
           <div class="invalid-feedback">
             Le mot de passe n'est pas assez robuste : Au moins 8 caractères, comprenant au moins 1 lettre majuscule, 1 lettre minuscule, 1 chiffre et 1 caractère spécial
           </div>
         </div>
         <div class="mb-3">
             <label for="ValidatePasswordInput" class="form-label">Validez votre mot de passe</label>
-            <input type="password" class="form-control" id="ValidatePasswordInput" name="PasswordConfirm">
+            <input type="password" class="form-control" id="ValidatePasswordInput" name="PasswordConfirm" autocomplete="current-password">
             <div class="invalid-feedback">
               La confirmation n'est pas identique au mot de passe
           </div>
@@ -38,6 +38,6 @@
         </div>
     </form>
     <div class="text-center pt-3">
-        <a href="/signin">Vous avez déjà un compte ? Connectez-vous ici !</a>
+        <a href="/signin" id="goSignin">Vous avez déjà un compte ? Connectez-vous ici !</a>
     </div>
 </div>

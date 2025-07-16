@@ -45,7 +45,7 @@ export class ApiService {
                 requestOptions.body = body;
             }
         }
-        
+//console.log('URL de la requête :', url);
         try {
            
             // Stocker la promesse de requête

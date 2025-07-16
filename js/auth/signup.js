@@ -16,6 +16,45 @@ inputValidationPassword.addEventListener("keyup", validateForm);
 
 btnValidation.addEventListener("click", inscrireUtilisateur);
 
+
+// Fonction pour mettre à jour le lien de connexion avec les paramètres d'URL
+function updateSigninLink() {
+    // Récupérer les paramètres d'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnTo = urlParams.get("returnTo");
+    const rideId = urlParams.get("rideId");
+    
+    // Si rideId est présent, le stocker dans localStorage
+    if (rideId) {
+        localStorage.setItem('returnToRideId', rideId);
+    }
+    
+    // Utiliser l'ID pour sélectionner directement le lien
+    const signinLink = document.getElementById("goSignin");
+    
+    if (signinLink) {
+        let href = "/signin";
+        if (returnTo) {
+            href += `?returnTo=${encodeURIComponent(returnTo)}`;
+            if (rideId) {
+                href += `&rideId=${rideId}`;
+            }
+        } else if (rideId) {
+            href += `?rideId=${rideId}`;
+        }
+        signinLink.href = href;
+    } else {
+        console.log("Lien de connexion non trouvé, nouvelle tentative dans 100ms");
+        // Si le lien n'est pas trouvé, réessayer après un court délai
+        setTimeout(updateSigninLink, 100);
+    }
+}
+
+// Exécuter la fonction immédiatement
+updateSigninLink();
+
+
+
 //Function permettant de valider tout le formulaire
 function validateForm(){
     const pseudoOk = validateRequired(inputPseudo);
@@ -103,16 +142,24 @@ async function inscrireUtilisateur(){
         let result = await sendFetchRequest(apiUrl + "registration", null, 'POST', raw);
         alert("Vous êtes maintenant inscrit, vous pouvez vous connecter.");
         
-        // Récupérer le paramètre returnTo s'il existe
+        // Récupérer les paramètres d'URL
         const urlParams = new URLSearchParams(window.location.search);
         const returnTo = urlParams.get("returnTo");
+        const rideId = urlParams.get("rideId");
         
-        // Rediriger vers la page de connexion avec le paramètre returnTo si disponible
+        // Construire l'URL de redirection
+        let redirectUrl = "/signin";
         if (returnTo) {
-            window.location.href = `/signin?returnTo=${encodeURIComponent(returnTo)}`;
-        } else {
-            window.location.href = "/signin";
+            redirectUrl += `?returnTo=${encodeURIComponent(returnTo)}`;
+            if (rideId) {
+                redirectUrl += `&rideId=${rideId}`;
+            }
+        } else if (rideId) {
+            redirectUrl += `?rideId=${rideId}`;
         }
+        
+        // Rediriger vers la page de connexion
+        window.location.href = redirectUrl;
     } catch (error) {
         alert("Erreur lors de l'inscription");
         console.error(error);

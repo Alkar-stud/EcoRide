@@ -1,4 +1,5 @@
 import { photoUrl } from '../../config.js';
+import { getToken } from '../../script.js';
 import { ENERGIES } from '../../utils/constants/CovoituragesConstants.js';
 import { apiService } from '../../core/ApiService.js';
 import { setGradeStyle } from '../../utils/RatingUtils.js';
@@ -322,7 +323,7 @@ console.log('Détails du covoiturage:', ride);
                     
                     <div class="col-md-6">
                         <div class="card h-100">
-                            <div class="card-header bg-secondary text-white">
+                            <div class="card-header ${isEco ? 'bg-primary' : 'bg-secondary'} text-white">
                                 <i class="fas fa-car me-2"></i>Véhicule
                             </div>
                             <div class="card-body">
@@ -351,9 +352,9 @@ console.log('Détails du covoiturage:', ride);
                                 <i class="fas fa-money-bill-wave me-2"></i>Tarif
                             </div>
                             <div class="card-body text-center">
-                                <h3 class="display-4 text-primary mb-3">
+                                <h4 class="display-5 text-primary mb-3">
                                     ${ride.price} <img src="/images/logo_credit_light.png" alt="Crédit" style="width: 32px; height: 32px;">
-                                </h3>
+                                </h4>
                                 <p class="mb-0">Prix par personne pour ce trajet</p>
                             </div>
                         </div>
@@ -437,7 +438,7 @@ console.log('Détails du covoiturage:', ride);
         const closeButton = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>`;
         
         let actionButtons = '';
-        
+
         if (this.currentMode === 'edit') {
             // Mode édition (conducteur)
             actionButtons = `
@@ -457,19 +458,35 @@ console.log('Détails du covoiturage:', ride);
             `;
         } else {
             // Mode visualisation standard (utilisateur connecté non inscrit ou visiteur)
-            const isLoggedIn = !!localStorage.getItem('token');
-            if (isLoggedIn && this.currentCovoiturage.availableSeats > 0) {
+            const isLoggedIn = !!getToken();
+            if (isLoggedIn && this.currentCovoiturage.data.nbPlacesAvailable > 0) {
                 actionButtons = `
                     <button type="button" id="reserveButton" class="btn btn-success">
                         <i class="fas fa-check-circle me-1"></i>Réserver ma place
                     </button>
                 `;
             } else if (!isLoggedIn) {
+                // Stocker l'ID du covoiturage actuel dans localStorage pour y revenir après connexion
+                const currentRideId = this.currentCovoiturage.data.id;
+                const returnUrl = window.location.pathname + window.location.search;
+                
                 actionButtons = `
-                    <a href="/login" class="btn btn-primary">
+                    <a href="/signin?returnTo=${encodeURIComponent(returnUrl)}&rideId=${currentRideId}" 
+                    class="btn btn-primary" id="loginToReserveBtn">
                         <i class="fas fa-sign-in-alt me-1"></i>Se connecter pour réserver
                     </a>
                 `;
+                
+                // Ajouter un événement pour stocker les infos dans localStorage au clic
+                setTimeout(() => {
+                    const loginBtn = document.getElementById('loginToReserveBtn');
+                    if (loginBtn) {
+                        loginBtn.addEventListener('click', () => {
+                            localStorage.setItem('returnToRideId', currentRideId);
+                            localStorage.setItem('returnToUrl', returnUrl);
+                        });
+                    }
+                }, 100);
             }
         }
         
@@ -480,18 +497,24 @@ console.log('Détails du covoiturage:', ride);
      * Gère la réservation d'une place
      */
     async handleReservation() {
-        if (!this.currentCovoiturage || !this.currentCovoiturage.id) return;
-        
+        if (!this.currentCovoiturage || !this.currentCovoiturage.data.id) return;
         try {
-            const response = await apiService.post(`ride/${this.currentCovoiturage.id}/reserve`, {});
-            
-            if (response.success) {
-                this.showToast("Votre place a été réservée avec succès !", "success");
-                this.modal.hide();
-                
-                if (this.callbacks.onSuccess) {
-                    this.callbacks.onSuccess();
+            const response = await apiService.put(`ride/${this.currentCovoiturage.data.id}/addUser`, {}, getToken());
+            if (response.ok) {
+                let messageRetour = await response.json();
+                console.log('Message de retour:', messageRetour);
+                if (messageRetour.success) {
+                    this.showToast("Votre place a été réservée avec succès !", "success");
+                    this.modal.hide();
+                    
+                    if (this.callbacks.onSuccess) {
+                        this.callbacks.onSuccess();
+                    }
+                } else {
+                    this.showToast(messageRetour.message || "Erreur lors de la réservation", "error");
                 }
+            } else if (response.status === 401) {
+                this.showToast(response.error || "Il faut être identifié !", "error");
             } else {
                 this.showToast(response.message || "Erreur lors de la réservation", "error");
             }
