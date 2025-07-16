@@ -16,6 +16,40 @@ btnSignin.addEventListener("click", function(event) {
     checkCredentials();
 });
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnTo = urlParams.get("returnTo");
+    const rideId = urlParams.get("rideId");
+    
+    // Mise à jour du lien d'inscription
+    const signupLink = document.querySelector('a[href="/signup"]');
+    if (signupLink) {
+        let href = "/signup";
+        if (returnTo) {
+            href += `?returnTo=${encodeURIComponent(returnTo)}`;
+            if (rideId) {
+                href += `&rideId=${rideId}`;
+            }
+        } else if (rideId) {
+            href += `?rideId=${rideId}`;
+        }
+        signupLink.href = href;
+    }
+    
+    // Mise à jour du lien de mot de passe oublié
+    const forgotPasswordLink = document.querySelector('a[href="/forgotPassword"]');
+    if (forgotPasswordLink) {
+        let href = "/forgotPassword";
+        if (returnTo) {
+            href += `?returnTo=${encodeURIComponent(returnTo)}`;
+            if (rideId) {
+                href += `&rideId=${rideId}`;
+            }
+        } else if (rideId) {
+            href += `?rideId=${rideId}`;
+        }
+        forgotPasswordLink.href = href;
+    }
+
 //Function permettant de valider tout le formulaire
 async function checkCredentials(){
     let dataForm = new FormData(signinForm);
@@ -45,6 +79,8 @@ async function checkCredentials(){
 				const urlParams = new URLSearchParams(window.location.search);
 				const returnTo = urlParams.get("returnTo");
 				if (returnTo) {
+					// Garder rideId dans localStorage pour que la page de destination puisse l'utiliser
+					// Ne pas supprimer returnToRideId ici
 					window.location.replace(returnTo);
 				} else {
 					const redirectPage = urlParams.get("page");

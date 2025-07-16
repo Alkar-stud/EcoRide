@@ -41,8 +41,30 @@ export class SearchCovoiturages {
         
         // Initialiser les fonctionnalités spécifiques à la page de recherche
         this.initializePageSpecificFeatures();
+        
+        // Vérifier s'il faut rouvrir une modale après connexion
+        this.checkForRideToReopen();
     }
     
+    /**
+     * Vérifie s'il faut rouvrir une modale après connexion
+     */
+    checkForRideToReopen() {
+        // Récupérer l'ID du covoiturage stocké (si disponible)
+        const rideId = localStorage.getItem('returnToRideId');
+        
+        if (rideId) {
+            // Supprimer les informations stockées
+            localStorage.removeItem('returnToRideId');
+            localStorage.removeItem('returnToUrl');
+            
+            // Rouvrir la modale avec l'ID récupéré
+            setTimeout(() => {
+                this.viewCovoiturageDetails(rideId);
+            }, 500); // Délai court pour s'assurer que la page est chargée
+        }
+    }
+
     initializePageSpecificFeatures() {
         // Initialiser le bouton de réinitialisation des filtres
         if (this.resetFiltersBtn) {
