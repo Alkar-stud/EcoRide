@@ -116,7 +116,7 @@ export class DateUtils {
 	}
     
     /**
-     * Formate une date pour l'API (ajoute l'heure 00:00:00)
+     * Formate une date pour rechercher via l'API (ajoute l'heure 00:00:00)
      * @param {string|Date} dateValue - Date au format YYYY-MM-DD ou objet Date
      * @returns {string} - Date au format YYYY-MM-DD 00:00:00
      */

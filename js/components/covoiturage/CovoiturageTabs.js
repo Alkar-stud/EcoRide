@@ -1,9 +1,10 @@
-import { DEFAULT_STATE, STATES_ORDER, STATES_COLORS, STATES_LABELS } from '../../utils/constants/CovoituragesConstants.js'; // Import des constantes
+import { DEFAULT_STATE, STATES_ORDER, STATES_COLORS, STATES_LABELS, STATES_TRANSITIONS } from '../../utils/constants/CovoituragesConstants.js'; // Import des constantes
 import { CovoiturageModal } from '../../components/covoiturage/CovoiturageModal.js'; // Import des constantes
 import{ UIHelper } from '../../utils/helpers/UIHelper.js';
 import{ DateUtils } from '../../utils/helpers/DateHelper.js';
 import { apiService } from '../../core/ApiService.js';
 import { getToken } from '../../script.js';
+import { photoUrl } from '../../config.js';
 
 export class CovoiturageTabs {
     // Ajout d'une propriété statique pour stocker la fonction de récupération des données
@@ -200,7 +201,7 @@ console.log('covoituragesData au début de display : ', covoituragesData);
 											<i class="fas fa-play me-1"></i>Démarrer
 										</button>
 									` : ''}
-									${covoiturage.status === 'PROGRESSING' ? `
+									${type === 'driver' && covoiturage.status === 'PROGRESSING' ? `
 										<button class="btn btn-sm btn-outline-danger stop-covoiturage-btn" data-covoiturage-id="${covoiturage.id}">
 											<i class="fas fa-stop me-1"></i>Bien arrivé
 										</button>
@@ -231,6 +232,38 @@ console.log('covoituragesData au début de display : ', covoituragesData);
 			
 			container.appendChild(covoituragesList);
 			
+			// Pagination
+			let paginationInfo = covoituragesData.pagination?.[type];
+			const currentPage = paginationInfo?.page_courante || 1;
+			const totalPages = paginationInfo?.pages_totales || 1;
+			const elementsParPage = paginationInfo?.elements_par_page || 10;
+
+			if (totalPages > 1) {
+				const pagination = document.createElement('nav');
+				pagination.className = 'mt-3';
+				let html = `<ul class="pagination justify-content-center">`;
+				for (let i = 1; i <= totalPages; i++) {
+					html += `
+						<li class="page-item${i === currentPage ? ' active' : ''}">
+							<a class="page-link" href="#" data-page="${i}">${i}</a>
+						</li>`;
+				}
+				html += `</ul>`;
+				pagination.innerHTML = html;
+				container.appendChild(pagination);
+
+				// Ajoute les événements
+				pagination.querySelectorAll('.page-link').forEach(link => {
+					link.addEventListener('click', (e) => {
+						e.preventDefault();
+						const newPage = Number(link.getAttribute('data-page'));
+						if (newPage !== currentPage) {
+							CovoiturageTabs.displayCovoiturages(type, newPage, actualStatus, userRoles);
+						}
+					});
+				});
+			}
+
 			// Ajouter les événements pour les boutons de modification
 			const modifierBtns = container.querySelectorAll('.modifier-covoiturage-btn');
 			modifierBtns.forEach(btn => {
@@ -244,17 +277,88 @@ console.log('covoituragesData au début de display : ', covoituragesData);
 						CovoiturageModal.show('edit', covoiturage, {
 							onSuccess: (forceStatus) => {
 								// Utiliser le statut forcé ou le statut actuel
-								const statusToUse = forceStatus || (type === 'driver' ? currentStatusDriver : currentStatusPassenger);
+								const statusToUse = forceStatus || (type === 'driver' ? CovoiturageTabs.currentStatusDriver : CovoiturageTabs.currentStatusPassenger);
 								
 								// Recharger les covoiturages avec le bon statut
-								displayCovoiturages(type, 1, statusToUse, null, null);
+								CovoiturageTabs.displayCovoiturages(type, 1, statusToUse, null, null);
 							}
 						});
 					} catch (error) {
 						console.error('Erreur lors de l\'ouverture de la modale de modification:', error);
 					}
 				});
-			});			
+			});		
+			
+			// Ajouter les événements pour les boutons de visualisation
+			const voirBtns = container.querySelectorAll('.view-covoiturage-btn');
+			voirBtns.forEach(btn => {
+				btn.addEventListener('click', async (e) => {
+					e.preventDefault();
+					const covoiturageId = btn.getAttribute('data-covoiturage-id');
+					
+					try {
+						const covoiturageData = await CovoiturageTabs.getCovoiturageData(covoiturageId);
+						const covoiturage = covoiturageData.data;
+						CovoiturageModal.show('passenger-view', covoiturage, {
+							onSuccess: (forceStatus) => {
+								// Utiliser le statut forcé ou le statut actuel
+								const statusToUse = forceStatus || (type === 'driver' ? CovoiturageTabs.currentStatusDriver : CovoiturageTabs.currentStatusPassenger);
+								
+								// Recharger les covoiturages avec le bon statut
+								CovoiturageTabs.displayCovoiturages(type, 1, statusToUse, null, null);
+							}
+						});
+					} catch (error) {
+						console.error('Erreur lors de l\'ouverture de la modale de modification:', error);
+					}
+				});
+			});	
+			
+			// Ajouter les événements pour les boutons de démarrage du covoiturage
+			const startBtns = container.querySelectorAll('.start-covoiturage-btn');
+			startBtns.forEach(btn => {
+				btn.addEventListener('click', async (e) => {
+					e.preventDefault();
+					const covoiturageId = btn.getAttribute('data-covoiturage-id');
+					
+					try {
+						if (!confirm("Êtes-vous sûr de vouloir démarrer ce covoiturage ?")) {
+							return;
+						}
+						
+						const response = await apiService.put(`ride/${covoiturageId}/start`, {}, getToken());
+						const dataResponse = await response.json();
+
+						if (dataResponse.success) {
+							CovoiturageModal.showToast("C'est parti ! Soyez prudent !", "success");
+							if (CovoiturageModal.modal && typeof CovoiturageModal.modal.hide === 'function') {
+								CovoiturageModal.modal.hide();
+							}
+
+							// Aller sur le filtre correspondant à l'état "become" de la transition "start"
+							const nextStatus = STATES_TRANSITIONS.start.become; // ex: "PROGRESSING"
+							// Mettre à jour le filtre courant
+							if (type === 'driver') {
+								CovoiturageTabs.currentStatusDriver = nextStatus;
+							} else {
+								CovoiturageTabs.currentStatusPassenger = nextStatus;
+							}
+							// Rafraîchir la liste avec le nouveau filtre
+							CovoiturageTabs.displayCovoiturages(type, 1, nextStatus, null, null);
+
+							if (CovoiturageModal.currentInstance && CovoiturageModal.currentInstance.callbacks && typeof CovoiturageModal.currentInstance.callbacks.onSuccess === 'function') {
+								CovoiturageModal.currentInstance.callbacks.onSuccess(nextStatus);
+							}
+						} else {
+							CovoiturageModal.showToast(response.message || "Erreur lors du démarrage du covoiturage", "error");
+						}
+						
+						
+					} catch (error) {
+						console.error('Erreur lors de l\'ouverture de la modale de modification:', error);
+					}
+				});
+			});	
 			
 			
 			

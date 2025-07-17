@@ -2,6 +2,7 @@ import { getUserInfo } from '../../script.js';
 import { DEFAULT_STATE } from '../../utils/constants/CovoituragesConstants.js'; // Import des constantes
 import { apiService } from '../../core/ApiService.js';
 import { CovoiturageTabs } from '../../components/covoiturage/CovoiturageTabs.js';
+import { CovoiturageModal } from '../../components/covoiturage/CovoiturageModal.js';
 
 export class MesCovoiturages {
     constructor() {
@@ -41,7 +42,6 @@ console.log ('userInfo : ', this.userInfo);
 		const covoituragesData = await this.getCovoituragesStates();
 		
 		this.mesCovoituragesData = covoituragesData.data;
-console.log('mesCovoituragesData : ', this.mesCovoituragesData);
 		
         // Récupérer les rôles de l'utilisateur
         const userRoles = this.getUserRoles();
@@ -173,9 +173,15 @@ console.log('mesCovoituragesData : ', this.mesCovoituragesData);
 			createBtn.style.display = 'block';
 			createBtn.addEventListener('click', (e) => {
 				e.preventDefault();
-				covoiturageModal.show('create', null, {
+				CovoiturageModal.show('create', null, {
 					onSuccess: () => {
-						displayCovoiturages(currentTab, currentTab === 'driver' ? currentPageDriver : currentPagePassenger);
+						CovoiturageTabs.displayCovoiturages(
+							this.currentTab,
+							this.currentTab === 'driver' ? this.currentPageDriver : this.currentPagePassenger,
+							this.currentTab === 'driver' ? this.currentStatusDriver : this.currentStatusPassenger,
+							this.getUserRoles(),
+							this.mesCovoituragesData
+						);
 					}
 				});
 			});

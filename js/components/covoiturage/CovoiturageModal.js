@@ -1,8 +1,12 @@
+import { DEFAULT_STATE } from '../../utils/constants/CovoituragesConstants.js'; // Import des constantes
 import { photoUrl } from '../../config.js';
 import { getToken } from '../../script.js';
 import { ENERGIES } from '../../utils/constants/CovoituragesConstants.js';
 import { apiService } from '../../core/ApiService.js';
 import { setGradeStyle } from '../../utils/RatingUtils.js';
+import { AddressAutocomplete } from '../common/AddressAutocomplete.js';
+import { DateUtils } from '../../utils/helpers/DateHelper.js';
+import { CovoiturageTabs } from './CovoiturageTabs.js';
 
 /**
  * Classe gérant la modale de détails d'un covoiturage
@@ -84,9 +88,11 @@ export class CovoiturageModal {
             } else if (e.target.matches('#cancelReservationButton')) {
                 this.handleCancelReservation();
             } else if (e.target.matches('#editButton')) {
-                this.switchToEditMode();
+                this.handleUpdateRide();
             } else if (e.target.matches('#cancelRideButton')) {
                 this.handleCancelRide();
+            } else if (e.target.matches('#deleteRideButton')) {
+                this.handleDeleteRide();
             }
         });
         
@@ -106,8 +112,6 @@ export class CovoiturageModal {
      */
     static async show(mode, covoiturageData, callbacks = {}) {
         try {
-            console.log(`Affichage de la modale en mode ${mode}`);
-            
             // Initialiser la modale si ce n'est pas déjà fait
             if (!CovoiturageModal.isInitialized) {
                 await CovoiturageModal.initialize();
@@ -120,7 +124,7 @@ export class CovoiturageModal {
             
             // Préparer la modale selon le mode
             this.prepareModal();
-            
+
             // Afficher la modale
             if (this.modal) {
                 this.modal.show();
@@ -151,13 +155,16 @@ export class CovoiturageModal {
 	 */
 	static prepareModal() {
 		const modalElement = document.getElementById('covoiturageModal');
-		if (!modalElement || !this.currentCovoiturage) {
+		if (!modalElement) {
 			console.error("Impossible de préparer la modale : éléments manquants");
 			return;
 		}
-		
-		const covoiturage = this.currentCovoiturage;
-		const ride = covoiturage.ride || covoiturage; // Gérer les différentes structures de données
+
+		// En mode création, on ne vérifie pas currentCovoiturage
+		if (this.currentMode !== 'create' && !this.currentCovoiturage) {
+			console.error("Impossible de préparer la modale : éléments manquants");
+			return;
+		}
 		
 		// Éléments communs à tous les modes
 		const modalTitle = modalElement.querySelector('.modal-title');
@@ -173,9 +180,62 @@ export class CovoiturageModal {
 		// Réinitialiser le contenu
 		modalBody.innerHTML = '';
 		modalFooter.innerHTML = '';
-		
+
+        let dataToRender = null; // Pas de données à afficher en mode création
+        // === MODE CREATION ===
+        if (this.currentMode === 'create') {
+            // Titre et couleur
+            modalTitle.textContent = 'Création de votre covoiturage';
+            modalHeader.className = 'modal-header bg-success text-white';
+
+			// Générer le contenu de la modale
+            modalBody.innerHTML = this.generateCovoiturageDetailsHTMLForCreate();
+            
+			// Charger la liste des véhicules pour le select
+			this.loadUserVehicles(null, 'create');
+
+            // Gestion du bouton Annuler (reset)
+			const form = document.getElementById('covoiturageCreateForm');
+			const cancelBtn = document.getElementById('cancelCreateBtn');
+			if (cancelBtn && form) {
+				cancelBtn.onclick = () => {
+					form.reset();
+					if (this.modal) this.modal.hide();
+				};
+			}
+
+            // Gestion du bouton Créer (submit)
+            if (form) {
+                form.onsubmit = async (e) => {
+                    e.preventDefault();
+                    await this.handleCreateCovoiturage();
+                };
+            }
+
+			// Initialiser l'autocomplétion pour les adresses
+			const autocomplete = new AddressAutocomplete();
+			autocomplete.setupSingleAddressAutocomplete(
+				'departAdresse', 'departAdresseSuggestions', 'starting'
+			);
+			autocomplete.setupSingleAddressAutocomplete(
+				'arriveeAdresse', 'arriveeAdresseSuggestions', 'arrival'
+			);
+			
+			// Appliquer la restriction de date sur les champs date
+			DateUtils.setupDateRestriction(document.getElementById('dateDepart'));
+			DateUtils.setupDateRestriction(document.getElementById('dateArrivee'));
+
+            return; // Sortir de la fonction pour éviter les erreurs
+        }
+
+        const covoiturage = this.currentCovoiturage;
+        const ride = covoiturage.ride || covoiturage; // Gérer les différentes structures de données
+
+        // Déterminer les données à utiliser (gérer les différents formats)
+        dataToRender = ride.data || ride;
+
 		// Définir le titre et la couleur de l'en-tête selon le mode
-		if (this.currentMode === 'edit') {
+        if (this.currentMode === 'edit') {
 			modalTitle.textContent = 'Gérer votre covoiturage';
 			modalHeader.className = 'modal-header bg-primary text-white';
 		} else if (this.currentMode === 'passenger-view') {
@@ -186,19 +246,17 @@ export class CovoiturageModal {
 			modalHeader.className = 'modal-header bg-secondary text-white';
 		}
 		
-		// Déterminer les données à utiliser (gérer les différents formats)
-		const dataToRender = ride.data || ride;
 		
 		// Contenu principal - informations du covoiturage
 		modalBody.innerHTML = this.generateCovoiturageDetailsHTML(dataToRender);
-console.log('dataToRender : ', dataToRender);
-        // Si en mode édition et aucun passager réservé, charger les véhicules et gérer l'édition dynamique
-        if (this.currentMode === 'edit' && (dataToRender.vehicle?.maxNbPlacesAvailable - (dataToRender.nbPlacesAvailable || 0) === 0)) {
+
+        // Si en mode édition charger les véhicules et gérer l'édition dynamique
+        if (this.currentMode === 'edit') {
             this.loadUserVehicles(dataToRender.vehicle?.id);
         }
 		
 		// Ajouter les boutons selon le mode
-		this.addButtonsBasedOnMode(modalFooter);
+		this.addButtonsBasedOnMode(modalFooter, dataToRender);
 		
 		// Initialiser les étoiles APRÈS que le HTML soit inséré dans le DOM
 		setTimeout(() => {
@@ -246,6 +304,7 @@ console.log('dataToRender : ', dataToRender);
 
         // Pour le mode édition véhicule
         let vehicleEditHTML = '';
+console.log('ride for modalEdit : ', ride);
         if (this.currentMode === 'edit' && reservedSeats === 0) {
             vehicleEditHTML = `
                 <div class="mb-3">
@@ -277,7 +336,7 @@ console.log('dataToRender : ', dataToRender);
                                     ${isEco ? '<span class="badge bg-success"><i class="fas fa-leaf me-1"></i>Véhicule écologique</span>' : ''}
                                     <i class="fas fa-route text-primary me-2"></i>
                                         <span class="text-primary">${ride.startingCity}</span>
-                                        <span class="mx-2 fw-bold" style="font-size: 1.2em;">→</span> <!-- Caractère Unicode flèche -->
+                                        <i class="bi bi-arrow-right"></i>
                                         <span class="text-success">${ride.arrivalCity}</span>
                                     </h4>
                                 </div>
@@ -287,11 +346,10 @@ console.log('dataToRender : ', dataToRender);
                                         <div class="mb-3">
                                             <h5><i class="fas fa-map-marker-alt text-danger me-2"></i>Départ</h5>
                                             <p class="ms-4 mb-1">
-                                                <i class="fas fa-calendar-alt text-primary me-2"></i>${formattedDepartureDate}
-                                                <i class="fas fa-clock text-primary ms-3 me-2"></i>${formattedDepartureTime}
+                                                ${formattedDepartureDate} à ${formattedDepartureTime}
                                             </p>
                                             <p class="ms-4 mb-0">
-                                                <i class="fas fa-location-dot text-primary me-2"></i>${ride.startingStreet} - ${ride.startingCity}
+                                                <i class="fas fa-location-dot text-primary me-2"></i>${ride.startingStreet} - ${ride.startingPostCode} ${ride.startingCity}
                                             </p>
                                         </div>
                                     </div>
@@ -299,11 +357,10 @@ console.log('dataToRender : ', dataToRender);
                                         <div class="mb-3">
                                             <h5><i class="fas fa-map-marker-alt text-success me-2"></i>Arrivée</h5>
                                             <p class="ms-4 mb-1">
-                                                <i class="fas fa-calendar-alt text-success me-2"></i>${formattedArrivalDate}
-                                                <i class="fas fa-clock text-success ms-3 me-2"></i>${formattedArrivalTime}
+                                                ${formattedArrivalDate} vers ${formattedArrivalTime}
                                             </p>
                                             <p class="ms-4 mb-0">
-                                                <i class="fas fa-location-dot text-success me-2"></i>${ride.arrivalStreet} - ${ride.arrivalCity}
+                                                <i class="fas fa-location-dot text-success me-2"></i>${ride.arrivalStreet} - ${ride.arrivalPostCode} ${ride.arrivalCity}
                                             </p>
                                         </div>
                                     </div>
@@ -384,8 +441,8 @@ console.log('dataToRender : ', dataToRender);
 								${this.currentMode === 'edit' && reservedSeats === 0 ? 
 									`<div class="input-group mb-3 justify-content-center">
 										<div class="form-floating">
-											<input type="number" class="form-control" id="priceInput" min="0" value="${ride.price}" style="max-width: 150px;">
-											<label for="priceInput">Prix</label>
+											<input type="number" class="form-control" id="price" min="0" value="${ride.price}" style="max-width: 150px;">
+											<label for="price">Prix</label>
 										</div>
 										<span class="input-group-text">
 											<img src="/images/logo_credit_light.png" alt="Crédit" style="width: 24px; height: 24px;">
@@ -418,8 +475,146 @@ console.log('dataToRender : ', dataToRender);
             </div>
         `;
         
+        // Si on est en mode édition, on entoure d'un formulaire
+        if (this.currentMode === 'edit') {
+            return `<form id="covoiturageEditForm">${html}</form>`;
+        }
         return html;
     }
+
+
+    /**
+     * Génère le HTML pour les détails du covoiturage en mode create
+     * @returns {string} HTML des détails
+     */
+	static generateCovoiturageDetailsHTMLForCreate() {
+		return `
+			<form id="covoiturageCreateForm">
+				<div class="container-fluid p-0">
+					<!-- Trajet -->
+					<div class="row mb-2">
+						<div class="col-12">
+							<div class="card">
+								<div class="card-header bg-success text-white py-2">
+									<i class="fas fa-route me-2"></i>Trajet
+								</div>
+								<div class="card-body py-2">
+									<div class="row">
+										<div class="col-md-6 mb-2">
+											<label for="departAdresse" class="form-label">
+												<i class="fas fa-map-marker-alt text-success me-1"></i>Adresse de départ *
+											</label>
+											<div class="position-relative">
+												<input type="text" class="form-control" id="departAdresse" name="departAdresse" required placeholder="Ex: 123 Rue de la République, 69001 Lyon" autocomplete="off">
+												<div id="departAdresseSuggestions" class="suggestions-container position-absolute w-100 bg-white border rounded-bottom shadow-sm" style="display: none; z-index: 1050;"></div>
+											</div>
+											<input type="hidden" id="startingStreet" name="startingStreet">
+											<input type="hidden" id="startingPostCode" name="startingPostCode">
+											<input type="hidden" id="startingCity" name="startingCity">
+										</div>
+										<div class="col-md-6 mb-2">
+											<label for="arriveeAdresse" class="form-label">
+												<i class="fas fa-map-marker-alt text-danger me-1"></i>Adresse d'arrivée *
+											</label>
+											<div class="position-relative">
+												<input type="text" class="form-control" id="arriveeAdresse" name="arriveeAdresse" required placeholder="Ex: 123 Rue de la République, 69001 Lyon" autocomplete="off">
+												<div id="arriveeAdresseSuggestions" class="suggestions-container position-absolute w-100 bg-white border rounded-bottom shadow-sm" style="display: none; z-index: 1050;"></div>
+											</div>
+											<input type="hidden" id="arrivalStreet" name="arrivalStreet">
+											<input type="hidden" id="arrivalPostCode" name="arrivalPostCode">
+											<input type="hidden" id="arrivalCity" name="arrivalCity">
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-6 mb-2">
+											<label for="dateDepart" class="form-label">
+												<i class="fas fa-calendar-alt text-primary me-1"></i>Date de départ *
+											</label>
+											<input type="date" class="form-control" id="dateDepart" name="dateDepart" required style="max-width: 200px;">
+										</div>
+										<div class="col-6 mb-2">
+											<label for="heureDepart" class="form-label">
+												<i class="fas fa-clock text-primary me-1"></i>Heure de départ *
+											</label>
+											<input type="time" class="form-control" id="heureDepart" name="heureDepart" required style="max-width: 150px;">
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-6 mb-2">
+											<label for="dateArrivee" class="form-label">
+												<i class="fas fa-calendar-alt text-success me-1"></i>Date d'arrivée *
+											</label>
+											<input type="date" class="form-control" id="dateArrivee" name="dateArrivee" required style="max-width: 200px;">
+										</div>
+										<div class="col-6 mb-2">
+											<label for="heureArrivee" class="form-label">
+												<i class="fas fa-clock text-success me-1"></i>Heure d'arrivée *
+											</label>
+											<input type="time" class="form-control" id="heureArrivee" name="heureArrivee" required style="max-width: 150px;">
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Véhicule -->
+					<div class="row mb-2">
+						<div class="col-12">
+							<div class="card h-100">
+								<div class="card-header bg-info text-white py-2">
+									<i class="fas fa-car me-2"></i>Véhicule
+								</div>
+								<div class="card-body row py-2">
+									<div class="col-md-6 mb-2">
+										<label for="vehicleSelect" class="form-label">Véhicule *</label>
+										<select class="form-select" id="vehicleSelect" name="vehicle" required>
+											<option value="">Sélectionnez votre véhicule</option>
+										</select>
+									</div>
+									<div class="col-md-6 mb-2">
+										<label for="seatsInput" class="form-label">Nombre de places disponibles</label>
+										<input type="number" class="form-control" id="seatsInput" min="1" value="1" style="max-width: 120px;">
+										<div class="form-text" id="seatsHelp">Minimum: 1 place</div>
+										<div id="vehicleTypeAlert" class="alert alert-secondary mb-0 mt-2 py-1 px-2">
+											<i class="fas fa-info-circle me-2"></i>Véhicule standard
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Prix -->
+					<div class="row mb-2">
+						<div class="col-12">
+							<div class="card h-100">
+								<div class="card-header bg-primary text-white py-2">
+									<i class="fas fa-money-bill-wave me-2"></i>Tarif
+								</div>
+								<div class="card-body py-2">
+									<div class="mb-2">
+										<label for="price" class="form-label">
+											<i class="fas fa-euro-sign text-warning me-1"></i>Prix par place (en crédits) *
+										</label>
+										<input type="number" class="form-control" id="price" name="price" required min="1" step="1" pattern="[0-9]+" placeholder="Ex: 15" style="max-width: 120px;">
+										<div class="form-text">Le prix doit être équitable et couvrir les frais d'essence tout en prenant en compte la commission de EcoRide.</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Boutons -->
+					<div class="d-flex justify-content-end mt-3">
+						<button type="button" class="btn btn-secondary me-2" id="cancelCreateBtn">
+							<i class="fas fa-undo me-1"></i>Annuler
+						</button>
+						<button type="submit" class="btn btn-success" id="submitCreateBtn">
+							<i class="fas fa-plus me-1"></i>Créer le covoiturage
+						</button>
+					</div>
+				</div>
+			</form>
+		`;
+	}
 
 
     /**
@@ -476,29 +671,56 @@ console.log('dataToRender : ', dataToRender);
      * Ajoute les boutons d'action selon le mode d'affichage
      * @param {HTMLElement} modalFooter - Élément footer de la modale
      */
-    static addButtonsBasedOnMode(modalFooter) {
+    static addButtonsBasedOnMode(modalFooter,rideData) {
         // Bouton de fermeture commun à tous les modes
         const closeButton = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>`;
         
         let actionButtons = '';
 
-        if (this.currentMode === 'edit') {
+        if (this.currentMode === 'create') {
+            // Mode création
+            actionButtons = `
+                <button type="button" id="createBtn" class="btn btn-success">
+                    <i class="fas fa-plus-circle me-1"></i>Créer le covoiturage
+                </button>
+            `;
+            // Masquer les autres boutons
+            document.getElementById('updateBtn').style.display = 'none';
+            document.getElementById('editModeButtons').style.display = 'none';
+            document.getElementById('passengersSection').style.display = 'none';
+            document.getElementById('encouragementMessage').style.display = ''; 
+        } else if (this.currentMode === 'edit') {
             // Mode édition (conducteur)
             actionButtons = `
                 <button type="button" id="editButton" class="btn btn-warning">
                     <i class="fas fa-edit me-1"></i>Modifier
                 </button>
-                <button type="button" id="cancelRideButton" class="btn btn-danger">
-                    <i class="fas fa-times-circle me-1"></i>Annuler ce covoiturage
-                </button>
             `;
+            //Si il y a des passagers, on ne peut que annuler, si personne on supprime
+			const NbPassagers = rideData.passenger.length;
+			if (NbPassagers == 0) {
+				actionButtons += `
+					<button type="button" id="deleteRideButton" class="btn btn-danger">
+						<i class="fas fa-times-circle me-1"></i>Supprimer ce covoiturage
+					</button>
+				`;
+			} else {
+				actionButtons += `
+					<button type="button" id="cancelRideButton" class="btn btn-danger">
+						<i class="fas fa-times-circle me-1"></i>Annuler ce covoiturage
+					</button>
+				`;
+			}
         } else if (this.currentMode === 'passenger-view') {
             // Mode passager inscrit
-            actionButtons = `
-                <button type="button" id="cancelReservationButton" class="btn btn-danger">
-                    <i class="fas fa-times-circle me-1"></i>Annuler ma réservation
-                </button>
-            `;
+            //Seulement si le covoiturage n'a pas démarrée
+            if (rideData.status === DEFAULT_STATE) {
+                actionButtons = `
+                    <button type="button" id="cancelReservationButton" class="btn btn-danger">
+                        <i class="fas fa-times-circle me-1"></i>Annuler ma réservation
+                    </button>
+                `;
+            }
         } else {
             // Mode visualisation standard (utilisateur connecté non inscrit ou visiteur)
             const isLoggedIn = !!getToken();
@@ -536,16 +758,63 @@ console.log('dataToRender : ', dataToRender);
         modalFooter.innerHTML = closeButton + actionButtons;
     }
 
+
+    /**
+     * Gère la création d'un covoiturage
+     */
+    static async handleCreateCovoiturage() {
+        const form = document.getElementById('covoiturageCreateForm');
+        if (!form) return;
+
+        const data = {
+            startingAddress: {
+                street: form.startingStreet?.value || '',
+                postcode: form.startingPostCode?.value || '',
+                city: form.startingCity?.value || ''
+            },
+            arrivalAddress: {
+                street: form.arrivalStreet?.value || '',
+                postcode: form.arrivalPostCode?.value || '',
+                city: form.arrivalCity?.value || ''
+            },
+            startingAt: form.dateDepart.value + ' ' + form.heureDepart.value + ':00',
+            arrivalAt: form.dateArrivee.value + ' ' + form.heureArrivee.value + ':00',
+            price: Number(form.price.value),
+            nbPlacesAvailable: Number(form.seatsInput.value),
+            vehicle: Number(form.vehicleSelect.value)
+        };
+try {
+    const response = await apiService.post('ride/add', data, getToken());
+    const result = await response.json();
+    if (result.success) {
+        this.showToast("Covoiturage créé avec succès !", "success");
+        if (this.modal && typeof this.modal.hide === 'function') {
+            this.modal.hide();
+        }
+        if (this.callbacks.onSuccess) {
+            this.callbacks.onSuccess();
+        }
+        return;
+    } else {
+        this.showToast(result.message || "Erreur lors de la création", "error");
+    }
+} catch (error) {
+    console.warn('Toast erreur catch', error);
+    this.showToast("Erreur lors de la création du covoiturage", "error");
+    return;
+}
+    }
+
     /**
      * Gère la réservation d'une place
      */
-    async handleReservation() {
+    static async handleReservation() {
         if (!this.currentCovoiturage || !this.currentCovoiturage.data.id) return;
         try {
             const response = await apiService.put(`ride/${this.currentCovoiturage.data.id}/addUser`, {}, getToken());
+            
             if (response.ok) {
                 let messageRetour = await response.json();
-                console.log('Message de retour:', messageRetour);
                 if (messageRetour.success) {
                     this.showToast("Votre place a été réservée avec succès !", "success");
                     this.modal.hide();
@@ -558,6 +827,8 @@ console.log('dataToRender : ', dataToRender);
                 }
             } else if (response.status === 401) {
                 this.showToast(response.error || "Il faut être identifié !", "error");
+            } else if (response.status === 402) {
+                this.showToast(response.error || "Vous n'avez pas assez de crédits", "error");
             } else {
                 this.showToast(response.message || "Erreur lors de la réservation", "error");
             }
@@ -570,7 +841,7 @@ console.log('dataToRender : ', dataToRender);
     /**
      * Gère l'annulation d'une réservation
      */
-    async handleCancelReservation() {
+    static async handleCancelReservation() {
         if (!this.currentCovoiturage || !this.currentCovoiturage.id) return;
         
         if (!confirm("Êtes-vous sûr de vouloir annuler votre réservation ?")) {
@@ -578,9 +849,10 @@ console.log('dataToRender : ', dataToRender);
         }
         
         try {
-            const response = await apiService.post(`ride/${this.currentCovoiturage.id}/cancel-reservation`, {});
-            
-            if (response.success) {
+            const response = await apiService.put(`ride/${this.currentCovoiturage.id}/removeUser`, {}, getToken());
+            const dataResponse = await response.json();
+
+            if (dataResponse.success) {
                 this.showToast("Votre réservation a été annulée", "success");
                 this.modal.hide();
                 
@@ -599,15 +871,43 @@ console.log('dataToRender : ', dataToRender);
     /**
      * Passe en mode édition du covoiturage
      */
-    switchToEditMode() {
-        // Rediriger vers la page d'édition du covoiturage
-        window.location.href = `/covoiturages/edit/${this.currentCovoiturage.id}`;
+    static async handleUpdateRide() {
+        const form = document.getElementById('covoiturageEditForm');
+        if (!form) return;
+
+        const data = {
+//            startingAt: form.dateDepart.value + ' ' + form.heureDepart.value + ':00',
+//            arrivalAt: form.dateArrivee.value + ' ' + form.heureArrivee.value + ':00',
+            price: Number(form.price.value),
+            nbPlacesAvailable: Number(form.seatsInput.value),
+            vehicle: Number(form.vehicleSelect.value)
+        };
+
+        try {
+            const response = await apiService.put(`ride/update/${this.currentCovoiturage.id}`, data, getToken());
+            const dataResponse = await response.json();
+
+            if (dataResponse.success) {
+                this.showToast("Le covoiturage a été modifié", "success");
+                this.modal.hide();
+                
+                if (this.callbacks.onSuccess) {
+                    this.callbacks.onSuccess();
+                }
+            } else {
+                this.showToast(response.message || "Erreur lors de la modification", "error");
+            }
+        } catch (error) {
+            console.error("Erreur lors de la modification du covoiturage:", error);
+            this.showToast("Erreur lors de la modification du covoiturage", "error");
+        }
+
     }
 
     /**
      * Gère l'annulation d'un covoiturage par le conducteur
      */
-    async handleCancelRide() {
+    static async handleCancelRide() {
         if (!this.currentCovoiturage || !this.currentCovoiturage.id) return;
         
         if (!confirm("Êtes-vous sûr de vouloir annuler ce covoiturage ? Cette action est irréversible et tous les passagers seront notifiés.")) {
@@ -615,9 +915,10 @@ console.log('dataToRender : ', dataToRender);
         }
         
         try {
-            const response = await apiService.post(`ride/${this.currentCovoiturage.id}/cancel`, {});
-            
-            if (response.success) {
+            const response = await apiService.put(`ride/${this.currentCovoiturage.id}/cancel`, {}, getToken());
+            const dataResponse = await response.json();
+
+            if (dataResponse.success) {
                 this.showToast("Le covoiturage a été annulé", "success");
                 this.modal.hide();
                 
@@ -632,6 +933,36 @@ console.log('dataToRender : ', dataToRender);
             this.showToast("Erreur lors de l'annulation du covoiturage", "error");
         }
     }
+
+/**
+ * Gère la suppression d'un covoiturage par le conducteur
+ */
+static async handleDeleteRide() {
+    if (!this.currentCovoiturage || !this.currentCovoiturage.id) return;
+
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce covoiturage ? Cette action est irréversible.")) {
+        return;
+    }
+
+    try {
+        const response = await apiService.delete(`ride/${this.currentCovoiturage.id}`, getToken());
+        if (response.status === 204) {
+            this.showToast("Le covoiturage a été supprimé", "success");
+            this.modal.hide();
+
+            if (this.callbacks.onSuccess) {
+                this.callbacks.onSuccess();
+            }
+        } else {
+            this.showToast(dataResponse.message || "Erreur lors de la suppression", "error");
+        }
+    } catch (error) {
+        console.error("Erreur lors de la suppression du covoiturage:", error);
+        this.showToast("Erreur lors de la suppression du covoiturage", "error");
+    }
+}
+
+
 
     /**
      * Réinitialise l'état de la modale
@@ -653,7 +984,7 @@ console.log('dataToRender : ', dataToRender);
      * @param {string} message - Message à afficher
      * @param {string} type - Type de toast ('success', 'error', 'info', 'warning')
      */
-    showToast(message, type = 'info') {
+    static showToast(message, type = 'info') {
         // Vérifier si Bootstrap est disponible
         if (typeof bootstrap === 'undefined') {
             console.warn("Bootstrap n'est pas disponible pour afficher le toast");
@@ -717,31 +1048,52 @@ console.log('dataToRender : ', dataToRender);
     /**
      * Charge la liste des véhicules de l'utilisateur et initialise le select
      */
-    static async loadUserVehicles(currentVehicleId) {
-        try {
-            const response = await apiService.get('vehicle/list', getToken());
-            const data = await response.json();
-            // Correction ici : la liste est dans data.data
-            const vehicles = data.data;
-            if (!data.success || !Array.isArray(vehicles)) return;
-            const vehicleSelect = document.getElementById('vehicleSelect');
-            if (!vehicleSelect) return;
-            vehicleSelect.innerHTML = '';
-            vehicles.forEach(vehicle => {
-                const option = document.createElement('option');
-                option.value = vehicle.id;
-                option.textContent = `${vehicle.brand} ${vehicle.model} - ${vehicle.color}`;
-                option.selected = vehicle.id === currentVehicleId;
-                option.dataset.seats = vehicle.maxNbPlacesAvailable;
-                option.dataset.energy = vehicle.energy;
-                option.dataset.isEco = vehicle.energy.toLowerCase().includes('électrique') || vehicle.energy.toLowerCase().includes('hybride') ? 'true' : 'false';
-                vehicleSelect.appendChild(option);
-            });
-            // Initialiser l'affichage dynamique
-            this.updateVehicleInfo();
-            vehicleSelect.addEventListener('change', () => this.updateVehicleInfo());
-        } catch (error) {}
-    }
+	static async loadUserVehicles(currentVehicleId = null, modalMode = 'edit') {
+		try {
+			const response = await apiService.get('vehicle/list', getToken());
+			const data = await response.json();
+			const vehicles = data.data;
+			if (!data.success || !Array.isArray(vehicles)) return;
+			const vehicleSelect = document.getElementById('vehicleSelect');
+			if (!vehicleSelect) return;
+			vehicleSelect.innerHTML = '';
+			
+			// Ajoute l'option "Choisissez votre véhicule" en premier
+			const defaultOption = document.createElement('option');
+			defaultOption.value = '';
+			defaultOption.textContent = 'Choisissez votre véhicule';
+			defaultOption.selected = true;
+			defaultOption.disabled = true;
+			vehicleSelect.appendChild(defaultOption);
+			
+			// Calcul du nombre de passagers déjà inscrits
+			let nbPassagersInscrits = 0;
+			if (modalMode === 'edit') {
+				const ride = this.currentCovoiturage?.ride || this.currentCovoiturage;
+				nbPassagersInscrits = ride?.passenger?.length || 0;
+			}
+			vehicles.forEach(vehicle => {
+				const option = document.createElement('option');
+				option.value = vehicle.id;
+				option.textContent = `${vehicle.brand} ${vehicle.model} - ${vehicle.color}`;
+				option.selected = vehicle.id === currentVehicleId;
+				option.dataset.seats = vehicle.maxNbPlacesAvailable;
+				option.dataset.energy = vehicle.energy;
+				option.dataset.isEco = vehicle.energy.toLowerCase().includes('électrique') ? 'true' : 'false';
+				// Désactiver si le véhicule ne permet pas d'accueillir tous les passagers déjà inscrits
+				if (vehicle.maxNbPlacesAvailable < nbPassagersInscrits) {
+					option.disabled = true;
+					option.textContent += ` (places insuffisantes)`;
+				}
+				vehicleSelect.appendChild(option);
+			});
+			// Initialiser l'affichage dynamique
+			this.updateVehicleInfo();
+			vehicleSelect.addEventListener('change', () => this.updateVehicleInfo());
+		} catch (error) {
+			console.error("Erreur lors du chargement des véhicules :", error);
+		}
+	}
 
     /**
      * Met à jour dynamiquement les infos véhicule lors du changement de select
@@ -756,8 +1108,10 @@ console.log('dataToRender : ', dataToRender);
         const maxSeats = parseInt(selectedOption.dataset.seats) || 1;
         seatsInput.max = maxSeats;
 
-        // Toujours mettre à jour la valeur à maxSeats lors du changement de véhicule
-        seatsInput.value = maxSeats;
+        // Ne change seatsInput.value QUE si l'utilisateur a changé de véhicule
+        if (event && event.type === 'change') {
+            seatsInput.value = maxSeats;
+        }
 
         if (seatsHelp) seatsHelp.textContent = `Maximum: ${maxSeats} places`;
         const isEco = selectedOption.dataset.isEco === 'true';
