@@ -5,6 +5,7 @@ import { DateUtils } from '../../utils/helpers/DateHelper.js'; // Ajouter cette 
 import { setGradeStyle } from '../../utils/RatingUtils.js';
 import { getUserInfo, getToken } from '../../script.js';
 import { CovoiturageModal } from '../../components/covoiturage/CovoiturageModal.js';
+import { ENERGIES } from '../../utils/constants/CovoituragesConstants.js';
 
 export class SearchCovoiturages {
     constructor() {
@@ -456,7 +457,7 @@ export class SearchCovoiturages {
 								<p class="mb-1">
 									<i class="fas fa-car me-1"></i>${covoiturage.vehicle.brand} ${covoiturage.vehicle.model}
 									<span class="ms-1 badge bg-secondary">${covoiturage.vehicle.color}</span>
-									<img src="/images/logo-voiture-${covoiturage.vehicle.energy.toLowerCase()}.png" alt="${covoiturage.vehicle.brand} ${covoiturage.vehicle.model}" class="rounded-circle">
+									<img src="/images/logo-voiture-${covoiturage.vehicle.energy.toLowerCase()}.png" alt="${covoiturage.vehicle.brand} ${covoiturage.vehicle.model}" title="${ENERGIES[covoiturage.vehicle.energy]}" class="rounded-circle">
 								</p>
 								<p class="mb-0">
 									<i class="fas fa-users me-1"></i>${remainingSeats} place${remainingSeats > 1 ? 's' : ''} disponible${remainingSeats > 1 ? 's' : ''}

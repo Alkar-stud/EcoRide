@@ -78,42 +78,65 @@ export class DateUtils {
 	/**
 	 * Configurer la restriction de date pour empêcher la sélection de dates passées
 	 */
-	static async setupDateRestriction(dateInput) {
-		if (!dateInput) {
-			console.warn('Champ date non trouvé');
-			return;
-		}
+    static async setupDateRestriction(dateInput) {
+        if (!dateInput) {
+            console.warn('Champ date non trouvé');
+            return;
+        }
 
-		// Obtenir la date d'aujourd'hui au format YYYY-MM-DD
-		const today = new Date();
-		const todayString = today.getFullYear() + '-' + 
-			String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-			String(today.getDate()).padStart(2, '0');
+        // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
+        const today = new Date();
+        const todayString = today.getFullYear() + '-' + 
+            String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(today.getDate()).padStart(2, '0');
 
-		// Définir la date minimum
-		dateInput.setAttribute('min', todayString);
+        // Définir la date minimum
+        dateInput.setAttribute('min', todayString);
 
-		//Définir la date par défaut à aujourd'hui
-		dateInput.value = todayString;
-		
-		// Ajouter un écouteur pour valider la date en temps réel
-		dateInput.addEventListener('change', function() {
-			const selectedDate = new Date(this.value);
-			const today = new Date();
-			
-			// Réinitialiser l'heure pour comparer seulement les dates
-			today.setHours(0, 0, 0, 0);
-			selectedDate.setHours(0, 0, 0, 0);
-			
-			if (selectedDate < today) {
-				this.classList.add('is-invalid');
-				this.classList.remove('is-valid');
-			} else {
-				this.classList.remove('is-invalid');
-				this.classList.add('is-valid');
-			}
-		});
-	}
+        // Ne pas écraser la valeur si déjà présente (ex: mode édition)
+        if (!dateInput.value) {
+            dateInput.value = todayString;
+        }
+
+        // Ajouter un écouteur pour valider la date en temps réel
+        dateInput.addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
+            if (selectedDate < today) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            } else {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    }
+    
+
+    /**
+     * Lie deux champs date pour que la date d'arrivée ne puisse pas être antérieure à la date de départ.
+     * @param {HTMLInputElement} departInput - Champ date de départ
+     * @param {HTMLInputElement} arriveeInput - Champ date d'arrivée
+     */
+    static linkDepartureAndArrivalDates(departInput, arriveeInput) {
+        if (!departInput || !arriveeInput) return;
+
+        // Initialiser la date min d'arrivée à la valeur de départ
+        arriveeInput.min = departInput.value;
+
+        // Quand la date de départ change
+        departInput.addEventListener('change', function() {
+            // Met à jour la date min d'arrivée
+            arriveeInput.min = departInput.value;
+
+            // Si la date d'arrivée est devenue invalide, la corriger
+            if (arriveeInput.value < departInput.value) {
+                arriveeInput.value = departInput.value;
+            }
+        });
+    }
     
     /**
      * Formate une date pour rechercher via l'API (ajoute l'heure 00:00:00)

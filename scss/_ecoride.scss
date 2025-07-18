@@ -130,15 +130,30 @@
   #tickets-list .table {
     display: none !important;
   }
-  .ticket-card-mobile {
+  .ticket-card-mobile,
+  .notice-card-mobile {
     display: block;
+    border: 1.5px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    background: #fff;
   }
 }
 @media (min-width: 768px) {
+  .notice-card-mobile,
   .ticket-card-mobile {
     display: none !important;
   }
 }
+// Affichage tableau/carte responsive pour avis
+@media (max-width: 767.98px) {
+  #notices-list .table {
+    display: none !important;
+  }
+
+}
+
+
 
 // BOUTONS MODALE RESPONSIVE
 @media (max-width: 600px) {
@@ -161,7 +176,6 @@
     align-self: flex-start;
     order: 1;
 }
-.d-none { display: none !important; }
 
 
 // taille des onglets validations/avis
@@ -184,22 +198,6 @@
     white-space: nowrap;
   }
 }
-
-// Affichage tableau/carte responsive pour avis
-@media (max-width: 767.98px) {
-  #notices-list .table {
-    display: none !important;
-  }
-  .notice-card-mobile {
-    display: block;
-  }
-}
-@media (min-width: 768px) {
-  .notice-card-mobile {
-    display: none !important;
-  }
-}
-
 
 #admin-sidebar {
   min-height: 100vh;

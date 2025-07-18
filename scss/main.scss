@@ -1,4 +1,3 @@
-@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css");
 @import 'custom';
 @import 'footer';
 @import 'ecoride';
@@ -127,11 +126,6 @@ p {
 
 .container {
   min-width: 100%;
-}
-
-// Masquer par défaut (mobile)
-.d-none {
-  display: none !important;
 }
 
 // Afficher uniquement à partir de 768px (md)

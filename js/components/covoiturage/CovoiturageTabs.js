@@ -1,4 +1,4 @@
-import { DEFAULT_STATE, STATES_ORDER, STATES_COLORS, STATES_LABELS, STATES_TRANSITIONS } from '../../utils/constants/CovoituragesConstants.js'; // Import des constantes
+import { DEFAULT_STATE, STATES_ORDER, STATES_COLORS, STATES_LABELS, STATES_TRANSITIONS, ENERGIES } from '../../utils/constants/CovoituragesConstants.js'; // Import des constantes
 import { CovoiturageModal } from '../../components/covoiturage/CovoiturageModal.js'; // Import des constantes
 import{ UIHelper } from '../../utils/helpers/UIHelper.js';
 import{ DateUtils } from '../../utils/helpers/DateHelper.js';
@@ -136,7 +136,7 @@ export class CovoiturageTabs {
 					vehicleInfo = `
 						<div class="mb-2">
 							<i class="fas fa-car me-2"></i>${covoiturage.vehicle.brand} ${covoiturage.vehicle.model}
-							<img src="/images/logo-voiture-${covoiturage.vehicle.energy.toLowerCase()}.png" alt="${covoiturage.vehicle.energy}">
+							<img src="/images/logo-voiture-${covoiturage.vehicle.energy.toLowerCase()}.png" alt="${covoiturage.vehicle.energy}" title="${ENERGIES[covoiturage.vehicle.energy]}">
 						</div>
 						<div>
 							<i class="fas fa-user me-1"></i> 
