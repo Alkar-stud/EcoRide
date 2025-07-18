@@ -78,7 +78,10 @@ function generateEnergySelect(energyId = "") {
 // Fonctions principales
 // ======================
 
+// Stocke temporairement la liste des véhicules pour accès par id
+let vehiclesCache = [];
 function displayUserVehicles(vehicles) {
+    vehiclesCache = vehicles;
     const vehicleList = document.getElementById('vehicleList');
     if (!vehicleList) return;
 
@@ -103,7 +106,7 @@ function displayUserVehicles(vehicles) {
             <td class="d-none d-md-table-cell">${vehicle.maxNbPlacesAvailable}</td>
             <td class="d-none d-md-table-cell">${vehicle.energy}</td>
             <td class="d-none d-md-table-cell">
-                <button type="button" class="btn btn-primary btn-sm" onclick="editVehicle(${vehicle.id})">
+                <button type="button" class="btn btn-primary btn-sm" onclick="openVehicleModalById(${vehicle.id})">
                     <i class="bi bi-pencil"></i> Modifier
                 </button>
             </td>
@@ -112,6 +115,15 @@ function displayUserVehicles(vehicles) {
         vehicleList.appendChild(vehicleRow);
     });
 }
+
+
+// Fonction globale pour ouvrir la modale de modification à partir de l'id
+window.openVehicleModalById = function(vehicleId) {
+    const vehicle = vehiclesCache.find(v => v.id === vehicleId);
+    if (vehicle) {
+        openVehicleModal(vehicle, false);
+    }
+};
 
 async function addVehicle() {
     const vehicleForm = document.getElementById("vehicleForm");
@@ -209,7 +221,7 @@ async function refreshVehiclesTab() {
         const vehicles = await rawResponse.json();
 
         if (vehicles) {
-            displayUserVehicles(vehicles);
+            displayUserVehicles(vehicles.data);
             scrollToTop();
         }
     } catch (error) {
@@ -316,3 +328,7 @@ export {
     refreshVehiclesTab,
     openVehicleModal
 };
+
+window.editVehicle = editVehicle;
+window.openVehicleModal = openVehicleModal;
+window.deleteVehicle = deleteVehicle;

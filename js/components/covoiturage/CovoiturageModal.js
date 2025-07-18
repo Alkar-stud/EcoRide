@@ -304,7 +304,7 @@ export class CovoiturageModal {
 
         // Pour le mode édition véhicule
         let vehicleEditHTML = '';
-console.log('ride for modalEdit : ', ride);
+
         if (this.currentMode === 'edit' && reservedSeats === 0) {
             vehicleEditHTML = `
                 <div class="mb-3">

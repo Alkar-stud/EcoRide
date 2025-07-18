@@ -51,8 +51,6 @@ export class CovoiturageTabs {
         }
         
 		this.covoiturages = covoituragesData;
-console.log('covoituragesData au début de display : ', covoituragesData);
-
 
 		// Mettre à jour le statut courant si fourni
         let actualStatus;

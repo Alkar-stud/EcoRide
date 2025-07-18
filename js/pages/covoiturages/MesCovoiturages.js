@@ -28,7 +28,6 @@ export class MesCovoiturages {
 	async initialize() {
 		// Récupérer les rôles utilisateur AVANT de charger les covoiturages
 		this.userInfo = await getUserInfo();
-console.log ('userInfo : ', this.userInfo);
 		
 		// Définir la fonction de rappel AVANT d'initialiser les onglets
 		CovoiturageTabs.setGetCovoituragesCallback(
@@ -54,6 +53,7 @@ console.log ('userInfo : ', this.userInfo);
 		this.initializeTabs(userRoles, this.currentTab);
 		if (userRoles.isDriver) {
 			this.initializeButton('proposerCovoiturageBtn');
+			this.initializeButton('proposerCovoiturageBtnFilter');
 		}		
 		
 	}

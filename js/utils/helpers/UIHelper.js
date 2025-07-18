@@ -22,7 +22,7 @@ export class UIHelper {
 						Essayez un autre filtre ou proposez un nouveau covoiturage !
 					</p>
 					${state === DEFAULT_STATE ? `
-						<button class="btn btn-primary btn-lg mx-auto d-block" id="proposerCovoiturageBtn">
+						<button class="btn btn-primary btn-lg mx-auto d-block" id="proposerCovoiturageBtnFilter">
 							<i class="fas fa-plus me-2"></i>Proposer un covoiturage
 						</button>
 					` : ''}
