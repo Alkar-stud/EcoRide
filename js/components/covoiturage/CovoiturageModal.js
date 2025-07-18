@@ -222,10 +222,14 @@ export class CovoiturageModal {
 			);
 			
 			// Appliquer la restriction de date sur les champs date
-			DateUtils.setupDateRestriction(document.getElementById('dateDepart'));
-			DateUtils.setupDateRestriction(document.getElementById('dateArrivee'));
+            const dateDepartInput = document.getElementById('dateDepart');
+            const dateArriveeInput = document.getElementById('dateArrivee');
+            DateUtils.setupDateRestriction(dateDepartInput);
+            DateUtils.setupDateRestriction(dateArriveeInput);
+            DateUtils.linkDepartureAndArrivalDates(dateDepartInput, dateArriveeInput);
 
-            return; // Sortir de la fonction pour éviter les erreurs
+
+            return; // Sortir de la fonction pour éviter les erreurs de champ non remplis
         }
 
         const covoiturage = this.currentCovoiturage;
@@ -253,6 +257,12 @@ export class CovoiturageModal {
         // Si en mode édition charger les véhicules et gérer l'édition dynamique
         if (this.currentMode === 'edit') {
             this.loadUserVehicles(dataToRender.vehicle?.id);
+            // Appliquer la restriction sur les champs date si présents
+            const dateDepartInput = document.getElementById('dateDepart');
+            const dateArriveeInput = document.getElementById('dateArrivee');
+            DateUtils.setupDateRestriction(dateDepartInput);
+            DateUtils.setupDateRestriction(dateArriveeInput);
+            DateUtils.linkDepartureAndArrivalDates(dateDepartInput, dateArriveeInput);
         }
 		
 		// Ajouter les boutons selon le mode
@@ -327,11 +337,13 @@ export class CovoiturageModal {
         const html = `
             <div class="container-fluid p-0">
                 <!-- En-tête avec trajet -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
+				<div class="row mb-2">
+					<div class="col-12">
+						<div class="card">
+							<div class="card-header bg-primary text-white py-2">
+								<i class="fas fa-route me-2"></i>Trajet
+							</div>
+							<div class="card-body py-2">
                                     <h4 class="card-title mb-0">
                                     ${isEco ? '<span class="badge bg-success"><i class="fas fa-leaf me-1"></i>Véhicule écologique</span>' : ''}
                                     <i class="fas fa-route text-primary me-2"></i>
@@ -340,67 +352,92 @@ export class CovoiturageModal {
                                         <span class="text-success">${ride.arrivalCity}</span>
                                     </h4>
                                 </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <h5><i class="fas fa-map-marker-alt text-danger me-2"></i>Départ</h5>
-                                            <p class="ms-4 mb-1">
-                                                ${formattedDepartureDate} à ${formattedDepartureTime}
-                                            </p>
-                                            <p class="ms-4 mb-0">
-                                                <i class="fas fa-location-dot text-primary me-2"></i>${ride.startingStreet} - ${ride.startingPostCode} ${ride.startingCity}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <h5><i class="fas fa-map-marker-alt text-success me-2"></i>Arrivée</h5>
-                                            <p class="ms-4 mb-1">
-                                                ${formattedArrivalDate} vers ${formattedArrivalTime}
-                                            </p>
-                                            <p class="ms-4 mb-0">
-                                                <i class="fas fa-location-dot text-success me-2"></i>${ride.arrivalStreet} - ${ride.arrivalPostCode} ${ride.arrivalCity}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                                ${this.currentMode === 'edit' ? '':`
-                                <div class="text-center mt-2">
-                                    <span class="badge bg-secondary p-2">
-                                        <i class="fas fa-hourglass-half me-1"></i>
-                                        Durée du trajet: <strong>${durationMinutes}</strong> minutes
-                                    </span>
-                                </div>
-                                `}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+								<div class="row">
+									<div class="col-md-6 mb-2">
+										<label class="form-label">
+											<i class="fas fa-map-marker-alt text-success me-1"></i>Adresse de départ
+										</label>
+										<p class="ms-4 mb-0">
+											<i class="fas fa-location-dot text-primary me-2"></i>${ride.startingStreet} - ${ride.startingPostCode} ${ride.startingCity}
+										</p>
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label">
+											<i class="fas fa-map-marker-alt text-danger me-1"></i>Adresse d'arrivée
+										</label>
+										<p class="ms-4 mb-0">
+											<i class="fas fa-location-dot text-success me-2"></i>${ride.arrivalStreet} - ${ride.arrivalPostCode} ${ride.arrivalCity}
+										</p>
+									</div>
+								</div>
+								
+								<div class="row">
+									<div class="col-md-6 mb-2">
+										<label class="form-label">
+											<i class="fas fa-calendar-alt text-primary me-1"></i>Date de départ
+										</label>
+										${this.currentMode === 'edit' && reservedSeats === 0 ? `
+											<input type="date" class="form-control form-control-sm mb-1" id="dateDepart" value="${departureDate.toISOString().slice(0,10)}" style="max-width:200px;">
+										<label for="heureDepart" class="form-label">
+											<i class="fas fa-clock text-primary me-1"></i>Heure de départ
+										</label>
+											<input type="time" class="form-control form-control-sm" id="heureDepart" name="heureDepart" value="${formattedDepartureTime}" style="max-width:150px;">
+										` : `
+											<p class="ms-4 mb-1">
+												${formattedDepartureDate} à ${formattedDepartureTime}
+											</p>
+										`}
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label">
+											<i class="fas fa-calendar-alt text-primary me-1"></i>Date d'arrivée
+										</label>
+										${this.currentMode === 'edit' && reservedSeats === 0 ? `
+											<input type="date" class="form-control form-control-sm mb-1" id="dateArrivee" value="${formattedArrivalDate.split('/').reverse().join('-')}" style="max-width:200px;">
+										<label for="heureDepart" class="form-label">
+											<i class="fas fa-clock text-primary me-1"></i>Heure d'arrivée
+										</label>
+											<input type="time" class="form-control form-control-sm" id="heureArrivee" name="heureArrivee" value="${formattedArrivalTime}" style="max-width:150px;">
+										` : `
+											<p class="ms-4 mb-1">
+												${formattedArrivalDate} à ${formattedArrivalTime}
+											</p>
+										`}
+									</div>
+								</div>
+								
+							</div>
+						</div>
+					</div>
+				</div>
                 
-                <!-- Infos conducteur et véhicule -->
+                <!-- Infos tarif et véhicule -->
                 <div class="row mb-4">
                     <div class="col-md-6 mb-3 mb-md-0">
                         <div class="card h-100">
-                            <div class="card-header bg-info text-white">
-                                <i class="fas fa-user-circle me-2"></i>Conducteur
+                            <div class="card-header bg-primary text-white">
+                                <i class="fas fa-money-bill-wave me-2"></i>Tarif
                             </div>
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <img src="${photoUrl}${ride.driver.photo}" 
-                                        alt="${ride.driver.pseudo}" 
-                                        class="rounded-circle me-3" 
-                                        style="width: 64px; height: 64px; object-fit: cover;">
-                                    <div>
-                                        <h5 class="mb-1">${ride.driver.pseudo}</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div id="grade-modal-${ride.id}" class="me-2">
-                                                <span>${(ride.driver.grade / 2).toFixed(1)}/5</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            
+							<div class="card-body text-center">
+								${this.currentMode === 'edit' && reservedSeats === 0 ?
+									`<div class="input-group mb-3 justify-content-center">
+										<div class="form-floating">
+											<input type="number" class="form-control" id="price" min="0" value="${ride.price}" style="max-width: 150px;">
+											<label for="price">Prix</label>
+										</div>
+										<span class="input-group-text">
+											<img src="/images/logo_credit_light.png" alt="Crédit" style="width: 24px; height: 24px;">
+										</span>
+									 </div>
+									 <p class="mb-0">Prix par personne pour ce trajet</p>`
+									: 
+									`<h4 class="display-5 text-primary mb-3">
+										${ride.price} <img src="/images/logo_credit_light.png" alt="Crédit" style="width: 32px; height: 32px;">
+									 </h4>
+									 <p class="mb-0">Prix par personne pour ce trajet</p>`
+								}
+							</div>
                         </div>
                     </div>
                     
@@ -429,49 +466,73 @@ export class CovoiturageModal {
                     </div>
                 </div>
                 
-                <!-- Prix et préférences -->
-                <div class="row">
-                    <div class="col-md-6 mb-3 mb-md-0">
-                        <div class="card h-100">
-                            <div class="card-header bg-primary text-white">
-                                <i class="fas fa-money-bill-wave me-2"></i>Tarif
-                            </div>
-                            
-							<div class="card-body text-center">
-								${this.currentMode === 'edit' && reservedSeats === 0 ? 
-									`<div class="input-group mb-3 justify-content-center">
-										<div class="form-floating">
-											<input type="number" class="form-control" id="price" min="0" value="${ride.price}" style="max-width: 150px;">
-											<label for="price">Prix</label>
-										</div>
-										<span class="input-group-text">
-											<img src="/images/logo_credit_light.png" alt="Crédit" style="width: 24px; height: 24px;">
-										</span>
-									 </div>
-									 <p class="mb-0">Prix par personne pour ce trajet</p>`
-									: 
-									`<h4 class="display-5 text-primary mb-3">
-										${ride.price} <img src="/images/logo_credit_light.png" alt="Crédit" style="width: 32px; height: 32px;">
-									 </h4>
-									 <p class="mb-0">Prix par personne pour ce trajet</p>`
-								}
-							</div>
-                        </div>
-                    </div>
-                    
-					<div class="col-md-6">
+                ${this.currentMode === 'edit' ? `
+                <!-- Passager(s) inscrit(s) -->
+				<div class="row">
+					<div class="col-12">
 						<div class="card h-100">
 							<div class="card-header bg-info text-white">
-								<i class="fas fa-sliders-h me-2"></i>Préférences
+								<i class="fas fa-users me-2"></i>Passagers inscrits
 							</div>
 							<div class="card-body">
-								<div class="d-flex flex-wrap">
-									${this.generatePreferencesHTML(ride.driver.userPreferences)}
-								</div>
+								${
+									ride.passenger && ride.passenger.length > 0
+									? ride.passenger.map(passager => `
+										<div class="d-flex align-items-center mb-2">
+											<img src="${photoUrl}${passager.photo || 'default-user.png'}"
+												alt="${passager.pseudo}"
+												class="rounded-circle me-2"
+												style="width: 40px; height: 40px; object-fit: cover;">
+											<span class="fw-bold">${passager.pseudo}</span>
+										</div>
+									`).join('')
+									: '<div class="text-muted">Aucun passager inscrit pour ce trajet.</div>'
+								}
 							</div>
 						</div>
 					</div>
-                </div>
+				</div>
+			` : `
+                <!-- Conducteur et préférences -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <div class="card h-100">
+                                <div class="card-header bg-info text-white">
+                                    <i class="fas fa-user-circle me-2"></i>Conducteur
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="${photoUrl}${ride.driver.photo}" 
+                                            alt="${ride.driver.pseudo}" 
+                                            class="rounded-circle me-3" 
+                                            style="width: 64px; height: 64px; object-fit: cover;">
+                                        <div>
+                                            <h5 class="mb-1">${ride.driver.pseudo}</h5>
+                                            <div class="d-flex align-items-center">
+                                                <div id="grade-modal-${ride.id}" class="me-2">
+                                                    <span>${(ride.driver.grade / 2).toFixed(1)}/5</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-info text-white">
+                                    <i class="fas fa-sliders-h me-2"></i>Préférences
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex flex-wrap">
+                                        ${this.generatePreferencesHTML(ride.driver.userPreferences)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `}
+
             </div>
         `;
         
@@ -876,8 +937,8 @@ try {
         if (!form) return;
 
         const data = {
-//            startingAt: form.dateDepart.value + ' ' + form.heureDepart.value + ':00',
-//            arrivalAt: form.dateArrivee.value + ' ' + form.heureArrivee.value + ':00',
+            startingAt: form.dateDepart.value + ' ' + form.heureDepart.value + ':00',
+            arrivalAt: form.dateArrivee.value + ' ' + form.heureArrivee.value + ':00',
             price: Number(form.price.value),
             nbPlacesAvailable: Number(form.seatsInput.value),
             vehicle: Number(form.vehicleSelect.value)
