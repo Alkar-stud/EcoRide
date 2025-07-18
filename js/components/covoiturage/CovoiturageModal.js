@@ -1125,7 +1125,131 @@ static async handleDeleteRide() {
             cardHeader.className = `card-header ${isEco ? 'bg-primary' : 'bg-secondary'} text-white`;
         }
     }
+    
+    
+    static openValidationModal(rideId) {
+        let isAllOk = null;
+
+        // Réinitialiser le formulaire et l'affichage
+        const form = document.getElementById('validationStep1');
+        const problemeForm = document.getElementById('problemeForm');
+        const btnEnvoyer = document.getElementById('btnEnvoyerValidation');
+        const btnValider = document.getElementById('btnValiderTrajet');
+        const btnProbleme = document.getElementById('btnProblemeTrajet');
+        const noteStep = document.getElementById('noteStep');
+
+        if (form) form.reset();
+        if (problemeForm) problemeForm.style.display = 'none';
+        if (btnEnvoyer) btnEnvoyer.style.display = 'none';
+        if (noteStep) noteStep.style.display = 'none';
+
+        if (btnProbleme) {
+            btnProbleme.onclick = null;
+            btnProbleme.addEventListener('click', function() {
+                isAllOk = false;
+                if (problemeForm) {
+                    problemeForm.style.display = 'block';
+                    document.getElementById('content').setAttribute('required', 'required');
+                }
+                if (btnEnvoyer) btnEnvoyer.style.display = 'inline-block';
+            });
+        }
+        if (btnValider) {
+            btnValider.onclick = null;
+            btnValider.addEventListener('click', function() {
+                isAllOk = true;
+                if (problemeForm) {
+                    problemeForm.style.display = 'none';
+                    document.getElementById('content').removeAttribute('required');
+                }
+                if (btnEnvoyer) btnEnvoyer.style.display = 'inline-block';
+            });
+        }
+
+        if (form) {
+            form.onsubmit = null;
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                if (isAllOk === null) return;
+
+                const data = { isAllOk };
+                if (!isAllOk) {
+                    data.content = document.getElementById('content').value;
+                }
+
+                try {
+                    const response = await apiService.post(
+                        `validation/add/${rideId}`,
+                        data,
+                        getToken()
+                    );
+                    const result = await response.json();
+                    if (result.success) {
+                        // Afficher l'étape note/avis
+                        if (noteStep) noteStep.style.display = 'block';
+                        form.style.display = 'none';
+                    } else {
+                        CovoiturageModal.showToast(result.message || "Erreur lors de la validation", "error");
+                    }
+                } catch (err) {
+                    CovoiturageModal.showToast('Erreur lors de la validation : ' + (err?.message || 'Une erreur inconnue est survenue.'), "error");
+                }
+            });
+        }
+
+        // Gestion de l'envoi de la note/avis
+        if (noteStep) {
+            noteStep.onsubmit = null;
+            noteStep.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const gradeInput = document.querySelector('input[name="grade"]:checked');
+                const titleInput = document.getElementById('title');
+                const avisContentInput = document.getElementById('avisContent');
+
+                const grade = gradeInput ? parseInt(gradeInput.value, 10) : null;
+                const title = titleInput ? titleInput.value : '';
+                const content = avisContentInput ? avisContentInput.value : '';
+                try {
+                    const response = await apiService.post(
+                        `ride/${rideId}/addNotice`,
+                        { grade, title, content },
+                        getToken()
+                    );
+                    const result = await response.json();
+                    if (result.success) {
+                        // Fermer la modale
+                        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('validationCovoiturageModal'));
+                        if (modalInstance) modalInstance.hide();
+                        // Rafraîchir les onglets
+                        CovoiturageTabs.displayCovoiturages('passenger', 1, CovoiturageTabs.currentStatusPassenger);
+                        CovoiturageTabs.displayCovoiturages('driver', 1, CovoiturageTabs.currentStatusDriver);
+                    } else {
+                        CovoiturageModal.showToast(result.message || "Erreur lors de l'envoi de la note", "error");
+                    }
+                } catch (err) {
+                    CovoiturageModal.showToast('Erreur lors de l\'envoi de la note : ' + (err?.message || 'Une erreur inconnue est survenue.'), "error");
+                }
+            });
+        }
+
+        // Rafraîchir aussi à la fermeture de la modale (si l'utilisateur ferme sans noter)
+        const modalEl = document.getElementById('validationCovoiturageModal');
+        const onHide = function() {
+            CovoiturageTabs.displayCovoiturages('passenger', 1, CovoiturageTabs.currentStatusPassenger);
+            CovoiturageTabs.displayCovoiturages('driver', 1, CovoiturageTabs.currentStatusDriver);
+            modalEl.removeEventListener('hidden.bs.modal', onHide);
+            if (form) form.style.display = 'block';
+            if (noteStep) noteStep.style.display = 'none';
+        };
+        modalEl.addEventListener('hidden.bs.modal', onHide);
+
+        // Afficher la modale
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
 }
+
+
 
 // Créer une instance globale pour une utilisation facile
 export const covoiturageModal = new CovoiturageModal();

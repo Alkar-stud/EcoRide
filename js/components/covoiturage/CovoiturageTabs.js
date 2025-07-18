@@ -285,7 +285,8 @@ export class CovoiturageTabs {
 						console.error('Erreur lors de l\'ouverture de la modale de modification:', error);
 					}
 				});
-			});		
+			});
+			
 			
 			// Ajouter les événements pour les boutons de visualisation
 			const voirBtns = container.querySelectorAll('.view-covoiturage-btn');
@@ -358,7 +359,61 @@ export class CovoiturageTabs {
 				});
 			});	
 			
+			// Ajouter les événements pour les boutons de modification => en cours vers stop
+			const stopBtns = container.querySelectorAll('.stop-covoiturage-btn');
+			stopBtns.forEach(btn => {
+				btn.addEventListener('click', async (e) => {
+					e.preventDefault();
+					const covoiturageId = btn.getAttribute('data-covoiturage-id');
+					
+					try {
+						if (!confirm("Êtes-vous bien arrivé ?")) {
+							return;
+						}
+						
+						const response = await apiService.put(`ride/${covoiturageId}/stop`, {}, getToken());
+						const dataResponse = await response.json();
+
+						if (dataResponse.success) {
+							CovoiturageModal.showToast("C'est parti ! Soyez prudent !", "success");
+							if (CovoiturageModal.modal && typeof CovoiturageModal.modal.hide === 'function') {
+								CovoiturageModal.modal.hide();
+							}
+
+							// Aller sur le filtre correspondant à l'état "become" de la transition "stop"
+							const nextStatus = STATES_TRANSITIONS.stop.become;
+							// Mettre à jour le filtre courant
+							if (type === 'driver') {
+								CovoiturageTabs.currentStatusDriver = nextStatus;
+							} else {
+								CovoiturageTabs.currentStatusPassenger = nextStatus;
+							}
+							// Rafraîchir la liste avec le nouveau filtre
+							CovoiturageTabs.displayCovoiturages(type, 1, nextStatus, null, null);
+
+							if (CovoiturageModal.currentInstance && CovoiturageModal.currentInstance.callbacks && typeof CovoiturageModal.currentInstance.callbacks.onSuccess === 'function') {
+								CovoiturageModal.currentInstance.callbacks.onSuccess(nextStatus);
+							}
+						} else {
+							CovoiturageModal.showToast(response.message || "Erreur lors de l'arrêt du covoiturage", "error");
+						}
+						
+						
+					} catch (error) {
+						console.error('Erreur lors de l\'ouverture de la modale de modification:', error);
+					}
+				});
+			});	
 			
+			// Ajouter les événements pour les boutons de validation
+			const validationBtns = container.querySelectorAll('.validate-covoiturage-btn');
+			validationBtns.forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					e.preventDefault();
+					const rideId = btn.getAttribute('data-covoiturage-id');
+					CovoiturageModal.openValidationModal(rideId);
+				});
+			});
 			
 			
 		} catch (error) {
