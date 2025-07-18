@@ -11,5 +11,3 @@ export const apiUrl = url + 'api/';
 //export const photoUrl = url + 'uploads/photos/';
 export const photoUrl = isProd ? url + 'api/uploads/photos/' : url + 'uploads/photos/';
 
-// Afficher l'environnement en console (optionnel)
-console.log(`Environnement: ${isProd ? 'PRODUCTION' : 'LOCAL'}`);

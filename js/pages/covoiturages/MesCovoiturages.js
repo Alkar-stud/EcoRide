@@ -174,10 +174,17 @@ export class MesCovoiturages {
 			createBtn.addEventListener('click', (e) => {
 				e.preventDefault();
 				CovoiturageModal.show('create', null, {
-					onSuccess: () => {
+					onSuccess: async () => {
+						// Toujours recharger la page 1 après création
+						const covoituragesData = await this.getCovoituragesStates(
+							this.currentTab === 'driver' ? this.currentStatusDriver : this.currentStatusPassenger, 1
+						);
+						this.mesCovoituragesData = covoituragesData.data;
+						if (this.currentTab === 'driver') this.currentPageDriver = 1;
+						else this.currentPagePassenger = 1;
 						CovoiturageTabs.displayCovoiturages(
 							this.currentTab,
-							this.currentTab === 'driver' ? this.currentPageDriver : this.currentPagePassenger,
+							1,
 							this.currentTab === 'driver' ? this.currentStatusDriver : this.currentStatusPassenger,
 							this.getUserRoles(),
 							this.mesCovoituragesData
@@ -188,12 +195,7 @@ export class MesCovoiturages {
 		});
 	}
 
-
-
-
 }
-
-
 
 
 // Initialiser la page
@@ -203,10 +205,3 @@ await mesCovoiturages.initialize();
 // Accéder à userInfo en dehors de la classe
 const userInfo = mesCovoiturages.getUserInfo();
 
-console.log('MesCovoiturages instance created:', mesCovoiturages);
-
-/* OU si besoin d'exporter une instance unique 
-// Créer et exporter une instance unique
-const mesCovoituragesInstance = new MesCovoiturages();
-export default mesCovoituragesInstance;
-*/
