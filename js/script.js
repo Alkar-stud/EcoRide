@@ -111,10 +111,6 @@ function sanitizeHtml(text){
 }
 
 
-
-
-
-
 async function showMessage(messageId) {
     const messageElement = document.getElementById(messageId);
     if (messageElement) {
@@ -155,56 +151,6 @@ async function getUserInfo() {
         }
     } catch (error) {
         console.error("Erreur lors de la récupération des informations de l'utilisateur", error);
-    }
-}
-
-/*
- * Fonction pour afficher les étoiles en fonction de la note
- * La note doit être un nombre entre 0 et 10.
- */
-function setGradeStyle(gradeValue, container = document.getElementById("starsContainer")) {
-    // Vérifie si le conteneur existe
-    if (!container) return;
-    
-    // Nettoie le conteneur
-    container.innerHTML = "";
-
-    if (!gradeValue || isNaN(gradeValue)) {
-        // Si la note n'est pas valide, on affiche 5 étoiles vides
-        for (let i = 1; i <= 5; i++) {
-            const star = document.createElement("i");
-            star.classList.add("bi", "bi-star");
-            container.appendChild(star);
-        }
-        return;
-    }
-
-    // La note est un nombre entre 0 et 10, on la ramène sur 5
-    gradeValue = gradeValue / 2;
-
-    // Détermine la couleur selon la note
-    let colorClass = "";
-    if (gradeValue >= 3) {
-        colorClass = "text-success";
-    } else if (gradeValue >= 1.5 && gradeValue < 3) {
-        colorClass = "text-warning";
-    } else {
-        colorClass = "text-danger";
-    }
-
-    // Génère les 5 étoiles avec la bonne couleur
-    for (let i = 1; i <= 5; i++) {
-        const star = document.createElement("i");
-        star.classList.add("bi", colorClass);
-
-        if (gradeValue >= i) {
-            star.classList.add("bi-star-fill");
-        } else if (gradeValue >= i - 0.5) {
-            star.classList.add("bi-star-half");
-        } else {
-            star.classList.add("bi-star");
-        }
-        container.appendChild(star);
     }
 }
 
@@ -285,6 +231,5 @@ export {
     sanitizeHtml,
     showMessage,
     getUserInfo,
-    setGradeStyle,
     sendFetchRequest
 };
