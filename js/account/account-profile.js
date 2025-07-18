@@ -1,7 +1,8 @@
 //Module pour gérer les infos de l'utilisateur
 import { apiUrl, photoUrl } from '../config.js';
-import { getToken, eraseCookie, setGradeStyle, sendFetchRequest } from '../script.js';
+import { getToken, eraseCookie, sendFetchRequest } from '../script.js';
 import { handleRoleAndTabs } from './account.js';
+import { setGradeStyle } from '../utils/RatingUtils.js';
 
 
 //Pour les infos perso du user
@@ -47,9 +48,8 @@ export async function displayUserInfo(user) {
 
 
     //La note globale de l'utilisateur
-    if (user.grade !== null && user.grade !== undefined) {
-        setGradeStyle(user.grade);
-    }
+	setGradeStyle(user.grade);
+    
     
     // Afficher les avis récents
     displayRecentNotices(user);

@@ -11,12 +11,14 @@ export function setGradeStyle(gradeValue, container = document.getElementById("s
     container.innerHTML = "";
 
     if (!gradeValue || isNaN(gradeValue)) {
+
         // Si la note n'est pas valide, on affiche 5 étoiles vides
         for (let i = 1; i <= 5; i++) {
             const star = document.createElement("i");
             star.classList.add("bi", "bi-star");
             container.appendChild(star);
         }
+        container.setAttribute("title", "Pas encore de note");
         return;
     }
 

@@ -151,50 +151,6 @@
                         <div class="col-md-6"></div>
                     </div>
 
-                    <!-- Préférences (masquées en mode view) -->
-                    <div class="mb-4" id="preferencesSection">
-                        <h6><i class="fas fa-cog me-2"></i>Préférences pour ce covoiturage</h6>
-                        
-                        <!-- Préférences prédéfinies (smokingAllowed et petsAllowed) -->
-                        <div class="row" id="predefinedPreferences">
-                            <!-- Ces cases seront cochées automatiquement selon les préférences utilisateur -->
-                        </div>
-                        
-                        <!-- Préférences personnalisées existantes -->
-                        <div id="customPreferences" class="mt-3">
-                            <!-- Les préférences personnalisées seront affichées ici -->
-                        </div>
-                        
-                        <!-- Ajouter une nouvelle préférence (uniquement en mode création/modification) -->
-                        <div class="border p-3 mt-3 bg-light" id="addPreferenceSection">
-                            <h6><i class="fas fa-plus me-2"></i>Ajouter une préférence personnalisée</h6>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control form-control-sm" id="newPrefTitle" 
-                                           placeholder="Titre (obligatoire)" maxlength="50">
-                                </div>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control form-control-sm" id="newPrefDescription" 
-                                           placeholder="Description (facultatif)" maxlength="100">
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-sm btn-success" id="addPreferenceBtn">
-                                        <i class="fas fa-save me-1"></i>Sauvegarder
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="form-text mt-2">
-                                <i class="fas fa-info-circle me-1"></i>
-                                La préférence sera sauvegardée dans votre compte et disponible pour tous vos futurs covoiturages.
-                            </div>
-                        </div>
-                        
-                        <!-- Liste des préférences ajoutées pour ce covoiturage -->
-                        <div id="addedPreferences" class="mt-3">
-                            <!-- Les nouvelles préférences ajoutées apparaîtront ici -->
-                        </div>
-                    </div>
-
                     <!-- Section passagers (affichée uniquement en mode modification et lecture) -->
                     <div class="mb-4" id="passengersSection" style="display: none;">
                         <h6><i class="fas fa-users me-2"></i>Passagers inscrits</h6>

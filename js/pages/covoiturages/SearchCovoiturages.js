@@ -2,9 +2,9 @@ import { photoUrl } from '../../config.js';
 import { CovoiturageSearch } from '../../components/covoiturage/CovoiturageSearch.js';
 import { apiService } from '../../core/ApiService.js';
 import { DateUtils } from '../../utils/helpers/DateHelper.js'; // Ajouter cette importation
-import { covoiturageModal } from '../../components/covoiturage/CovoiturageModal.js';
 import { setGradeStyle } from '../../utils/RatingUtils.js';
 import { getUserInfo, getToken } from '../../script.js';
+import { CovoiturageModal } from '../../components/covoiturage/CovoiturageModal.js';
 
 export class SearchCovoiturages {
     constructor() {
@@ -604,7 +604,7 @@ export class SearchCovoiturages {
                 }
             }
             // Afficher la modale avec les données du covoiturage
-            covoiturageModal.show(mode, data, {
+            CovoiturageModal.show(mode, data, {
                 onSuccess: () => {
                     // Rafraîchir les résultats après une action
                     this.performSearch();

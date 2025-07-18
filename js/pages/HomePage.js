@@ -2,8 +2,7 @@ import { CovoiturageSearch } from '../components/covoiturage/CovoiturageSearch.j
 
 export class HomePage {
     constructor() {
-        console.log("HomePage: Initialisation...");
-        
+       
         // Initialiser le composant de recherche
         this.covoiturageSearch = new CovoiturageSearch({
             selectors: {
