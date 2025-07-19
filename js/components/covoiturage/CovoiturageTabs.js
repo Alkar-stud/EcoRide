@@ -375,7 +375,7 @@ export class CovoiturageTabs {
 						const dataResponse = await response.json();
 
 						if (dataResponse.success) {
-							CovoiturageModal.showToast("C'est parti ! Soyez prudent !", "success");
+							CovoiturageModal.showToast("Bon séjour !", "success");
 							if (CovoiturageModal.modal && typeof CovoiturageModal.modal.hide === 'function') {
 								CovoiturageModal.modal.hide();
 							}

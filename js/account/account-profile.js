@@ -109,17 +109,16 @@ async function setUserInfo() {
 
 // Fonction pour afficher les 3 avis les plus récents
 function displayRecentNotices(user) {
-    if (!user.notices?.ridesNotices || Object.keys(user.notices.ridesNotices).length === 0) {
+    console.log("Affichage des avis récents pour l'utilisateur :", user);
+    if (!user.notices?.ridesNotices || user.notices.ridesNotices.length === 0) {
         notices.innerHTML = "<em>Aucun avis pour le moment</em>";
         return;
     }
+    const noticesArray = user.notices.ridesNotices || [];
 
-    // Convertir l'objet en tableau
-    const noticesArray = Object.values(user.notices.ridesNotices);
-    
     // Trier par date de création (du plus récent au plus ancien)
-    noticesArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
+    noticesArray.sort((a, b) => new Date(b.startingAt) - new Date(a.startingAt));
+
     // Prendre les 3 premiers avis
     const recentNotices = noticesArray.slice(0, 3);
     

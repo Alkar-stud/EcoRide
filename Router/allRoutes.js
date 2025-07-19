@@ -12,7 +12,7 @@ export const allRoutes = [
     new Route("/mescovoiturages", "Mes covoiturages", "/pages/covoiturages/mescovoiturages.html", ["ROLE_USER"], "/js/pages/covoiturages/MesCovoiturages.js"),
     new Route("/searchcovoiturages", "Recherche de covoiturages", "/pages/covoiturages/searchcovoiturages.html", [], "/js/pages/covoiturages/SearchCovoiturages.js"),
     new Route("/ecoride/validation", "Validation des avis", "/pages/ecoride/validation.html", ["ROLE_EMPLOYEE", "ROLE_ADMIN"], "/js/pages/admin/ValidationsPage.js"),
-    new Route("/ecoride/admin", "Administration", "/pages/ecoride/admin.html", ["ROLE_ADMIN"], "/js/ecoride/admin.js"),
+    new Route("/ecoride/admin", "Administration", "/pages/ecoride/admin.html", ["ROLE_ADMIN"], "/js/pages/admin/AdminPage.js"),
 
 ];
 

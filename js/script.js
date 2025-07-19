@@ -144,7 +144,8 @@ async function getUserInfo() {
         if (response.id) {
             //Récupération des avis associés à l'utilisateur
             let responseNotices = await sendFetchRequest(apiUrl + "notices/" + response.id, getToken(), 'GET', null);
-            response.notices = await responseNotices.json();
+            let dataNotices = await responseNotices.json();
+            response.notices = dataNotices.data;
             return response;
         } else {
             console.error("Impossible de récupérer les informations de l'utilisateur");
