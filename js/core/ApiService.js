@@ -36,7 +36,6 @@ export class ApiService {
         
         // Ajouter le corps de la requête si nécessaire
         if (body) {
-//console.log('Données envoyées à l\'API:', body);
             if (isFile) {
                 // Pour FormData, ne pas définir Content-Type (le navigateur le fait automatiquement)
                 requestOptions.body = body;
@@ -45,7 +44,7 @@ export class ApiService {
                 requestOptions.body = body;
             }
         }
-//console.log('URL de la requête :', url);
+
         try {
            
             // Stocker la promesse de requête
@@ -54,7 +53,7 @@ export class ApiService {
             
             // Attendre la réponse
             const response = await requestPromise;
-//console.log('Données brutes reçues de l\'API:', response);
+
             // Gérer les erreurs non-HTTP (réseau, CORS, etc.)
             if (!response.ok) {
                 // On ne lance pas d'exception pour permettre à l'appelant de gérer l'erreur

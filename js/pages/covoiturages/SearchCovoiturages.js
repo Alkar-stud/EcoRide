@@ -124,7 +124,7 @@ export class SearchCovoiturages {
 				apiRequestData.MinDriverGrade = parseFloat(filters.minDriverRating);
 			}
 			
-			if (filters.ecoFilter === 'eco') {
+			if (filters.isEco === 'eco') {
 				apiRequestData.isEco = true;
 			}
 			
@@ -133,13 +133,15 @@ export class SearchCovoiturages {
 			
 			// Effectuer la recherche via l'API
 			const response = await apiService.post('ride/search', apiRequestData);
-			
+
 			// Vérifier si la réponse est OK
 			if (!response.ok) {
+
 				// Extraire le message d'erreur si possible
 				let errorMsg = "Erreur serveur";
 				try {
 					const errorData = await response.json();
+
 					errorMsg = errorData.message || `Erreur ${response.status}`;
 				} catch (e) {
 					errorMsg = `Erreur ${response.status}: ${response.statusText}`;
@@ -150,7 +152,7 @@ export class SearchCovoiturages {
 			
 			// Extraire les données JSON de la réponse
 			const responseData = await response.json();
-			
+
 			// Mettre à jour l'URL avec les paramètres de recherche sans recharger la page
 			//l'opérateur spread (symbole composé de trois points) "..." permet de scinder un objet itérable, donc aussi les tableaux, en ses valeurs individuelles.
 			this.updateUrlWithParams({...searchData, ...filters});
@@ -245,11 +247,6 @@ export class SearchCovoiturages {
 	 * @param {Object} response - Réponse de l'API
 	 */
 	displayResults(response) {
-		if (!this.resultsContainer) {
-			console.error("Conteneur de résultats introuvable");
-			return;
-		}
-		
 		try {
 			// Cacher le message initial s'il existe
 			if (this.initialMessage) {
@@ -258,18 +255,8 @@ export class SearchCovoiturages {
 			
 			// Effacer les résultats précédents
 			this.resultsContainer.innerHTML = '';
-			
-			// Vérifier si la requête a réussi
-			if (!response || !response.success) {
-				this.resultsContainer.innerHTML = `
-					<div class="alert alert-danger">
-						<h4 class="alert-heading">Erreur</h4>
-						<p>${response?.message || 'Une erreur est survenue lors de la recherche.'}</p>
-					</div>
-				`;
-				return;
-			}
-			
+		
+            
 			// Vérifier s'il y a des covoiturages
 			if (!response.rides || response.rides.length === 0) {
 				this.resultsContainer.innerHTML = `
@@ -280,6 +267,18 @@ export class SearchCovoiturages {
 				`;
 				return;
 			}
+
+			// Vérifier si la requête a réussi
+			if (!response || !response.success) {
+				this.resultsContainer.innerHTML = `
+					<div class="alert alert-danger">
+						<h4 class="alert-heading">Erreur </h4>
+						<p>${response?.message || 'Une erreur est survenue lors de la recherche.'}</p>
+					</div>
+				`;
+				return;
+			}
+		
 			
 			// Construction du HTML pour l'affichage des résultats
 			let html = '';
