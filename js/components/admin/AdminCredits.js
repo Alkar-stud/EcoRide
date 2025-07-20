@@ -15,8 +15,8 @@ export class AdminCredits {
                 apiService.get('ecoride/START_CREDIT', getToken()).then(r => r.json()),
                 apiService.get('ecoride/TOTAL_CREDIT', getToken()).then(r => r.json())
             ]);
-            const credits = totalCreditRes?.parameterValue ?? 0;
-            const start = startCreditRes?.parameterValue ?? 0;
+            const credits = totalCreditRes?.data.parameterValue ?? 0;
+            const start = startCreditRes?.data.parameterValue ?? 0;
             const variation = credits - start;
 
             if (this.creditsTotal && this.arrow && this.varValue) {

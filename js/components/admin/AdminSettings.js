@@ -10,8 +10,8 @@ export class AdminSettings {
         this.injectHtml();
         this.loadParams();
 
-        // Listeners
-        document.getElementById('param-search-form').addEventListener('submit', e => {
+        // Listeners (après injection du HTML !)
+        document.getElementById('searchButton').addEventListener('click', (e) => {
             e.preventDefault();
             this.loadParams(document.getElementById('param-search-input').value.trim());
         });
@@ -23,51 +23,112 @@ export class AdminSettings {
     }
 
     injectHtml() {
-        if (this.settingsPane.innerHTML.trim()) return;
         this.settingsPane.innerHTML = `
             <h2>Gestion des paramètres</h2>
-            <form id="param-search-form" class="mb-3 d-flex">
-                <input id="param-search-input" class="form-control me-2" placeholder="Rechercher un libellé...">
-                <button class="btn btn-primary" type="submit">Rechercher</button>
+            <form id="param-search-form" class="mb-3 d-flex align-items-center" autocomplete="off">
+                <input id="param-search-input" class="form-control me-2" placeholder="Rechercher par libellé..." style="max-width:250px;">
+                <button class="btn btn-primary" id="searchButton" type="button">Rechercher</button>
                 <button class="btn btn-secondary ms-2" type="button" id="param-reset-btn">Réinitialiser</button>
             </form>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Libellé</th>
-                        <th>Valeur</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="params-table-body"></tbody>
-            </table>
+            <div id="params-msg" class="mb-2"></div>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle" id="params-table">
+                    <thead>
+                        <tr>
+                            <th>Libellé</th>
+                            <th>Valeur</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="params-table-body"></tbody>
+                </table>
+            </div>
         `;
     }
 
     async loadParams(filterLibelle = '') {
-        // Appel API pour récupérer les paramètres
-        const params = await apiService.get(`/api/admin/params?libelle=${encodeURIComponent(filterLibelle)}`, getToken()).then(r => r.json());
         const tbody = document.getElementById('params-table-body');
-        tbody.innerHTML = params.map(param => `
-            <tr>
-                <td>${param.libelle}</td>
-                <td>
-                    <input type="text" class="form-control" value="${param.valeur}" data-id="${param.id}">
-                </td>
-                <td>
-                    <button class="btn btn-success btn-sm save-param-btn" data-id="${param.id}">Enregistrer</button>
-                </td>
-            </tr>
-        `).join('');
+        const msgDiv = document.getElementById('params-msg');
+        tbody.innerHTML = '';
+        msgDiv.textContent = '';
+
+        try {
+            let res;
+            if (filterLibelle) {
+                res = await apiService.get(
+                    `ecoride/${encodeURIComponent(filterLibelle)}`,
+                    getToken()
+                ).then(r => r.json());
+
+                // On force la data en tableau pour homogénéiser l'affichage
+                if (res?.success && res.data) {
+                    res.data = Array.isArray(res.data) ? res.data : [res.data];
+                }
+            } else {
+                res = await apiService.get(
+                    'ecoride/list',
+                    getToken()
+                ).then(r => r.json());
+            }
+            if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+                tbody.innerHTML = res.data.map(param => `
+                    <tr data-id="${param.id}">
+                        <td>${param.libelle}</td>
+                        <td>
+                            <input type="text" class="form-control param-value-input" value="${param.parameterValue}" style="max-width:120px;display:inline-block;">
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary save-param-btn">Enregistrer</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-muted">Aucun paramètre trouvé.</td></tr>`;
+            }
+        } catch (e) {
+            console.error("Erreur lors du chargement des paramètres:", e);
+            msgDiv.textContent = "Erreur lors du chargement des paramètres.";
+            msgDiv.className = "text-danger mb-2";
+        }
     }
 
     async handleSaveParam(e) {
-        if (e.target.classList.contains('save-param-btn')) {
-            const id = e.target.getAttribute('data-id');
-            const input = document.querySelector(`input[data-id="${id}"]`);
-            const valeur = input.value;
-            await apiService.post(`/api/admin/params/${id}`, { valeur }, getToken());
-            alert('Paramètre enregistré !');
+        if (!e.target.classList.contains('save-param-btn')) return;
+        const row = e.target.closest('tr');
+        const id = row.getAttribute('data-id');
+        const input = row.querySelector('.param-value-input');
+        const value = input.value.trim();
+        const msgDiv = document.getElementById('params-msg');
+        msgDiv.textContent = '';
+        msgDiv.className = '';
+
+        if (!value) {
+            msgDiv.textContent = "La valeur ne peut pas être vide.";
+            msgDiv.className = "text-danger mb-2";
+            return;
         }
+
+        e.target.disabled = true;
+        try {
+            const res = await apiService.send(
+                `ecoride/${id}`,
+                getToken(),
+                'PUT',
+                JSON.stringify({ parameterValue: value })
+            );
+            const data = await res.json();
+            if (data?.success) {
+                msgDiv.textContent = "Paramètre mis à jour.";
+                msgDiv.className = "text-success mb-2";
+                this.loadParams(document.getElementById('param-search-input').value.trim());
+            } else {
+                msgDiv.textContent = data?.message || "Erreur lors de la mise à jour.";
+                msgDiv.className = "text-danger mb-2";
+            }
+        } catch (err) {
+            msgDiv.textContent = "Erreur lors de la mise à jour.";
+            msgDiv.className = "text-danger mb-2";
+        }
+        e.target.disabled = false;
     }
 }
