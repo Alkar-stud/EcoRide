@@ -166,7 +166,6 @@ export class ValidationsNotices {
         const notices = this.lastData?.data || [];
         const notice = notices.find(n => n.notice.id == noticeId);
         if (!notice) return;
-
         document.getElementById('modal-notice-id').textContent = notice.notice.id;
         this.modalDetails.innerHTML = `
             <div><strong>Départ :</strong> ${UIHelper.sanitizeHtml(notice.relatedFor.startingCity)}</div>
@@ -179,6 +178,10 @@ export class ValidationsNotices {
             <div><strong>Note :</strong> ${UIHelper.sanitizeHtml(notice.notice.grade)}</div>
             <div><strong>Titre :</strong> ${UIHelper.sanitizeHtml(notice.notice.title)}</div>
             <div><strong>Commentaire :</strong> ${UIHelper.sanitizeHtml(notice.notice.content)}</div>
+			${isClosed
+				? `<div><strong>Traité par : </strong> ${notice.processedBy.pseudo} (${notice.processedBy.email})</div>`
+				: ``
+			}
             <div class="d-flex justify-content-between mt-3">
                 ${isClosed
                     ? `<button id="close-only-notice" class="btn btn-secondary w-100">Fermer</button>`

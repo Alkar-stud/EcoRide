@@ -9,10 +9,11 @@ export const allRoutes = [
     new Route("/signup", "Inscription", "/pages/auth/signup.html", ["disconnected"], "/js/auth/signup.js"),
     new Route("/account", "Mon compte", "/pages/account/account.html", ["ROLE_EMPLOYEE", "ROLE_ADMIN", "ROLE_USER"], "/js/account/account.js"),
     new Route("/editPassword", "Changement de mot de passe", "/pages/account/editPassword.html", ["ROLE_USER", "ROLE_EMPLOYEE", "ROLE_ADMIN"], "/js/account/editPassword.js"),
+    new Route("/forgotPassword", "Mot de passe oublié ?", "/pages/account/forgotPassword.html", ["disconnected"], "/js/pages/account/forgotPassword.js"),
     new Route("/mescovoiturages", "Mes covoiturages", "/pages/covoiturages/mescovoiturages.html", ["ROLE_USER"], "/js/pages/covoiturages/MesCovoiturages.js"),
     new Route("/searchcovoiturages", "Recherche de covoiturages", "/pages/covoiturages/searchcovoiturages.html", [], "/js/pages/covoiturages/SearchCovoiturages.js"),
     new Route("/ecoride/validation", "Validation des avis", "/pages/ecoride/validation.html", ["ROLE_EMPLOYEE", "ROLE_ADMIN"], "/js/pages/admin/ValidationsPage.js"),
-    new Route("/ecoride/admin", "Administration", "/pages/ecoride/admin.html", ["ROLE_ADMIN"], "/js/ecoride/admin.js"),
+    new Route("/ecoride/admin", "Administration", "/pages/ecoride/admin.html", ["ROLE_ADMIN"], "/js/pages/admin/AdminPage.js"),
 
 ];
 

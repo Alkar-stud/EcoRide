@@ -61,5 +61,3 @@ export class ValidationsPage {
 
 // Initialiser la page
 new ValidationsPage();
-
-console.log('Pages des validations : ', ValidationsPage);
