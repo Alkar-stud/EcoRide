@@ -172,6 +172,7 @@ export class AdminStats {
             },
             options: {
                 responsive: true,
+                aspectRatio: 5,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true } }
             }
