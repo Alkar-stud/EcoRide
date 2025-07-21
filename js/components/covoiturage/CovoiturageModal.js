@@ -334,6 +334,29 @@ export class CovoiturageModal {
             `;
         }
 
+        //Pour afficher les avis du conducteur
+        const notices = ride.driver?.notices || [];
+        const preferences = ride.driver?.userPreferences || [];
+
+        const avisHtml = notices.length > 0
+            ? `<div class="avis-list">
+                ${notices.map((notice, i) => `
+                    <div class="card mb-2">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>${notice.title}</strong>
+                                <div id="stars-notice-${i}" class="me-2"></div>
+                                <small>(${notice.grade}/10)</small>
+                            </div>
+                            <p class="mb-1">${notice.content}</p>
+                            <small class="text-muted">Posté le ${new Date(notice.createdAt).toLocaleDateString()}</small>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>`
+            : `<div class="text-muted">Aucun avis pour ce conducteur</div>`;
+
+
         const html = `
             <div class="container-fluid p-0">
                 <!-- En-tête avec trajet -->
@@ -476,17 +499,20 @@ export class CovoiturageModal {
 							</div>
 							<div class="card-body">
 								${
-									ride.passenger && ride.passenger.length > 0
-									? ride.passenger.map(passager => `
-										<div class="d-flex align-items-center mb-2">
-											<img src="${photoUrl}${passager.photo || 'default-user.png'}"
-												alt="${passager.pseudo}"
-												class="rounded-circle me-2"
-												style="width: 40px; height: 40px; object-fit: cover;">
-											<span class="fw-bold">${passager.pseudo}</span>
-										</div>
-									`).join('')
-									: '<div class="text-muted">Aucun passager inscrit pour ce trajet.</div>'
+                                    ride.passenger && ride.passenger.length > 0
+                                        ? ride.passenger.map(passager => {
+                                            const photoSrc = passager.photo ? (photoUrl + passager.photo) : '/images/default-avatar.png';
+                                            return `
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <img src="${photoSrc}"
+                                                        alt="${passager.pseudo}"
+                                                        class="rounded-circle me-2"
+                                                        style="width: 40px; height: 40px; object-fit: cover;">
+                                                    <span class="fw-bold">${passager.pseudo}</span>
+                                                </div>
+                                            `;
+                                        }).join('')
+                                        : '<div class="text-muted">Aucun passager inscrit pour ce trajet.</div>'
 								}
 							</div>
 						</div>
@@ -494,43 +520,54 @@ export class CovoiturageModal {
 				</div>
 			` : `
                 <!-- Conducteur et préférences -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <div class="card h-100">
-                                <div class="card-header bg-info text-white">
-                                    <i class="fas fa-user-circle me-2"></i>Conducteur
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <img src="${photoUrl}${ride.driver.photo}" 
-                                            alt="${ride.driver.pseudo}" 
-                                            class="rounded-circle me-3" 
-                                            style="width: 64px; height: 64px; object-fit: cover;">
-                                        <div>
-                                            <h5 class="mb-1">${ride.driver.pseudo}</h5>
-                                            <div class="d-flex align-items-center">
-                                                <div id="grade-modal-${ride.id}" class="me-2">
-                                                    <span>${(ride.driver.grade / 2).toFixed(1)}/5</span>
+                        <div class="row">
+                            <div class="col-md-6 d-flex flex-column">
+                                <!-- Bloc Conducteur -->
+                                <div class="card mb-3 h-50">
+                                    <div class="card-header bg-info text-white">
+                                        <i class="fas fa-user-circle me-2"></i>Conducteur
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <img src="${photoUrl}${ride.driver.photo}" 
+                                                alt="${ride.driver.pseudo}" 
+                                                class="rounded-circle me-3" 
+                                                style="width: 64px; height: 64px; object-fit: cover;">
+                                            <div>
+                                                <h5 class="mb-1">${ride.driver.pseudo}</h5>
+                                                <div class="d-flex align-items-center">
+                                                    <div id="grade-modal-${ride.id}" class="me-2">
+                                                        <span>${(ride.driver.grade / 2).toFixed(1)}/5</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <div class="card-header bg-info text-white">
-                                    <i class="fas fa-sliders-h me-2"></i>Préférences
+                                <!-- Bloc Préférences -->
+                                <div class="card h-50">
+                                    <div class="card-header bg-info text-white">
+                                        <i class="fas fa-sliders-h me-2"></i>Préférences
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex flex-wrap">
+                                            ${this.generatePreferencesHTML(preferences)}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="card-body">
-                                    <div class="d-flex flex-wrap">
-                                        ${this.generatePreferencesHTML(ride.driver.userPreferences)}
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Bloc Avis -->
+                                <div class="card h-100">
+                                    <div class="card-header bg-warning text-dark">
+                                        <i class="fas fa-star me-2"></i>Avis sur le conducteur
+                                    </div>
+                                    <div class="card-body">
+                                        ${avisHtml}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                 `}
 
             </div>
@@ -945,19 +982,35 @@ try {
         };
 
         try {
-            const response = await apiService.put(`ride/update/${this.currentCovoiturage.id}`, data, getToken());
-            const dataResponse = await response.json();
 
-            if (dataResponse.success) {
-                this.showToast("Le covoiturage a été modifié", "success");
-                this.modal.hide();
-                
-                if (this.callbacks.onSuccess) {
-                    this.callbacks.onSuccess();
+            const response = await apiService.put(`ride/update/${this.currentCovoiturage.data.id}`, data, getToken());
+
+            if (response.ok) {
+                if (response.status === 204) {
+                    this.showToast("Le covoiturage a été modifié avec succès", "success");
+                    this.modal.hide();
+                    
+                    if (this.callbacks.onSuccess) {
+                        this.callbacks.onSuccess();
+                    }
+                    return
                 }
-            } else {
-                this.showToast(response.message || "Erreur lors de la modification", "error");
+                const dataResponse = await response.json();
+                if (response.success) {
+                    this.showToast("Le covoiturage a été modifié", "success");
+                    this.modal.hide();
+                    
+                    if (this.callbacks.onSuccess) {
+                        this.callbacks.onSuccess();
+                    }
+                } else {
+                    this.showToast(response.message || "Erreur lors de la modification", "error");
+                }
+            } else if (response.status === 400) {
+                const errorData = await response.json();
+                this.showToast(errorData.message || "Erreur de validation des données", "error");
             }
+
         } catch (error) {
             console.error("Erreur lors de la modification du covoiturage:", error);
             this.showToast("Erreur lors de la modification du covoiturage", "error");
