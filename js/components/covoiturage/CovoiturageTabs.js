@@ -51,7 +51,7 @@ export class CovoiturageTabs {
         }
         
 		this.covoiturages = covoituragesData;
-
+console.log('covoituragesData', covoituragesData); // Debugging pour vérifier les données récupérées
 		// Mettre à jour le statut courant si fourni
         let actualStatus;
         if (status !== null) {
@@ -231,7 +231,7 @@ export class CovoiturageTabs {
 			container.appendChild(covoituragesList);
 			
 			// Pagination
-			let paginationInfo = covoituragesData.pagination?.[type];
+			let paginationInfo = covoituragesData.pagination;
 			const currentPage = paginationInfo?.page_courante || 1;
 			const totalPages = paginationInfo?.pages_totales || 1;
 			const elementsParPage = paginationInfo?.elements_par_page || 10;
