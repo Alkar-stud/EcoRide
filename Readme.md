@@ -6,4 +6,4 @@ Ce site est la partie Front de la startup EcoRide pour le projet ECF de Studi
 2. Construire le docker `sudo docker build -t ecoride_front .`
 3. Lancer le docker `sudo docker run -d -p 3000:3000 --name ecoride_front_container ecoride_front`
 
-Le dossier local étant monté dans le conteneur, le développement se fait sans avoir à reconstruire l'image
+Une fois l'installation terminée, le front est disponible ici https://localhost:3000.
