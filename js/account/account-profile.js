@@ -109,7 +109,6 @@ async function setUserInfo() {
 
 // Fonction pour afficher les 3 avis les plus récents
 function displayRecentNotices(user) {
-    console.log("Affichage des avis récents pour l'utilisateur :", user);
     if (!user.notices?.ridesNotices || user.notices.ridesNotices.length === 0) {
         notices.innerHTML = "<em>Aucun avis pour le moment</em>";
         return;
